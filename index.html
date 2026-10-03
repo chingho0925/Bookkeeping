@@ -532,9 +532,9 @@
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !parseFloat(document.getElementById('customRateInput').value);
         }
         function applyCustomCurrency() {
-            const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value);
-            appData.rates[code] = rate; saveData(); previousCurrency = code; refreshCurrencyDropdowns(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); updateTWDPreview();
-        }
+    const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value);
+    appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); updateTWDPreview();
+}
         function updateTWDPreview() { document.getElementById('twdPreview').innerText = `換算台幣: NT$ ${Math.round((parseFloat(document.getElementById('itemAmount').value)||0) * (appData.rates[document.getElementById('itemCurrency').value]||1)).toLocaleString()}`; }
         document.getElementById('itemAmount').addEventListener('input', updateTWDPreview);
     </script>
