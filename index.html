@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風旅行帳簿 (進階完整版)</title>
+    <title>和風旅行帳簿 (安全防護版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -25,7 +25,6 @@
             padding: 0; 
         }
         
-        /* 離線與載入狀態列 */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #F9F3EC; z-index: 2000;
@@ -42,7 +41,6 @@
             display: none; 
         }
 
-        /* 登入畫面 */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #F9F3EC; background-image: radial-gradient(#D6C5B3 1px, transparent 1px);
@@ -57,12 +55,11 @@
         .login-card h2 { color: #2F3E46; margin-top: 0; font-size: 22px; }
         .login-card p { font-size: 13px; color: #84A59D; margin-bottom: 25px; }
 
-        /* 修正 1：改用 Grid 網格，徹底解決按鈕與標題重疊的問題 */
         .header { 
             background-color: #2F3E46; color: #F9F3EC; padding: 15px 20px; 
             border-radius: 12px; 
             display: grid; 
-            grid-template-columns: 40px 1fr 40px; /* 左側按鈕區、中間標題區、右側留白區 */
+            grid-template-columns: 40px 1fr 40px; 
             align-items: center; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
             min-height: 60px;
@@ -70,17 +67,13 @@
         .menu-btn { 
             background: none; border: none; color: #F9F3EC; 
             font-size: 24px; cursor: pointer; padding: 0; margin: 0; 
-            line-height: 1; z-index: 5;
-            justify-self: start; /* 貼齊左側 */
+            line-height: 1; z-index: 5; justify-self: start;
         }
-        .header-title-container { 
-            text-align: center; 
-        }
+        .header-title-container { text-align: center; }
         .header h1 { margin: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .edit-title-icon { font-size: 14px; cursor: pointer; opacity: 0.7; }
         .trip-period-text { font-size: 12px; opacity: 0.8; margin-top: 4px; color: #D6C5B3; }
 
-        /* 側邊欄 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; z-index: 99; backdrop-filter: blur(2px); }
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background-color: #F9F3EC; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 100; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .sidebar.open { left: 0; }
@@ -94,14 +87,12 @@
         .budget-bar { background-color: #EAE2D6; border-radius: 8px; height: 18px; width: 100%; overflow: hidden; margin-top: 10px; }
         .budget-fill { background-color: #F28482; height: 100%; width: 0%; transition: width 0.4s ease, background-color 0.4s ease; }
         
-        /* 消費列表與分類標籤 */
         .filter-container { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
         .filter-chip { padding: 6px 12px; background: #EAE2D6; border-radius: 16px; font-size: 12px; cursor: pointer; white-space: nowrap; color: #4A3B32; }
         .filter-chip.active { background: #84A59D; color: white; font-weight: bold; }
         
         .date-header { font-size: 13px; font-weight: bold; color: #2F3E46; padding: 8px 0 4px 0; border-bottom: 2px solid #84A59D; margin-top: 12px; }
         .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #D6C5B3; padding: 10px 0; }
-        .expense-thumb { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid #D6C5B3; margin-right: 8px; }
 
         input, select, button { width: 100%; padding: 11px; margin-top: 8px; border: 1px solid #D6C5B3; border-radius: 8px; font-family: inherit; font-size: 14px; background: white; box-sizing: border-box; }
         input[type="date"] { color: #E07A5F; font-weight: bold; }
@@ -120,7 +111,6 @@
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
         .api-result-box { background-color: #E8F0EE; border: 1px solid #84A59D; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; }
 
-        /* 右鍵選單 */
         .context-menu { display: none; position: absolute; background: white; border: 1px solid #D6C5B3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 1000; border-radius: 8px; overflow: hidden; min-width: 120px; }
         .context-menu-item { padding: 10px 15px; cursor: pointer; font-size: 14px; color: #4A3B32; }
         .context-menu-item:hover { background-color: #E8F0EE; }
@@ -150,7 +140,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span>⛩️ 旅程選擇</span>
+            <span>⛩️️ 旅程選擇</span>
             <span style="cursor:pointer;" onclick="toggleSidebar(false)">✕</span>
         </div>
         <div class="sidebar-content">
@@ -165,17 +155,16 @@
 
     <!-- 主介面 -->
     <div class="app-container" id="main-app">
-        <!-- 修正 1：Grid 佈局的 Header -->
         <div class="header">
             <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
             <div class="header-title-container">
                 <h1>
                     <span id="header-trip-name">載入中...</span>
-                    <span class="edit-title-icon" onclick="openEditTripModal()">✏️</span>
+                    <span class="edit-title-icon" onclick="openEditTripModal()">✏️️</span>
                 </h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
-            <div></div> <!-- Grid 右側佔位，用以維持標題絕對置中 -->
+            <div></div>
         </div>
 
         <!-- 預算卡片 -->
@@ -191,7 +180,7 @@
             <div class="budget-bar"><div class="budget-fill" id="budget-fill"></div></div>
         </div>
 
-        <!-- 功能 1：消費佔比圓餅圖 -->
+        <!-- 消費佔比圖表 -->
         <div class="card" id="chartCard">
             <h3 style="margin-top:0; color:#2F3E46;">📊 消費分類佔比</h3>
             <div style="max-width: 280px; margin: 0 auto;">
@@ -199,7 +188,7 @@
             </div>
         </div>
 
-        <!-- 功能 3：成員分帳統計小計 -->
+        <!-- 成員分帳統計 -->
         <div class="card" id="payerSummaryCard">
             <h3 style="margin-top:0; color:#2F3E46;">👫 成員付款統計</h3>
             <div id="payerSummaryList" style="font-size:14px; line-height: 1.8;"></div>
@@ -208,11 +197,10 @@
         <!-- 新增消費卡片 -->
         <div class="card">
             <h3 style="margin-top: 0; color: #2F3E46;">📝 新增消費</h3>
-            <input type="text" id="itemName" placeholder="項目名稱 (例如：拉麵、藥妝)" required>
+            <input type="text" id="itemName" placeholder="項目名稱 (例如：拉麵、藥妝)" maxlength="50" required>
             <div class="form-group">
-                <div><input type="number" id="itemAmount" placeholder="金額" required min="0" step="any"></div>
+                <div><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any"></div>
                 <div style="display:flex; gap: 5px; align-items:flex-end;">
-                    <!-- 修正 2：加入 oncontextmenu 事件，並在旁邊加入齒輪按鈕 -->
                     <select id="itemCurrency" onchange="handleCurrencyChange(this.value)" oncontextmenu="openCurrencyContextMenu(event)" style="flex:1;" title="可點擊右側齒輪編輯匯率，或在框框上點擊右鍵">
                         <option value="JPY">日圓 (JPY)</option>
                         <option value="TWD">台幣 (TWD)</option>
@@ -233,19 +221,15 @@
                         <option value="其他">📌 其他</option>
                     </select>
                 </div>
-                <div><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我"></div>
+                <div><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
             </div>
             <div class="form-group" style="margin-top:4px;">
                 <div><input type="date" id="itemDate" required></div>
-                <div>
-                    <!-- 功能 4：收據照片上傳 -->
-                    <input type="file" id="itemPhoto" accept="image/*" style="padding: 7px; font-size:12px;">
-                </div>
             </div>
             <button class="primary-btn" onclick="addExpense()">記上一筆</button>
         </div>
 
-        <!-- 功能 6：消費紀錄與篩選 -->
+        <!-- 消費紀錄 -->
         <div class="card">
             <h3 style="margin-top: 0; color: #2F3E46;">🧾 消費紀錄</h3>
             <div class="filter-container">
@@ -253,7 +237,7 @@
                 <div class="filter-chip" onclick="setFilter('餐飲', this)">🍱 餐飲</div>
                 <div class="filter-chip" onclick="setFilter('交通', this)">🚃 交通</div>
                 <div class="filter-chip" onclick="setFilter('住宿', this)">🏨 住宿</div>
-                <div class="filter-chip" onclick="setFilter('購物', this)">🛍️ 購物</div>
+                <div class="filter-chip" onclick="setFilter('購物', this)">🛍️️ 購物</div>
                 <div class="filter-chip" onclick="setFilter('娛樂', this)">🎟️ 娛樂</div>
                 <div class="filter-chip" onclick="setFilter('其他', this)">📌 其他</div>
             </div>
@@ -267,21 +251,14 @@
         <div class="context-menu-item danger" onclick="contextDeleteCurrency()">🗑️ 刪除此幣別</div>
     </div>
 
-    <!-- 照片檢視彈窗 -->
-    <div class="modal" id="photoModal" onclick="closeModal('photoModal')">
-        <div class="modal-content" style="text-align:center; background:transparent; box-shadow:none;">
-            <img id="modalImage" src="" style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-        </div>
-    </div>
-
     <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
             <input type="hidden" id="editExpId">
-            <input type="text" id="editExpName" placeholder="項目名稱">
+            <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
             <div class="form-group" style="margin-top:10px;">
-                <div><input type="number" id="editExpAmount" placeholder="金額" min="0" step="any"></div>
+                <div><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any"></div>
                 <div><select id="editExpCurrency"></select></div>
             </div>
             <div class="form-group" style="margin-top:10px;">
@@ -295,7 +272,7 @@
                         <option value="其他">📌 其他</option>
                     </select>
                 </div>
-                <div><input type="text" id="editExpPayer" placeholder="付款人"></div>
+                <div><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
             <div class="form-group" style="margin-top:10px;">
                 <div><input type="date" id="editExpDate"></div>
@@ -311,13 +288,13 @@
     <div class="modal" id="editTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯旅程設定</h3>
-            <input type="text" id="editTripNameInput" placeholder="旅行名稱">
+            <input type="text" id="editTripNameInput" placeholder="旅行名稱" maxlength="50">
             <div class="form-group" style="margin-top:10px;">
                 <div><label style="font-size:13px;">出發：</label><input type="date" id="editTripStartInput"></div>
                 <div><label style="font-size:13px;">回程：</label><input type="date" id="editTripEndInput"></div>
             </div>
             <label style="font-size:13px; margin-top:10px; display:block;">總預算 (台幣 TWD)：</label>
-            <input type="number" id="editTripBudgetInput" min="0">
+            <input type="number" id="editTripBudgetInput" min="0" max="999999999">
             <div class="form-group" style="margin-top:15px;">
                 <button onclick="closeModal('editTripModal')" style="background:#ccc;">取消</button>
                 <button class="primary-btn" style="margin-top:0;" onclick="saveTripDetails()">儲存修改</button>
@@ -328,13 +305,13 @@
     <div class="modal" id="addTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">➕ 新增旅行紀錄</h3>
-            <input type="text" id="newTripNameInput" placeholder="例如：京都賞楓 6 日遊">
+            <input type="text" id="newTripNameInput" placeholder="例如：京都賞楓 6 日遊" maxlength="50">
             <div class="form-group" style="margin-top:10px;">
                 <div><label style="font-size:13px;">出發：</label><input type="date" id="newTripStartInput"></div>
                 <div><label style="font-size:13px;">回程：</label><input type="date" id="newTripEndInput"></div>
             </div>
             <label style="font-size:13px; margin-top:10px; display:block;">總預算 (台幣 TWD)：</label>
-            <input type="number" id="newTripBudgetInput" placeholder="40000" min="0">
+            <input type="number" id="newTripBudgetInput" placeholder="40000" min="0" max="999999999">
             <div class="form-group" style="margin-top:15px;">
                 <button onclick="closeModal('addTripModal')" style="background:#ccc;">取消</button>
                 <button class="primary-btn" style="margin-top:0;" onclick="createNewTrip()">建立</button>
@@ -358,14 +335,14 @@
             <h3 style="margin-top:0;">🌐 自訂幣別與查詢</h3>
             <label style="font-size:13px; font-weight:bold;">幣別代碼：</label>
             <div class="form-group">
-                <div><input type="text" id="customCodeInput" placeholder="GBP" style="text-transform:uppercase;"></div>
+                <div><input type="text" id="customCodeInput" placeholder="GBP" maxlength="5" style="text-transform:uppercase;"></div>
                 <div style="flex:0 0 110px;"><button class="primary-btn" style="margin-top:8px;" onclick="fetchCurrencyRate()">🔍 查詢</button></div>
             </div>
             <div id="apiStatusContainer" style="display:none;" class="api-result-box">
                 <div id="apiStatusMessage">查詢中...</div>
                 <div style="margin-top:8px;">
                     <label style="font-size:12px; font-weight:bold;">匯率 (對換 TWD)：</label>
-                    <input type="number" id="customRateInput" step="any">
+                    <input type="number" id="customRateInput" step="any" min="0">
                 </div>
             </div>
             <div class="form-group" style="margin-top:15px;">
@@ -376,13 +353,24 @@
     </div>
 
     <script>
+        // 防護 1：HTML 轉義函式 (防止 XSS 腳本攻擊)
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4",
-   		    authDomain: "bookkeeping-app-cf680.firebaseapp.com",
-   		    projectId: "bookkeeping-app-cf680",
-   		    storageBucket: "bookkeeping-app-cf680.firebasestorage.app",
-   		    messagingSenderId: "480039184522",
-   		    appId: "1:480039184522:web:31658c3229b8fa0cef2573",
+            authDomain: "bookkeeping-app-cf680.firebaseapp.com",
+            projectId: "bookkeeping-app-cf680",
+            storageBucket: "bookkeeping-app-cf680.firebasestorage.app",
+            messagingSenderId: "480039184522",
+            appId: "1:480039184522:web:31658c3229b8fa0cef2573",
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -400,6 +388,7 @@
         let contextTargetCurrency = null;
         let currentFilterCategory = 'ALL';
         let expenseChart = null;
+        let isFetchingRate = false; // API 發送鎖定
 
         const defaultAppData = {
             activeTripId: "trip_1",
@@ -409,14 +398,13 @@
             }]
         };
 
-        // 離線支援與監聽
         window.addEventListener('online', checkNetworkStatus);
         window.addEventListener('offline', checkNetworkStatus);
         function checkNetworkStatus() {
             const el = document.getElementById('network-status');
             if (navigator.onLine) {
                 el.style.display = 'none';
-                saveData(); // 連線時同步
+                saveData();
             } else {
                 el.style.display = 'block';
             }
@@ -441,7 +429,7 @@
             if (user) {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('loading-overlay').style.display = 'flex';
-                document.getElementById('user-info').innerText = `已登入: ${user.displayName}`;
+                document.getElementById('user-info').innerText = `已登入: ${escapeHTML(user.displayName || user.email)}`;
                 
                 try {
                     const docRef = db.collection("users").doc(user.uid);
@@ -483,28 +471,6 @@
             }
         }
 
-        /* 圖片輕量化壓縮處理 */
-        function compressAndGetBase64(file, callback) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let maxDim = 350;
-                    let width = img.width; let height = img.height;
-                    if (width > height) { if (width > maxDim) { height *= maxDim / width; width = maxDim; } }
-                    else { if (height > maxDim) { width *= maxDim / height; height = maxDim; } }
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.6));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        /* 修正 2：右鍵選單呼叫函數 */
         function openCurrencyContextMenu(e) {
             e.preventDefault();
             const selectEl = document.getElementById('itemCurrency');
@@ -522,7 +488,6 @@
             contextMenu.style.top = e.pageY + 'px';
         }
 
-        /* 點擊空白處關閉右鍵選單 */
         document.addEventListener('click', (e) => {
             if (e.target.id !== 'itemCurrency') {
                 document.getElementById('currencyContextMenu').style.display = 'none';
@@ -531,17 +496,20 @@
 
         function contextEditCurrency() {
             if(!contextTargetCurrency) return;
-            const newRate = prompt(`請輸入 ${contextTargetCurrency} 的新匯率:`, appData.rates[contextTargetCurrency]);
-            if(newRate && !isNaN(parseFloat(newRate))) {
-                appData.rates[contextTargetCurrency] = parseFloat(newRate);
+            const newRate = prompt(`請輸入 ${escapeHTML(contextTargetCurrency)} 的新匯率:`, appData.rates[contextTargetCurrency]);
+            const parsedRate = parseFloat(newRate);
+            if(newRate && !isNaN(parsedRate) && parsedRate > 0) {
+                appData.rates[contextTargetCurrency] = parsedRate;
                 saveData(); updateUI();
+            } else if (newRate !== null) {
+                alert('請輸入有效的數字匯率');
             }
             document.getElementById('currencyContextMenu').style.display = 'none';
         }
 
         function contextDeleteCurrency() {
             if(!contextTargetCurrency) return;
-            if(confirm(`確定刪除 ${contextTargetCurrency} 幣別？`)) {
+            if(confirm(`確定刪除 ${escapeHTML(contextTargetCurrency)} 幣別？`)) {
                 delete appData.rates[contextTargetCurrency];
                 saveData(); updateUI();
             }
@@ -550,16 +518,14 @@
 
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
 
-        /* 主 UI 渲染 */
         function updateUI() {
             const trip = getActiveTrip();
             if (!trip) return;
 
             document.getElementById('header-trip-name').innerText = trip.name;
-            document.getElementById('header-trip-period').innerText = `${trip.startDate} ~ ${trip.endDate}`;
-            document.getElementById('total-budget').innerText = trip.budget.toLocaleString();
+            document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
+            document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             
-            // 幣別選單更新
             const selectEl = document.getElementById('itemCurrency');
             const currentVal = selectEl.value;
             selectEl.innerHTML = '';
@@ -582,7 +548,6 @@
                 selectEl.value = 'JPY';
             }
 
-            // 紀錄渲染 (分類篩選與日期群組)
             const listEl = document.getElementById('expense-list');
             const spentEl = document.getElementById('total-spent');
             const fillEl = document.getElementById('budget-fill');
@@ -593,19 +558,16 @@
             const sortedExpenses = [...trip.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
             const filteredExpenses = currentFilterCategory === 'ALL' ? sortedExpenses : sortedExpenses.filter(e => e.category === currentFilterCategory);
 
-            // 計算全額與付款人總額
             trip.expenses.forEach(exp => {
-                const twd = Math.round(exp.amount * (appData.rates[exp.currency] || 1));
+                const twd = Math.round((parseFloat(exp.amount) || 0) * (appData.rates[exp.currency] || 1));
                 totalTWD += twd;
                 const payer = exp.payer || '我';
                 payerTotals[payer] = (payerTotals[payer] || 0) + twd;
             });
 
-            // 渲染付款人小計表
             const payerSummaryEl = document.getElementById('payerSummaryList');
-            payerSummaryEl.innerHTML = Object.keys(payerTotals).map(p => `<div>👤 <strong>${p}</strong> 已支付: NT$ ${payerTotals[p].toLocaleString()}</div>`).join('');
+            payerSummaryEl.innerHTML = Object.keys(payerTotals).map(p => `<div>👤 <strong>${escapeHTML(p)}</strong> 已支付: NT$ ${payerTotals[p].toLocaleString()}</div>`).join('');
 
-            // 按日期分開群組渲染
             let lastDate = "";
             if (filteredExpenses.length === 0) {
                 listEl.innerHTML = '<p style="text-align:center; color:#84A59D; margin-top:15px;">尚無相關消費紀錄</p>';
@@ -615,26 +577,23 @@
                         lastDate = exp.date;
                         const dHeader = document.createElement('div');
                         dHeader.className = 'date-header';
-                        dHeader.innerText = `📅 ${exp.date}`;
+                        dHeader.innerText = `📅 ${escapeHTML(exp.date)}`;
                         listEl.appendChild(dHeader);
                     }
                     const rate = appData.rates[exp.currency] || 1;
-                    const twdAmount = Math.round(exp.amount * rate);
+                    const twdAmount = Math.round((parseFloat(exp.amount) || 0) * rate);
                     const div = document.createElement('div');
                     div.className = 'expense-item';
                     div.innerHTML = `
-                        <div style="display:flex; align-items:center;">
-                            ${exp.photo ? `<img src="${exp.photo}" class="expense-thumb" onclick="openPhotoModal('${exp.photo}')">` : ''}
-                            <div>
-                                <strong>${exp.name}</strong> <span class="payer-tag">${exp.payer || '我'}</span><br>
-                                <small style="color:#84A59D; font-weight:bold;">${exp.category}</small>
-                                <br>
-                                <button class="delete-btn" style="color:#84A59D; border-color:#84A59D;" onclick="openEditExpenseModal(${exp.id})">編輯</button>
-                                <button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
-                            </div>
+                        <div>
+                            <strong>${escapeHTML(exp.name)}</strong> <span class="payer-tag">${escapeHTML(exp.payer || '我')}</span><br>
+                            <small style="color:#84A59D; font-weight:bold;">${escapeHTML(exp.category)}</small>
+                            <br>
+                            <button class="delete-btn" style="color:#84A59D; border-color:#84A59D;" onclick="openEditExpenseModal(${exp.id})">編輯</button>
+                            <button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
                         </div>
                         <div style="text-align: right;">
-                            <strong>${exp.currency} ${exp.amount.toLocaleString()}</strong><br>
+                            <strong>${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br>
                             <small style="color:#777;">≈ NT$ ${twdAmount.toLocaleString()}</small>
                         </div>
                     `;
@@ -652,12 +611,11 @@
             renderChart(trip);
         }
 
-        /* 渲染 Chart.js 圓餅圖 */
         function renderChart(trip) {
             const ctx = document.getElementById('expenseChart').getContext('2d');
             const categories = {};
             trip.expenses.forEach(exp => {
-                const twd = Math.round(exp.amount * (appData.rates[exp.currency] || 1));
+                const twd = Math.round((parseFloat(exp.amount) || 0) * (appData.rates[exp.currency] || 1));
                 categories[exp.category] = (categories[exp.category] || 0) + twd;
             });
             const labels = Object.keys(categories);
@@ -684,7 +642,6 @@
             });
         }
 
-        /* 新增消費 */
         function addExpense() {
             const name = document.getElementById('itemName').value.trim();
             const amount = parseFloat(document.getElementById('itemAmount').value);
@@ -692,41 +649,34 @@
             const category = document.getElementById('itemCategory').value;
             const payer = document.getElementById('itemPayer').value.trim() || '我';
             const date = document.getElementById('itemDate').value;
-            const photoInput = document.getElementById('itemPhoto');
 
-            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER') return alert('請填寫完整資訊！');
-
-            const saveRecord = (photoBase64 = null) => {
-                getActiveTrip().expenses.unshift({ id: Date.now(), name, amount, currency, category, payer, date, photo: photoBase64 });
-                saveData(); 
-                document.getElementById('itemName').value = ''; 
-                document.getElementById('itemAmount').value = '';
-                document.getElementById('itemPhoto').value = '';
-                updateUI();
-            };
-
-            if (photoInput.files && photoInput.files[0]) {
-                compressAndGetBase64(photoInput.files[0], (base64) => saveRecord(base64));
-            } else {
-                saveRecord(null);
+            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER') {
+                return alert('請填寫正確且完整的資訊！');
             }
+
+            getActiveTrip().expenses.unshift({ id: Date.now(), name, amount, currency, category, payer, date });
+            saveData(); 
+            document.getElementById('itemName').value = ''; 
+            document.getElementById('itemAmount').value = '';
+            updateUI();
         }
 
-        /* 匯出 CSV 檔案 */
         function exportToCSV() {
             const trip = getActiveTrip();
             if (!trip || trip.expenses.length === 0) return alert('目前沒有消費紀錄可匯出！');
             
             let csv = "\uFEFF日期,分類,項目名稱,原幣金額,幣別,付款人,換算台幣(TWD)\n";
             trip.expenses.forEach(e => {
-                const twd = Math.round(e.amount * (appData.rates[e.currency] || 1));
-                csv += `"${e.date}","${e.category}","${e.name.replace(/"/g, '""')}",${e.amount},"${e.currency}","${e.payer||'我'}",${twd}\n`;
+                const twd = Math.round((parseFloat(e.amount) || 0) * (appData.rates[e.currency] || 1));
+                const cleanName = String(e.name).replace(/"/g, '""');
+                const cleanPayer = String(e.payer || '我').replace(/"/g, '""');
+                csv += `"${e.date}","${e.category}","${cleanName}",${e.amount},"${e.currency}","${cleanPayer}",${twd}\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `${trip.name}_消費明細.csv`;
+            link.download = `${trip.name.replace(/[\\/:*?"<>|]/g, '_')}_消費明細.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -738,11 +688,6 @@
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             updateUI();
-        }
-
-        function openPhotoModal(src) {
-            document.getElementById('modalImage').src = src;
-            document.getElementById('photoModal').classList.add('open');
         }
 
         function deleteExpense(id) {
@@ -801,14 +746,14 @@
                     const isActive = trip.id === appData.activeTripId;
                     const div = document.createElement('div');
                     div.className = `trip-menu-item ${isActive ? 'active' : ''}`;
-                    const spent = trip.expenses.reduce((sum, e) => sum + Math.round(e.amount * (appData.rates[e.currency] || 1)), 0);
+                    const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (appData.rates[e.currency] || 1)), 0);
                     div.innerHTML = `
-                        <div onclick="switchTrip('${trip.id}')" style="flex-grow:1;">
-                            <div style="font-size:15px;">${trip.name}</div>
-                            <small style="color:#666;">${trip.startDate} ~ ${trip.endDate}</small><br>
+                        <div onclick="switchTrip('${escapeHTML(trip.id)}')" style="flex-grow:1;">
+                            <div style="font-size:15px;">${escapeHTML(trip.name)}</div>
+                            <small style="color:#666;">${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}</small><br>
                             <small style="color:#84A59D;">花費: $${spent.toLocaleString()}</small>
                         </div>
-                        ${appData.trips.length > 1 ? `<span onclick="deleteTrip('${trip.id}', event)" style="color:#F28482; font-size:12px;">🗑️</span>` : ''}
+                        ${appData.trips.length > 1 ? `<span onclick="deleteTrip('${escapeHTML(trip.id)}', event)" style="color:#F28482; font-size:12px;">🗑️</span>` : ''}
                     `;
                     container.appendChild(div);
                 });
@@ -821,15 +766,15 @@
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function openEditTripModal() { const t = getActiveTrip(); document.getElementById('editTripNameInput').value = t.name; document.getElementById('editTripStartInput').value = t.startDate; document.getElementById('editTripEndInput').value = t.endDate; document.getElementById('editTripBudgetInput').value = t.budget; document.getElementById('editTripModal').classList.add('open'); }
         function saveTripDetails() {
-            const name = document.getElementById('editTripNameInput').value; const start = document.getElementById('editTripStartInput').value; const end = document.getElementById('editTripEndInput').value; const budget = parseFloat(document.getElementById('editTripBudgetInput').value);
-            if (!name || isNaN(budget) || !start || !end) return alert('請填寫完整！');
+            const name = document.getElementById('editTripNameInput').value.trim(); const start = document.getElementById('editTripStartInput').value; const end = document.getElementById('editTripEndInput').value; const budget = parseFloat(document.getElementById('editTripBudgetInput').value);
+            if (!name || isNaN(budget) || budget < 0 || !start || !end) return alert('請填寫完整正確的資訊！');
             const t = getActiveTrip(); t.name = name; t.startDate = start; t.endDate = end; t.budget = budget;
             saveData(); updateUI(); closeModal('editTripModal');
         }
 
         function openAddTripModal() { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=getLocalDateString(); document.getElementById('newTripEndInput').value=getLocalDateString(); document.getElementById('addTripModal').classList.add('open'); }
         function createNewTrip() {
-            const name = document.getElementById('newTripNameInput').value; const start = document.getElementById('newTripStartInput').value; const end = document.getElementById('newTripEndInput').value; const budget = parseFloat(document.getElementById('newTripBudgetInput').value) || 30000;
+            const name = document.getElementById('newTripNameInput').value.trim(); const start = document.getElementById('newTripStartInput').value; const end = document.getElementById('newTripEndInput').value; const budget = parseFloat(document.getElementById('newTripBudgetInput').value) || 30000;
             if (!name) return alert('請輸入名稱！');
             const t = { id: 'trip_'+Date.now(), name, startDate: start, endDate: end, budget, expenses: [] };
             appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false);
@@ -840,16 +785,16 @@
             Object.keys(appData.rates).forEach(code => {
                 const div = document.createElement('div'); div.style.display = 'flex'; div.style.marginBottom = '10px'; div.style.alignItems = 'center';
                 div.innerHTML = `
-                    <span style="width:80px; font-weight:bold;">${code}</span>
-                    <input type="number" id="rate_${code}" value="${appData.rates[code]}" style="flex:1; margin:0;" ${code==='TWD'?'disabled':''}>
-                    ${code !== 'TWD' ? `<button class="delete-btn" style="margin-left:10px; margin-top:0;" onclick="deleteRate('${code}')">刪除</button>` : ''}
+                    <span style="width:80px; font-weight:bold;">${escapeHTML(code)}</span>
+                    <input type="number" id="rate_${escapeHTML(code)}" value="${appData.rates[code]}" step="any" min="0" style="flex:1; margin:0;" ${code==='TWD'?'disabled':''}>
+                    ${code !== 'TWD' ? `<button class="delete-btn" style="margin-left:10px; margin-top:0;" onclick="deleteRate('${escapeHTML(code)}')">刪除</button>` : ''}
                 `;
                 container.appendChild(div);
             });
             document.getElementById('ratesModal').classList.add('open'); toggleSidebar(false);
         }
 
-        function deleteRate(code) { if(confirm(`確定刪除 ${code}？`)) { delete appData.rates[code]; saveData(); updateUI(); openRatesModal(); } }
+        function deleteRate(code) { if(confirm(`確定刪除 ${escapeHTML(code)}？`)) { delete appData.rates[code]; saveData(); updateUI(); openRatesModal(); } }
         function saveRatesConfig() {
             Object.keys(appData.rates).forEach(code => { if (code !== 'TWD') { const el = document.getElementById('rate_'+code); if(el) appData.rates[code] = parseFloat(el.value) || appData.rates[code]; } });
             saveData(); updateUI(); closeModal('ratesModal');
@@ -857,21 +802,45 @@
 
         function handleCurrencyChange(val) { if (val === 'CUSTOM_TRIGGER') { document.getElementById('customCodeInput').value=''; document.getElementById('customRateInput').value=''; document.getElementById('apiStatusContainer').style.display='none'; document.getElementById('applyCustomBtn').disabled=true; document.getElementById('customCurrencyModal').classList.add('open'); } else { previousCurrency = val; updateTWDPreview(); } }
         function cancelCustomCurrency() { closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = previousCurrency || 'JPY'; updateTWDPreview(); }
+        
+        // 防護 2：API 冷卻與過濾處理
         async function fetchCurrencyRate() {
+            if (isFetchingRate) return;
             const rawCode = document.getElementById('customCodeInput').value.trim().toUpperCase();
-            if (!rawCode) return alert('請輸入代碼');
-            document.getElementById('apiStatusContainer').style.display = 'block'; document.getElementById('apiStatusMessage').innerHTML = '⏳ 查詢中...';
+            if (!rawCode || !/^[A-Z]{3,5}$/.test(rawCode)) return alert('請輸入有效的 3-5 位英文字母幣別代碼 (如 USD)');
+            
+            isFetchingRate = true;
+            document.getElementById('apiStatusContainer').style.display = 'block'; 
+            document.getElementById('apiStatusMessage').innerHTML = '⏳ 查詢中...';
+            
             try {
-                const res = await fetch(`https://open.er-api.com/v6/latest/${rawCode}`); const data = await res.json();
-                if (data.result === 'success' && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; }
-                else { document.getElementById('apiStatusMessage').innerHTML = '⚠️ 請手動輸入匯率'; document.getElementById('applyCustomBtn').disabled = false; }
-            } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠️ 連線失敗，請手動輸入'; document.getElementById('applyCustomBtn').disabled = false; }
-            document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !parseFloat(document.getElementById('customRateInput').value);
+                const res = await fetch(`https://open.er-api.com/v6/latest/${encodeURIComponent(rawCode)}`); 
+                const data = await res.json();
+                if (data.result === 'success' && data.rates && data.rates.TWD) { 
+                    document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; 
+                    document.getElementById('customRateInput').value = data.rates.TWD; 
+                    document.getElementById('applyCustomBtn').disabled = false; 
+                } else { 
+                    document.getElementById('apiStatusMessage').innerHTML = '⚠️ 請手動輸入匯率'; 
+                    document.getElementById('applyCustomBtn').disabled = false; 
+                }
+            } catch(e) { 
+                document.getElementById('apiStatusMessage').innerHTML = '⚠️ 連線失敗，請手動輸入'; 
+                document.getElementById('applyCustomBtn').disabled = false; 
+            } finally {
+                setTimeout(() => { isFetchingRate = false; }, 2000); // 限制發送頻率
+            }
+            document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0);
         }
+
         function applyCustomCurrency() {
-            const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value);
+            const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); 
+            const rate = parseFloat(document.getElementById('customRateInput').value);
+            if (!code || isNaN(rate) || rate <= 0) return alert('請輸入正確的幣別與匯率');
+            
             appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); updateTWDPreview();
         }
+
         function updateTWDPreview() { document.getElementById('twdPreview').innerText = `換算台幣: NT$ ${Math.round((parseFloat(document.getElementById('itemAmount').value)||0) * (appData.rates[document.getElementById('itemCurrency').value]||1)).toLocaleString()}`; }
         document.getElementById('itemAmount').addEventListener('input', updateTWDPreview);
     </script>
