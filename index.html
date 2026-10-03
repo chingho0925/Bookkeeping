@@ -57,22 +57,25 @@
         .login-card h2 { color: #2F3E46; margin-top: 0; font-size: 22px; }
         .login-card p { font-size: 13px; color: #84A59D; margin-bottom: 25px; }
 
-        /* 標題欄排版修正：按鈕絕對靠左 */
+        /* 修正 1：改用 Grid 網格，徹底解決按鈕與標題重疊的問題 */
         .header { 
             background-color: #2F3E46; color: #F9F3EC; padding: 15px 20px; 
-            border-radius: 12px; display: flex; align-items: center; 
-            justify-content: center; 
-            position: relative; 
+            border-radius: 12px; 
+            display: grid; 
+            grid-template-columns: 40px 1fr 40px; /* 左側按鈕區、中間標題區、右側留白區 */
+            align-items: center; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
             min-height: 60px;
         }
         .menu-btn { 
-            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
             background: none; border: none; color: #F9F3EC; 
-            font-size: 24px; cursor: pointer; padding: 5px; margin: 0; 
+            font-size: 24px; cursor: pointer; padding: 0; margin: 0; 
             line-height: 1; z-index: 5;
+            justify-self: start; /* 貼齊左側 */
         }
-        .header-title-container { text-align: center; }
+        .header-title-container { 
+            text-align: center; 
+        }
         .header h1 { margin: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .edit-title-icon { font-size: 14px; cursor: pointer; opacity: 0.7; }
         .trip-period-text { font-size: 12px; opacity: 0.8; margin-top: 4px; color: #D6C5B3; }
@@ -162,6 +165,7 @@
 
     <!-- 主介面 -->
     <div class="app-container" id="main-app">
+        <!-- 修正 1：Grid 佈局的 Header -->
         <div class="header">
             <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
             <div class="header-title-container">
@@ -171,6 +175,7 @@
                 </h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
+            <div></div> <!-- Grid 右側佔位，用以維持標題絕對置中 -->
         </div>
 
         <!-- 預算卡片 -->
@@ -206,12 +211,14 @@
             <input type="text" id="itemName" placeholder="項目名稱 (例如：拉麵、藥妝)" required>
             <div class="form-group">
                 <div><input type="number" id="itemAmount" placeholder="金額" required min="0" step="any"></div>
-                <div>
-                    <select id="itemCurrency" onchange="handleCurrencyChange(this.value)" title="點擊右鍵可編輯或刪除此幣別">
+                <div style="display:flex; gap: 5px; align-items:flex-end;">
+                    <!-- 修正 2：加入 oncontextmenu 事件，並在旁邊加入齒輪按鈕 -->
+                    <select id="itemCurrency" onchange="handleCurrencyChange(this.value)" oncontextmenu="openCurrencyContextMenu(event)" style="flex:1;" title="可點擊右側齒輪編輯匯率，或在框框上點擊右鍵">
                         <option value="JPY">日圓 (JPY)</option>
                         <option value="TWD">台幣 (TWD)</option>
                         <option value="CUSTOM_TRIGGER" style="font-weight:bold; color:#E07A5F;">➕ 其他...</option>
                     </select>
+                    <button type="button" onclick="openRatesModal()" style="width:auto; padding:0 10px; height:44px; margin-top:8px; background:#E8F0EE; border:1px solid #84A59D; color:#2F3E46; font-size:16px;" title="管理幣別與匯率">⚙️</button>
                 </div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
@@ -300,7 +307,7 @@
         </div>
     </div>
 
-    <!-- 旅程彈窗... (保持相容) -->
+    <!-- 旅程彈窗 -->
     <div class="modal" id="editTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯旅程設定</h3>
@@ -341,7 +348,7 @@
             <div id="ratesInputList"></div>
             <div class="form-group" style="margin-top:15px;">
                 <button onclick="closeModal('ratesModal')" style="background:#ccc;">取消</button>
-                <button class="primary-btn" style="margin-top:0;" onclick="saveRatesConfig()">更新</button>
+                <button class="primary-btn" style="margin-top:0;" onclick="saveRatesConfig()">更新儲存</button>
             </div>
         </div>
     </div>
@@ -402,7 +409,7 @@
             }]
         };
 
-        // 功能 2：離線支援與監聽
+        // 離線支援與監聽
         window.addEventListener('online', checkNetworkStatus);
         window.addEventListener('offline', checkNetworkStatus);
         function checkNetworkStatus() {
@@ -497,19 +504,30 @@
             reader.readAsDataURL(file);
         }
 
-        /* 右鍵選單 */
-        const currencySelect = document.getElementById('itemCurrency');
-        const contextMenu = document.getElementById('currencyContextMenu');
-        currencySelect.addEventListener('contextmenu', function(e) {
+        /* 修正 2：右鍵選單呼叫函數 */
+        function openCurrencyContextMenu(e) {
             e.preventDefault();
-            const currentVal = this.value;
-            if(currentVal === 'TWD' || currentVal === 'CUSTOM_TRIGGER') return alert('預設選項不可編輯！');
+            const selectEl = document.getElementById('itemCurrency');
+            const currentVal = selectEl.value;
+            
+            if(currentVal === 'TWD' || currentVal === 'CUSTOM_TRIGGER') {
+                alert('預設選項無法編輯！若要管理其他幣別可點擊右側 ⚙️ 按鈕。');
+                return;
+            }
+            
             contextTargetCurrency = currentVal;
+            const contextMenu = document.getElementById('currencyContextMenu');
             contextMenu.style.display = 'block';
-            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 150) + 'px';
+            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 120) + 'px';
             contextMenu.style.top = e.pageY + 'px';
+        }
+
+        /* 點擊空白處關閉右鍵選單 */
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'itemCurrency') {
+                document.getElementById('currencyContextMenu').style.display = 'none';
+            }
         });
-        document.addEventListener('click', (e) => { if (e.target.id !== 'itemCurrency') contextMenu.style.display = 'none'; });
 
         function contextEditCurrency() {
             if(!contextTargetCurrency) return;
@@ -518,7 +536,7 @@
                 appData.rates[contextTargetCurrency] = parseFloat(newRate);
                 saveData(); updateUI();
             }
-            contextMenu.style.display = 'none';
+            document.getElementById('currencyContextMenu').style.display = 'none';
         }
 
         function contextDeleteCurrency() {
@@ -527,7 +545,7 @@
                 delete appData.rates[contextTargetCurrency];
                 saveData(); updateUI();
             }
-            contextMenu.style.display = 'none';
+            document.getElementById('currencyContextMenu').style.display = 'none';
         }
 
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
@@ -555,7 +573,14 @@
             triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 其他...';
             triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F';
             selectEl.appendChild(triggerOpt);
-            selectEl.value = appData.rates[currentVal] ? currentVal : (previousCurrency || 'JPY');
+            
+            if (appData.rates[currentVal]) {
+                selectEl.value = currentVal;
+            } else if (appData.rates[previousCurrency]) {
+                selectEl.value = previousCurrency;
+            } else {
+                selectEl.value = 'JPY';
+            }
 
             // 紀錄渲染 (分類篩選與日期群組)
             const listEl = document.getElementById('expense-list');
@@ -627,7 +652,7 @@
             renderChart(trip);
         }
 
-        /* 功能 1：渲染 Chart.js 圓餅圖 */
+        /* 渲染 Chart.js 圓餅圖 */
         function renderChart(trip) {
             const ctx = document.getElementById('expenseChart').getContext('2d');
             const categories = {};
@@ -687,7 +712,7 @@
             }
         }
 
-        /* 功能 5：匯出 CSV 檔案 */
+        /* 匯出 CSV 檔案 */
         function exportToCSV() {
             const trip = getActiveTrip();
             if (!trip || trip.expenses.length === 0) return alert('目前沒有消費紀錄可匯出！');
