@@ -202,6 +202,35 @@
         </div>
     </div>
 
+    <div class="modal" id="editExpenseModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
+            <input type="hidden" id="editExpId">
+            <input type="text" id="editExpName" placeholder="項目名稱">
+            <div class="form-group" style="margin-top:10px;">
+                <div><input type="number" id="editExpAmount" placeholder="金額" min="0" step="any"></div>
+                <div><select id="editExpCurrency"></select></div>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <div>
+                    <select id="editExpCategory">
+                        <option value="餐飲">🍱 餐飲</option>
+                        <option value="交通">🚃 交通</option>
+                        <option value="住宿">🏨 住宿</option>
+                        <option value="購物">🛍️ 購物</option>
+                        <option value="娛樂">🎟️ 娛樂</option>
+                        <option value="其他">📌 其他</option>
+                    </select>
+                </div>
+                <div><input type="date" id="editExpDate"></div>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <button onclick="closeModal('editExpenseModal')" style="background:#ccc;">取消</button>
+                <button class="primary-btn" style="margin-top:0;" onclick="saveExpenseEdit()">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="addTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">➕ 新增旅行紀錄</h3>
@@ -414,7 +443,9 @@
                             <strong>${exp.name}</strong><br>
                             <small style="color:#84A59D; font-weight:bold;">${exp.category}</small>
                             <span style="font-size:12px; color:#aaa; margin-left:6px;">${exp.date}</span>
-                            <br><button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
+                            <br>
+                            <button class="delete-btn" style="color:#84A59D; border-color:#84A59D;" onclick="openEditExpenseModal(${exp.id})">編輯</button>
+                            <button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
                         </div>
                         <div style="text-align: right;">
                             <strong>${exp.currency} ${exp.amount.toLocaleString()}</strong><br>
@@ -455,6 +486,51 @@
                 const trip = getActiveTrip();
                 trip.expenses = trip.expenses.filter(e => e.id !== id);
                 saveData(); updateUI();
+            }
+        }
+
+        function openEditExpenseModal(id) {
+            const trip = getActiveTrip();
+            const exp = trip.expenses.find(e => e.id === id);
+            if (!exp) return;
+            
+            document.getElementById('editExpId').value = exp.id;
+            document.getElementById('editExpName').value = exp.name;
+            document.getElementById('editExpAmount').value = exp.amount;
+            document.getElementById('editExpCategory').value = exp.category;
+            document.getElementById('editExpDate').value = exp.date;
+            
+            // 載入當前支援的幣別選項
+            const selectEl = document.getElementById('editExpCurrency');
+            selectEl.innerHTML = '';
+            Object.keys(appData.rates).forEach(code => {
+                const opt = document.createElement('option');
+                opt.value = code; opt.innerText = code;
+                selectEl.appendChild(opt);
+            });
+            selectEl.value = exp.currency;
+            
+            document.getElementById('editExpenseModal').classList.add('open');
+        }
+
+        function saveExpenseEdit() {
+            const id = parseInt(document.getElementById('editExpId').value);
+            const name = document.getElementById('editExpName').value.trim();
+            const amount = parseFloat(document.getElementById('editExpAmount').value);
+            const currency = document.getElementById('editExpCurrency').value;
+            const category = document.getElementById('editExpCategory').value;
+            const date = document.getElementById('editExpDate').value;
+            
+            if (!name || isNaN(amount) || amount <= 0 || !date) return alert('請填寫完整資訊！');
+            
+            const trip = getActiveTrip();
+            const index = trip.expenses.findIndex(e => e.id === id);
+            if (index > -1) {
+                // 覆寫舊資料
+                trip.expenses[index] = { id, name, amount, currency, category, date };
+                saveData(); // 存檔到雲端
+                updateUI(); // 刷新介面
+                closeModal('editExpenseModal');
             }
         }
 
@@ -506,12 +582,27 @@
         function openRatesModal() {
             const container = document.getElementById('ratesInputList'); container.innerHTML = '';
             Object.keys(appData.rates).forEach(code => {
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.marginBottom = '10px';
-                div.innerHTML = `<span style="width:120px; font-weight:bold;">${code}</span><input type="number" id="rate_${code}" value="${appData.rates[code]}" style="width:150px; margin:0;" ${code==='TWD'?'disabled':''}>`;
+                const div = document.createElement('div'); div.style.display = 'flex'; div.style.marginBottom = '10px'; div.style.alignItems = 'center';
+                // 台幣為基準貨幣不允許刪除
+                div.innerHTML = `
+                    <span style="width:80px; font-weight:bold;">${code}</span>
+                    <input type="number" id="rate_${code}" value="${appData.rates[code]}" style="flex:1; margin:0;" ${code==='TWD'?'disabled':''}>
+                    ${code !== 'TWD' ? `<button class="delete-btn" style="margin-left:10px; margin-top:0;" onclick="deleteRate('${code}')">刪除</button>` : ''}
+                `;
                 container.appendChild(div);
             });
             document.getElementById('ratesModal').classList.add('open'); toggleSidebar(false);
         }
+
+        function deleteRate(code) {
+            if(confirm(`確定要刪除 ${code} 匯率嗎？`)) {
+                delete appData.rates[code];
+                saveData(); 
+                updateUI(); 
+                openRatesModal(); // 重新渲染列表
+            }
+        }
+
         function saveRatesConfig() {
             Object.keys(appData.rates).forEach(code => { if (code !== 'TWD') { const el = document.getElementById('rate_'+code); if(el) appData.rates[code] = parseFloat(el.value) || appData.rates[code]; } });
             saveData(); updateUI(); closeModal('ratesModal');
@@ -532,9 +623,9 @@
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !parseFloat(document.getElementById('customRateInput').value);
         }
         function applyCustomCurrency() {
-    const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value);
-    appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); updateTWDPreview();
-}
+            const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value);
+            appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); updateTWDPreview();
+        }
         function updateTWDPreview() { document.getElementById('twdPreview').innerText = `換算台幣: NT$ ${Math.round((parseFloat(document.getElementById('itemAmount').value)||0) * (appData.rates[document.getElementById('itemCurrency').value]||1)).toLocaleString()}`; }
         document.getElementById('itemAmount').addEventListener('input', updateTWDPreview);
     </script>
