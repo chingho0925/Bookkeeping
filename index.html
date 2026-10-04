@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風旅行帳簿 (安全防護版)</title>
+    <title>和風旅行帳簿 (客製開關與安全防禦版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -111,12 +111,16 @@
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
         .api-result-box { background-color: #E8F0EE; border: 1px solid #84A59D; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; }
 
-        .context-menu { display: none; position: absolute; background: white; border: 1px solid #D6C5B3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 1000; border-radius: 8px; overflow: hidden; min-width: 120px; }
+        .context-menu { display: none; position: absolute; background: white; border: 1px solid #D6C5B3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 1000; border-radius: 8px; overflow: hidden; min-width: 130px; }
         .context-menu-item { padding: 10px 15px; cursor: pointer; font-size: 14px; color: #4A3B32; }
         .context-menu-item:hover { background-color: #E8F0EE; }
         .context-menu-item.danger { color: #F28482; border-top: 1px solid #eee; }
 
         .payer-tag { display: inline-block; background: #E8F0EE; color: #2F3E46; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 4px; border: 1px solid #84A59D; }
+        .settings-box { background: white; border: 1px solid #D6C5B3; border-radius: 8px; padding: 12px; margin-top: 15px; }
+        .settings-title { font-size: 13px; font-weight: bold; color: #2F3E46; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+        .toggle-label { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 6px; cursor: pointer; }
+        .toggle-label input[type="checkbox"] { width: auto; margin: 0; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -140,15 +144,28 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span>⛩️️ 旅程選擇</span>
+            <span>⛩ 旅程選擇與設定</span>
             <span style="cursor:pointer;" onclick="toggleSidebar(false)">✕</span>
         </div>
         <div class="sidebar-content">
             <div id="user-info" style="font-size:13px; color:#84A59D; margin-bottom:10px; text-align:center;"></div>
             <div id="trip-list-container"></div>
             <button class="primary-btn" onclick="openAddTripModal()">➕ 新增旅行</button>
-            <button class="primary-btn btn-secondary" onclick="openRatesModal()">💱 匯率設定</button>
-            <button class="primary-btn" style="background-color: #5B7B7A;" onclick="exportToCSV()">📥 匯出 CSV 報表</button>
+            
+            <!-- 功能顯示設定開關 -->
+            <div class="settings-box">
+                <div class="settings-title">⚙️ 功能顯示設定</div>
+                <label class="toggle-label">
+                    <input type="checkbox" id="toggleBudget" onchange="toggleFeature('showBudget', this.checked)">
+                    顯示預算進度卡片
+                </label>
+                <label class="toggle-label">
+                    <input type="checkbox" id="togglePayerSummary" onchange="toggleFeature('showPayerSummary', this.checked)">
+                    顯示成員付款統計
+                </label>
+            </div>
+
+            <button class="primary-btn" style="background-color: #5B7B7A; margin-top: 15px;" onclick="exportToCSV()">📥 匯出 CSV 報表</button>
             <button class="btn-logout" onclick="logoutApp()">🚪 登出帳號</button>
         </div>
     </div>
@@ -160,15 +177,15 @@
             <div class="header-title-container">
                 <h1>
                     <span id="header-trip-name">載入中...</span>
-                    <span class="edit-title-icon" onclick="openEditTripModal()">✏️️</span>
+                    <span class="edit-title-icon" onclick="openEditTripModal()">✏</span>
                 </h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
             <div></div>
         </div>
 
-        <!-- 預算卡片 -->
-        <div class="card">
+        <!-- 預算卡片 (可控制顯示/隱藏) -->
+        <div class="card" id="budgetCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin: 0; color: #2F3E46;">預算進度 (TWD)</h3>
                 <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏️</span>
@@ -188,7 +205,7 @@
             </div>
         </div>
 
-        <!-- 成員分帳統計 -->
+        <!-- 成員分帳統計 (可控制顯示/隱藏) -->
         <div class="card" id="payerSummaryCard">
             <h3 style="margin-top:0; color:#2F3E46;">👫 成員付款統計</h3>
             <div id="payerSummaryList" style="font-size:14px; line-height: 1.8;"></div>
@@ -200,13 +217,13 @@
             <input type="text" id="itemName" placeholder="項目名稱 (例如：拉麵、藥妝)" maxlength="50" required>
             <div class="form-group">
                 <div><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any"></div>
-                <div style="display:flex; gap: 5px; align-items:flex-end;">
-                    <select id="itemCurrency" onchange="handleCurrencyChange(this.value)" oncontextmenu="openCurrencyContextMenu(event)" style="flex:1;" title="可點擊右側齒輪編輯匯率，或在框框上點擊右鍵">
+                <div>
+                    <!-- 下拉選單：僅在此處按右鍵觸發匯率設定選單 -->
+                    <select id="itemCurrency" onchange="handleCurrencyChange(this.value)" oncontextmenu="openCurrencyContextMenu(event)" title="💡 提示：在此下拉選單上點擊右鍵可編輯或刪除此幣別">
                         <option value="JPY">日圓 (JPY)</option>
                         <option value="TWD">台幣 (TWD)</option>
                         <option value="CUSTOM_TRIGGER" style="font-weight:bold; color:#E07A5F;">➕ 其他...</option>
                     </select>
-                    <button type="button" onclick="openRatesModal()" style="width:auto; padding:0 10px; height:44px; margin-top:8px; background:#E8F0EE; border:1px solid #84A59D; color:#2F3E46; font-size:16px;" title="管理幣別與匯率">⚙️</button>
                 </div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
@@ -237,7 +254,7 @@
                 <div class="filter-chip" onclick="setFilter('餐飲', this)">🍱 餐飲</div>
                 <div class="filter-chip" onclick="setFilter('交通', this)">🚃 交通</div>
                 <div class="filter-chip" onclick="setFilter('住宿', this)">🏨 住宿</div>
-                <div class="filter-chip" onclick="setFilter('購物', this)">🛍️️ 購物</div>
+                <div class="filter-chip" onclick="setFilter('購物', this)">🛍 購物</div>
                 <div class="filter-chip" onclick="setFilter('娛樂', this)">🎟️ 娛樂</div>
                 <div class="filter-chip" onclick="setFilter('其他', this)">📌 其他</div>
             </div>
@@ -245,7 +262,7 @@
         </div>
     </div>
 
-    <!-- 右鍵選單 -->
+    <!-- 右鍵選單 (僅限幣別下拉選單觸發) -->
     <div id="currencyContextMenu" class="context-menu">
         <div class="context-menu-item" onclick="contextEditCurrency()">✏️ 編輯匯率</div>
         <div class="context-menu-item danger" onclick="contextDeleteCurrency()">🗑️ 刪除此幣別</div>
@@ -319,17 +336,6 @@
         </div>
     </div>
 
-    <div class="modal" id="ratesModal">
-        <div class="modal-content">
-            <h3 style="margin-top:0;">💱 匯率設定列表</h3>
-            <div id="ratesInputList"></div>
-            <div class="form-group" style="margin-top:15px;">
-                <button onclick="closeModal('ratesModal')" style="background:#ccc;">取消</button>
-                <button class="primary-btn" style="margin-top:0;" onclick="saveRatesConfig()">更新儲存</button>
-            </div>
-        </div>
-    </div>
-
     <div class="modal" id="customCurrencyModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">🌐 自訂幣別與查詢</h3>
@@ -388,10 +394,14 @@
         let contextTargetCurrency = null;
         let currentFilterCategory = 'ALL';
         let expenseChart = null;
-        let isFetchingRate = false; // API 發送鎖定
+        let isFetchingRate = false;
 
         const defaultAppData = {
             activeTripId: "trip_1",
+            settings: {
+                showBudget: true,
+                showPayerSummary: true
+            },
             rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 },
             trips: [{
                 id: "trip_1", name: "我的新旅行", startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 30000, expenses: []
@@ -436,6 +446,9 @@
                     const docSnap = await docRef.get();
                     if (docSnap.exists) {
                         appData = docSnap.data();
+                        if (!appData.settings) {
+                            appData.settings = { showBudget: true, showPayerSummary: true };
+                        }
                     } else {
                         appData = JSON.parse(JSON.stringify(defaultAppData));
                         await docRef.set(appData); 
@@ -446,6 +459,7 @@
                     const local = localStorage.getItem('local_trip_data');
                     if (local) appData = JSON.parse(local);
                     else appData = JSON.parse(JSON.stringify(defaultAppData));
+                    if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true };
                 }
                 document.getElementById('loading-overlay').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
@@ -471,20 +485,33 @@
             }
         }
 
+        // 功能開關切換處理函式
+        function toggleFeature(key, enabled) {
+            if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true };
+            appData.settings[key] = enabled;
+            saveData();
+            updateUI();
+        }
+
+        // 僅限在幣別下拉選單上點擊右鍵時開啟編輯功能
         function openCurrencyContextMenu(e) {
             e.preventDefault();
             const selectEl = document.getElementById('itemCurrency');
             const currentVal = selectEl.value;
             
-            if(currentVal === 'TWD' || currentVal === 'CUSTOM_TRIGGER') {
-                alert('預設選項無法編輯！若要管理其他幣別可點擊右側 ⚙️ 按鈕。');
+            if(currentVal === 'TWD') {
+                alert('台幣 (TWD) 為預設基準幣別，無法編輯匯率。');
+                return;
+            }
+            if(currentVal === 'CUSTOM_TRIGGER') {
+                alert('請先選擇已存在的幣別，或透過此選項新增幣別。');
                 return;
             }
             
             contextTargetCurrency = currentVal;
             const contextMenu = document.getElementById('currencyContextMenu');
             contextMenu.style.display = 'block';
-            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 120) + 'px';
+            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 140) + 'px';
             contextMenu.style.top = e.pageY + 'px';
         }
 
@@ -496,7 +523,7 @@
 
         function contextEditCurrency() {
             if(!contextTargetCurrency) return;
-            const newRate = prompt(`請輸入 ${escapeHTML(contextTargetCurrency)} 的新匯率:`, appData.rates[contextTargetCurrency]);
+            const newRate = prompt(`請輸入 ${escapeHTML(contextTargetCurrency)} 的新匯率 (對換 TWD):`, appData.rates[contextTargetCurrency]);
             const parsedRate = parseFloat(newRate);
             if(newRate && !isNaN(parsedRate) && parsedRate > 0) {
                 appData.rates[contextTargetCurrency] = parsedRate;
@@ -521,6 +548,18 @@
         function updateUI() {
             const trip = getActiveTrip();
             if (!trip) return;
+
+            if (!appData.settings) {
+                appData.settings = { showBudget: true, showPayerSummary: true };
+            }
+
+            // 更新開關卡片的顯示狀態
+            document.getElementById('budgetCard').style.display = (appData.settings.showBudget !== false) ? 'block' : 'none';
+            document.getElementById('payerSummaryCard').style.display = (appData.settings.showPayerSummary !== false) ? 'block' : 'none';
+
+            // 設定側邊欄 Checkbox 勾選狀態
+            document.getElementById('toggleBudget').checked = (appData.settings.showBudget !== false);
+            document.getElementById('togglePayerSummary').checked = (appData.settings.showPayerSummary !== false);
 
             document.getElementById('header-trip-name').innerText = trip.name;
             document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
@@ -780,30 +819,9 @@
             appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false);
         }
 
-        function openRatesModal() {
-            const container = document.getElementById('ratesInputList'); container.innerHTML = '';
-            Object.keys(appData.rates).forEach(code => {
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.marginBottom = '10px'; div.style.alignItems = 'center';
-                div.innerHTML = `
-                    <span style="width:80px; font-weight:bold;">${escapeHTML(code)}</span>
-                    <input type="number" id="rate_${escapeHTML(code)}" value="${appData.rates[code]}" step="any" min="0" style="flex:1; margin:0;" ${code==='TWD'?'disabled':''}>
-                    ${code !== 'TWD' ? `<button class="delete-btn" style="margin-left:10px; margin-top:0;" onclick="deleteRate('${escapeHTML(code)}')">刪除</button>` : ''}
-                `;
-                container.appendChild(div);
-            });
-            document.getElementById('ratesModal').classList.add('open'); toggleSidebar(false);
-        }
-
-        function deleteRate(code) { if(confirm(`確定刪除 ${escapeHTML(code)}？`)) { delete appData.rates[code]; saveData(); updateUI(); openRatesModal(); } }
-        function saveRatesConfig() {
-            Object.keys(appData.rates).forEach(code => { if (code !== 'TWD') { const el = document.getElementById('rate_'+code); if(el) appData.rates[code] = parseFloat(el.value) || appData.rates[code]; } });
-            saveData(); updateUI(); closeModal('ratesModal');
-        }
-
         function handleCurrencyChange(val) { if (val === 'CUSTOM_TRIGGER') { document.getElementById('customCodeInput').value=''; document.getElementById('customRateInput').value=''; document.getElementById('apiStatusContainer').style.display='none'; document.getElementById('applyCustomBtn').disabled=true; document.getElementById('customCurrencyModal').classList.add('open'); } else { previousCurrency = val; updateTWDPreview(); } }
         function cancelCustomCurrency() { closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = previousCurrency || 'JPY'; updateTWDPreview(); }
         
-        // 防護 2：API 冷卻與過濾處理
         async function fetchCurrencyRate() {
             if (isFetchingRate) return;
             const rawCode = document.getElementById('customCodeInput').value.trim().toUpperCase();
@@ -828,7 +846,7 @@
                 document.getElementById('apiStatusMessage').innerHTML = '⚠️ 連線失敗，請手動輸入'; 
                 document.getElementById('applyCustomBtn').disabled = false; 
             } finally {
-                setTimeout(() => { isFetchingRate = false; }, 2000); // 限制發送頻率
+                setTimeout(() => { isFetchingRate = false; }, 2000);
             }
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0);
         }
