@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風帳簿 (專屬管理面板版)</title>
+    <title>和風帳簿 (獨立帳本設定版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -158,19 +158,19 @@
             <div id="trip-list-container"></div>
             <button class="primary-btn" onclick="openAddTripModal()">➕ 新增帳本</button>
             
-            <!-- 功能顯示設定開關 -->
+            <!-- 功能顯示設定開關 (改為控制當前帳本) -->
             <div class="settings-box">
-                <div class="settings-title">⚙️ 功能顯示設定</div>
+                <div class="settings-title">⚙️ 目前帳本顯示設定</div>
                 <label class="toggle-label">
-                    <input type="checkbox" id="toggleBudget" onchange="toggleFeature('showBudget', this.checked)">
+                    <input type="checkbox" id="toggleBudget" onchange="toggleCurrentTripFeature('showBudget', this.checked)">
                     顯示預算進度卡片
                 </label>
                 <label class="toggle-label">
-                    <input type="checkbox" id="toggleChart" onchange="toggleFeature('showChart', this.checked)">
+                    <input type="checkbox" id="toggleChart" onchange="toggleCurrentTripFeature('showChart', this.checked)">
                     顯示消費分類圖表
                 </label>
                 <label class="toggle-label">
-                    <input type="checkbox" id="togglePayerSummary" onchange="toggleFeature('showPayerSummary', this.checked)">
+                    <input type="checkbox" id="togglePayerSummary" onchange="toggleCurrentTripFeature('showPayerSummary', this.checked)">
                     顯示成員付款統計 (含輸入欄)
                 </label>
             </div>
@@ -448,10 +448,17 @@
 
         const defaultAppData = {
             activeTripId: "trip_1",
-            settings: { showBudget: true, showPayerSummary: true, showChart: true },
             rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 },
             categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"],
-            trips: [{ id: "trip_1", name: "我的新帳本", startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 30000, expenses: [] }]
+            trips: [{ 
+                id: "trip_1", 
+                name: "我的新帳本", 
+                startDate: getLocalDateString(), 
+                endDate: getLocalDateString(), 
+                budget: 30000, 
+                expenses: [],
+                settings: { showBudget: true, showPayerSummary: true, showChart: true } // 獨立帳本設定
+            }]
         };
 
         window.addEventListener('online', checkNetworkStatus);
@@ -486,8 +493,11 @@
                     const docSnap = await docRef.get();
                     if (docSnap.exists) {
                         appData = docSnap.data();
-                        if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true, showChart: true };
                         if (!appData.categories) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"];
+                        // 確保舊帳本資料也有獨立設定
+                        appData.trips.forEach(t => {
+                            if (!t.settings) t.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+                        });
                     } else {
                         appData = JSON.parse(JSON.stringify(defaultAppData));
                         await docRef.set(appData); 
@@ -501,7 +511,9 @@
                         if (!appData.categories) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"];
                     }
                     else appData = JSON.parse(JSON.stringify(defaultAppData));
-                    if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+                    appData.trips.forEach(t => {
+                        if (!t.settings) t.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+                    });
                 }
                 document.getElementById('loading-overlay').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
@@ -523,7 +535,17 @@
             }
         }
 
-        function toggleFeature(key, enabled) { appData.settings[key] = enabled; saveData(); updateUI(); }
+        // 修改：更新目前帳本的獨立設定
+        function toggleCurrentTripFeature(key, enabled) {
+            const trip = getActiveTrip();
+            if (trip) {
+                if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+                trip.settings[key] = enabled;
+                saveData();
+                updateUI();
+            }
+        }
+        
         function toggleDetailsInput(show) { document.getElementById('itemDetails').style.display = show ? 'block' : 'none'; if (!show) document.getElementById('itemDetails').value = ''; }
 
         // ==========================
@@ -637,17 +659,23 @@
             const trip = getActiveTrip();
             if (!trip) return;
 
-            const showPayer = appData.settings.showPayerSummary !== false;
-            const showBudget = appData.settings.showBudget !== false;
+            // 確保當前帳本有獨立設定物件
+            if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+
+            const showPayer = trip.settings.showPayerSummary !== false;
+            const showBudget = trip.settings.showBudget !== false;
+            const showChart = trip.settings.showChart !== false;
             
             document.getElementById('budgetCard').style.display = showBudget ? 'block' : 'none';
             document.getElementById('payerSummaryCard').style.display = showPayer ? 'block' : 'none';
             document.getElementById('payerInputContainer').style.display = showPayer ? 'block' : 'none';
             document.getElementById('editTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
             document.getElementById('newTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
+            
+            // 同步側邊欄勾選狀態為「目前帳本」的設定
             document.getElementById('toggleBudget').checked = showBudget;
             document.getElementById('togglePayerSummary').checked = showPayer;
-            document.getElementById('toggleChart').checked = (appData.settings.showChart !== false);
+            document.getElementById('toggleChart').checked = showChart;
 
             document.getElementById('header-trip-name').innerText = trip.name;
             document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
@@ -719,7 +747,7 @@
                     return diff !== 0 ? diff : b.id - a.id;
                 } else if (currentSortOrder === 'amount-asc') {
                     const diff = getTwd(a) - getTwd(b);
-                    return diff !== 0 ? diff : b.id - a.id;
+                    return diff !== 0 ? diff : a.id - b.id;
                 }
             });
 
@@ -754,7 +782,6 @@
                     const payerTagStyle = showPayer ? 'inline-block' : 'none';
                     const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">📅 ${escapeHTML(exp.date)}</span>` : '';
 
-                    // 判斷是否為台幣：若是 TWD 則只顯示金額，不顯示換算台幣價格
                     const isTWD = (!exp.currency || exp.currency === 'TWD');
                     const rightAmountHtml = isTWD 
                         ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` 
@@ -799,8 +826,13 @@
             });
             const labels = Object.keys(categories); const data = Object.values(categories);
             if (expenseChart) expenseChart.destroy();
-            if (labels.length === 0 || appData.settings.showChart === false) { document.getElementById('chartCard').style.display = 'none'; return; }
+            
+            if (labels.length === 0 || !trip.settings || trip.settings.showChart === false) { 
+                document.getElementById('chartCard').style.display = 'none'; 
+                return; 
+            }
             document.getElementById('chartCard').style.display = 'block';
+            
             expenseChart = new Chart(ctx, {
                 type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#84A59D', '#E07A5F', '#F4A261', '#2F3E46', '#D6C5B3', '#94D2BD'], borderWidth: 2, borderColor: '#FFF' }] },
                 options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
@@ -875,7 +907,7 @@
         function exportToCSV() {
             const trip = getActiveTrip();
             if (!trip || trip.expenses.length === 0) return alert('目前沒有消費紀錄可匯出！');
-            const showPayer = appData.settings.showPayerSummary !== false;
+            const showPayer = trip.settings.showPayerSummary !== false;
             let csv = "\uFEFF日期,分類,項目名稱,細項說明,原幣金額,幣別";
             if (showPayer) csv += ",付款人";
             csv += ",換算台幣(TWD)\n";
@@ -911,7 +943,7 @@
             document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; document.getElementById('editExpPayer').value = exp.payer || '我';
             
             const dateInput = document.getElementById('editExpDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate; dateInput.value = exp.date;
-            document.getElementById('editPayerInputContainer').style.display = (appData.settings.showPayerSummary !== false) ? 'block' : 'none';
+            document.getElementById('editPayerInputContainer').style.display = (trip.settings.showPayerSummary !== false) ? 'block' : 'none';
             document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
             
             currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1; updateTWDPreview('edit');
@@ -950,7 +982,24 @@
         function saveTripDetails() { const name = document.getElementById('editTripNameInput').value.trim(); const start = document.getElementById('editTripStartInput').value; const end = document.getElementById('editTripEndInput').value; const budget = parseFloat(document.getElementById('editTripBudgetInput').value); if (!name || isNaN(budget) || budget < 0 || !start || !end) return alert('請填寫完整正確的資訊！'); const t = getActiveTrip(); t.name = name; t.startDate = start; t.endDate = end; t.budget = budget; saveData(); updateUI(); closeModal('editTripModal'); }
         
         function openAddTripModal() { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=getLocalDateString(); document.getElementById('newTripEndInput').value=getLocalDateString(); document.getElementById('addTripModal').classList.add('open'); }
-        function createNewTrip() { const name = document.getElementById('newTripNameInput').value.trim(); const start = document.getElementById('newTripStartInput').value; const end = document.getElementById('newTripEndInput').value; const budget = parseFloat(document.getElementById('newTripBudgetInput').value) || 0; if (!name) return alert('請輸入名稱！'); const t = { id: 'trip_'+Date.now(), name, startDate: start, endDate: end, budget, expenses: [] }; appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false); }
+        
+        function createNewTrip() { 
+            const name = document.getElementById('newTripNameInput').value.trim(); 
+            const start = document.getElementById('newTripStartInput').value; 
+            const end = document.getElementById('newTripEndInput').value; 
+            const budget = parseFloat(document.getElementById('newTripBudgetInput').value) || 0; 
+            if (!name) return alert('請輸入名稱！'); 
+            const t = { 
+                id: 'trip_'+Date.now(), 
+                name, 
+                startDate: start, 
+                endDate: end, 
+                budget, 
+                expenses: [],
+                settings: { showBudget: true, showPayerSummary: true, showChart: true } // 新帳本預設設定
+            }; 
+            appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false); 
+        }
         
         function cancelCustomCurrency() { closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = previousCurrency || 'TWD'; handleDateOrCurrencyChange('add'); }
         
@@ -964,7 +1013,7 @@
             try { 
                 const res = await fetch(`https://open.er-api.com/v6/latest/${encodeURIComponent(rawCode)}`); const data = await res.json(); 
                 if (data.result === 'success' && data.rates && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; } 
-                else { document.getElementById('apiStatusMessage').innerHTML = '⚠️ 請手動輸入匯率'; document.getElementById('applyCustomBtn').disabled = false; } 
+                else { document.getElementById('apiStatusMessage').innerHTML = '⚠️️ 請手動輸入匯率'; document.getElementById('applyCustomBtn').disabled = false; } 
             } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠️ 連線失敗，請手動輸入'; document.getElementById('applyCustomBtn').disabled = false; } 
             finally { setTimeout(() => { isFetchingRate = false; }, 2000); } 
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0); 
