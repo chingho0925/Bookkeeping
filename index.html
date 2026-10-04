@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風帳簿 (進階功能自訂版)</title>
+    <title>和風帳簿 (專屬管理面板版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -97,7 +97,6 @@
         input, select, button { width: 100%; padding: 11px; margin-top: 8px; border: 1px solid #D6C5B3; border-radius: 8px; font-family: inherit; font-size: 14px; background: white; box-sizing: border-box; }
         input[type="date"] { color: #E07A5F; font-weight: bold; }
         button.primary-btn { background-color: #84A59D; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 12px; }
-        .btn-secondary { background-color: #2F3E46; color: white; }
         .btn-google { background-color: #4285F4; margin-top: 10px; font-size: 16px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-logout { background-color: #E07A5F; color: white; border: none; font-weight: bold; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
 
@@ -111,11 +110,6 @@
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
         .api-result-box { background-color: #E8F0EE; border: 1px solid #84A59D; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; }
 
-        .context-menu { display: none; position: absolute; background: white; border: 1px solid #D6C5B3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 1000; border-radius: 8px; overflow: hidden; min-width: 130px; }
-        .context-menu-item { padding: 10px 15px; cursor: pointer; font-size: 14px; color: #4A3B32; }
-        .context-menu-item:hover { background-color: #E8F0EE; }
-        .context-menu-item.danger { color: #F28482; border-top: 1px solid #eee; }
-
         .payer-tag { display: inline-block; background: #E8F0EE; color: #2F3E46; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 4px; border: 1px solid #84A59D; }
         .settings-box { background: white; border: 1px solid #D6C5B3; border-radius: 8px; padding: 12px; margin-top: 15px; }
         .settings-title { font-size: 13px; font-weight: bold; color: #2F3E46; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
@@ -124,6 +118,13 @@
         
         .inline-checkbox-label { font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 11px 8px; border-radius: 8px; background: #E8F0EE; border: 1px solid #84A59D; }
         .inline-checkbox-label input { margin: 0; width: auto; }
+
+        .manage-btn { 
+            width: auto; margin-top: 0; padding: 11px 13px; 
+            background: #E8F0EE; color: #2F3E46; 
+            border: 1px solid #84A59D; border-radius: 8px; cursor: pointer; 
+        }
+        .manage-btn:hover { background: #D0E2DF; }
     </style>
 </head>
 <body>
@@ -195,7 +196,7 @@
         <div class="card" id="budgetCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin: 0; color: #2F3E46;">預算進度 (TWD)</h3>
-                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏️</span>
+                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏️️</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">
                 <span>已花費: $<strong id="total-spent" style="font-size: 17px; color:#E07A5F;">0</strong></span>
@@ -236,18 +237,19 @@
             
             <div class="form-group">
                 <div><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
-                <div>
-                    <select id="itemCurrency" onchange="handleDateOrCurrencyChange('add')" oncontextmenu="openCurrencyContextMenu(event)" title="💡 提示：在此下拉選單上點擊右鍵可編輯或刪除此幣別">
-                        <!-- 選項由 JS 產生 -->
-                    </select>
+                <!-- 幣別與管理按鈕 -->
+                <div style="display: flex; gap: 4px; margin-top: 8px;">
+                    <select id="itemCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('add')"></select>
+                    <button type="button" class="manage-btn" onclick="openManageCurrency()" title="管理自訂幣別">⚙️</button>
                 </div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
+            
             <div class="form-group">
-                <div>
-                    <select id="itemCategory" onchange="handleCategoryChange('add')" oncontextmenu="openCategoryContextMenu(event)" title="💡 提示：在此下拉選單上點擊右鍵可編輯或刪除此分類">
-                        <!-- 選項由 JS 產生 -->
-                    </select>
+                <!-- 分類與管理按鈕 -->
+                <div style="display: flex; gap: 4px; margin-top: 8px;">
+                    <select id="itemCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('add')"></select>
+                    <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙️</button>
                 </div>
                 <div id="payerInputContainer"><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
             </div>
@@ -264,16 +266,24 @@
         </div>
     </div>
 
-    <!-- 右鍵選單：幣別 -->
-    <div id="currencyContextMenu" class="context-menu">
-        <div class="context-menu-item" onclick="contextEditCurrency()">✏️ 編輯匯率</div>
-        <div class="context-menu-item danger" onclick="contextDeleteCurrency()">🗑️ 刪除此幣別</div>
+    <!-- 管理幣別面板 -->
+    <div class="modal" id="manageCurrencyModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">⚙️ 管理幣別與匯率</h3>
+            <p style="font-size:12px; color:#84A59D;">台幣 (TWD) 為預設幣別，無法編輯。刪除幣別不會影響歷史紀錄。</p>
+            <div id="manageCurrencyList" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto;"></div>
+            <button onclick="closeModal('manageCurrencyModal')" style="background:#ccc;">關閉</button>
+        </div>
     </div>
     
-    <!-- 右鍵選單：分類 -->
-    <div id="categoryContextMenu" class="context-menu">
-        <div class="context-menu-item" onclick="contextEditCategory()">✏️ 重新命名分類</div>
-        <div class="context-menu-item danger" onclick="contextDeleteCategory()">🗑️ 刪除此分類</div>
+    <!-- 管理分類面板 -->
+    <div class="modal" id="manageCategoryModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">⚙️ 管理消費分類</h3>
+            <p style="font-size:12px; color:#84A59D;">重新命名分類將會同步更新所有歷史紀錄中的名稱。</p>
+            <div id="manageCategoryList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;"></div>
+            <button onclick="closeModal('manageCategoryModal')" style="background:#ccc;">關閉</button>
+        </div>
     </div>
 
     <!-- 編輯消費 Modal -->
@@ -289,12 +299,17 @@
             
             <div class="form-group" style="margin-top:10px;">
                 <div><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any" oninput="updateTWDPreview('edit')"></div>
-                <div><select id="editExpCurrency" onchange="handleDateOrCurrencyChange('edit')"></select></div>
+                <div style="display: flex; gap: 4px;">
+                    <select id="editExpCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('edit')"></select>
+                    <button type="button" class="manage-btn" onclick="openManageCurrency()" title="管理自訂幣別">⚙️</button>
+                </div>
             </div>
             <div id="editTwdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
+            
             <div class="form-group" style="margin-top:10px;">
-                <div>
-                    <select id="editExpCategory" onchange="handleCategoryChange('edit')"></select>
+                <div style="display: flex; gap: 4px;">
+                    <select id="editExpCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('edit')"></select>
+                    <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙️</button>
                 </div>
                 <div id="editPayerInputContainer"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
@@ -348,7 +363,7 @@
     <!-- 自訂幣別與查詢彈窗 -->
     <div class="modal" id="customCurrencyModal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">🌐 自訂幣別與查詢</h3>
+            <h3 style="margin-top:0;">🌐 新增幣別與查詢</h3>
             <label style="font-size:13px; font-weight:bold;">幣別代碼：</label>
             <div class="form-group">
                 <div><input type="text" id="customCodeInput" placeholder="GBP" maxlength="5" style="text-transform:uppercase;"></div>
@@ -401,8 +416,6 @@
         let previousCurrency = "TWD";
         let previousCategory = "";
         let appData = null; 
-        let contextTargetCurrency = null;
-        let contextTargetCategory = null;
         let currentFilterCategory = 'ALL';
         let expenseChart = null;
         let isFetchingRate = false;
@@ -504,70 +517,110 @@
             if (!show) document.getElementById('itemDetails').value = ''; 
         }
 
-        // === 幣別右鍵選單邏輯 ===
-        function openCurrencyContextMenu(e) {
-            e.preventDefault();
-            const selectEl = document.getElementById('itemCurrency');
-            const currentVal = selectEl.value;
-            if(currentVal === 'TWD') return alert('台幣 (TWD) 為預設基準幣別，無法編輯匯率。');
-            if(currentVal === 'CUSTOM_TRIGGER') return alert('請先選擇已存在的幣別，或透過此選項新增幣別。');
-            
-            contextTargetCurrency = currentVal;
-            const contextMenu = document.getElementById('currencyContextMenu');
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 140) + 'px';
-            contextMenu.style.top = e.pageY + 'px';
+        // ==========================
+        // 幣別管理面板邏輯
+        // ==========================
+        function openManageCurrency() {
+            renderManageCurrency();
+            document.getElementById('manageCurrencyModal').classList.add('open');
         }
 
-        function contextEditCurrency() {
-            if(!contextTargetCurrency) return;
-            const newRate = prompt(`請輸入 ${escapeHTML(contextTargetCurrency)} 的新匯率 (對換 TWD):`, appData.rates[contextTargetCurrency]);
+        function renderManageCurrency() {
+            const list = document.getElementById('manageCurrencyList');
+            list.innerHTML = '';
+            Object.keys(appData.rates).forEach(code => {
+                if(code === 'TWD') return; 
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '8px 0';
+                div.style.borderBottom = '1px dashed #D6C5B3';
+                
+                div.innerHTML = `
+                    <div><strong style="color: #2F3E46;">${escapeHTML(code)}</strong> <small style="color: #84A59D;">(匯率: ${appData.rates[code]})</small></div>
+                    <div style="display: flex; gap: 4px;">
+                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#84A59D; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button>
+                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#F28482; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            if(list.innerHTML === '') {
+                list.innerHTML = '<p style="color:#84A59D; font-size:13px; text-align:center;">目前沒有自訂幣別</p>';
+            }
+        }
+
+        function editManageCurrency(code) {
+            const newRate = prompt(`請輸入 ${code} 的新匯率 (對換 TWD):`, appData.rates[code]);
             const parsedRate = parseFloat(newRate);
-            if(newRate && !isNaN(parsedRate) && parsedRate > 0) { appData.rates[contextTargetCurrency] = parsedRate; saveData(); updateUI(); }
-            document.getElementById('currencyContextMenu').style.display = 'none';
-        }
-        function contextDeleteCurrency() {
-            if(!contextTargetCurrency) return;
-            if(confirm(`確定刪除 ${escapeHTML(contextTargetCurrency)} 幣別？`)) { delete appData.rates[contextTargetCurrency]; saveData(); updateUI(); }
-            document.getElementById('currencyContextMenu').style.display = 'none';
+            if(newRate && !isNaN(parsedRate) && parsedRate > 0) { 
+                appData.rates[code] = parsedRate; 
+                saveData(); updateUI(); renderManageCurrency();
+            }
         }
 
-        // === 分類右鍵選單與新增邏輯 ===
-        function openCategoryContextMenu(e) {
-            e.preventDefault();
-            const currentVal = e.target.value;
-            if(currentVal === 'CUSTOM_CAT_TRIGGER') return;
-            
-            contextTargetCategory = currentVal;
-            const contextMenu = document.getElementById('categoryContextMenu');
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 140) + 'px';
-            contextMenu.style.top = e.pageY + 'px';
+        function deleteManageCurrency(code) {
+            if(confirm(`確定刪除 ${code} 幣別？`)) { 
+                delete appData.rates[code]; 
+                if(previousCurrency === code) previousCurrency = 'TWD';
+                saveData(); updateUI(); renderManageCurrency();
+            }
         }
 
-        function contextEditCategory() {
-            if(!contextTargetCategory) return;
-            const newName = prompt(`請輸入 ${escapeHTML(contextTargetCategory)} 的新名稱:`, contextTargetCategory);
-            if(newName && newName.trim() !== '' && newName.trim() !== contextTargetCategory) { 
+        // ==========================
+        // 分類管理面板邏輯
+        // ==========================
+        function openManageCategory() {
+            renderManageCategory();
+            document.getElementById('manageCategoryModal').classList.add('open');
+        }
+
+        function renderManageCategory() {
+            const list = document.getElementById('manageCategoryList');
+            list.innerHTML = '';
+            appData.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '8px 0';
+                div.style.borderBottom = '1px dashed #D6C5B3';
+                
+                div.innerHTML = `
+                    <div><strong style="color: #2F3E46;">${escapeHTML(cat)}</strong></div>
+                    <div style="display: flex; gap: 4px;">
+                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#84A59D; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="editManageCategory('${escapeHTML(cat)}')">✏️</button>
+                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#F28482; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="deleteManageCategory('${escapeHTML(cat)}')">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function editManageCategory(oldName) {
+            const newName = prompt(`請輸入「${oldName}」的新名稱:`, oldName);
+            if(newName && newName.trim() !== '' && newName.trim() !== oldName) { 
                 const trimmed = newName.trim();
-                const idx = appData.categories.indexOf(contextTargetCategory);
+                const idx = appData.categories.indexOf(oldName);
                 if(idx > -1) {
                     appData.categories[idx] = trimmed;
-                    // 同步更新所有消費紀錄中的此分類名稱
-                    appData.trips.forEach(t => t.expenses.forEach(exp => { if(exp.category === contextTargetCategory) exp.category = trimmed; }));
-                    saveData(); updateUI();
+                    appData.trips.forEach(t => t.expenses.forEach(exp => { 
+                        if(exp.category === oldName) exp.category = trimmed; 
+                    }));
+                    if (currentFilterCategory === oldName) currentFilterCategory = trimmed;
+                    if (previousCategory === oldName) previousCategory = trimmed;
+                    saveData(); updateUI(); renderManageCategory();
                 }
             }
-            document.getElementById('categoryContextMenu').style.display = 'none';
         }
-        function contextDeleteCategory() {
-            if(!contextTargetCategory) return;
-            if(confirm(`確定刪除 ${escapeHTML(contextTargetCategory)} 分類？ (這不會刪除已使用此分類的歷史紀錄)`)) { 
-                appData.categories = appData.categories.filter(c => c !== contextTargetCategory);
-                if (currentFilterCategory === contextTargetCategory) currentFilterCategory = 'ALL';
-                saveData(); updateUI(); 
+
+        function deleteManageCategory(name) {
+            if(confirm(`確定刪除「${name}」分類？\n(注意：這不會刪除已使用此分類的歷史紀錄)`)) { 
+                appData.categories = appData.categories.filter(c => c !== name);
+                if (currentFilterCategory === name) currentFilterCategory = 'ALL';
+                saveData(); updateUI(); renderManageCategory();
             }
-            document.getElementById('categoryContextMenu').style.display = 'none';
         }
 
         function handleCategoryChange(mode) {
@@ -593,12 +646,6 @@
             }
         }
 
-        // 點擊空白處關閉所有右鍵選單
-        document.addEventListener('click', (e) => { 
-            if (e.target.id !== 'itemCurrency') document.getElementById('currencyContextMenu').style.display = 'none'; 
-            if (e.target.id !== 'itemCategory') document.getElementById('categoryContextMenu').style.display = 'none';
-        });
-
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
 
         function updateUI() {
@@ -622,7 +669,7 @@
             document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             
-            // 處理日期欄位限制
+            // 日期欄位
             const dateInput = document.getElementById('itemDate');
             dateInput.min = trip.startDate;
             dateInput.max = trip.endDate;
@@ -633,52 +680,59 @@
                 else dateInput.value = today;
             }
 
-            // 更新匯率選單 (台幣優先置頂)
+            // 更新幣別選單
             const selectEl = document.getElementById('itemCurrency');
+            const editSelectEl = document.getElementById('editExpCurrency');
             const currentVal = selectEl.value || 'TWD';
-            selectEl.innerHTML = '';
             
-            const twdOpt = document.createElement('option'); 
-            twdOpt.value = 'TWD'; twdOpt.innerText = '台幣 (TWD)';
-            selectEl.appendChild(twdOpt);
+            [selectEl, editSelectEl].forEach(el => {
+                el.innerHTML = '';
+                const twdOpt = document.createElement('option'); 
+                twdOpt.value = 'TWD'; twdOpt.innerText = '台幣 (TWD)';
+                el.appendChild(twdOpt);
 
-            Object.keys(appData.rates).forEach(code => {
-                if (code === 'TWD') return; // 跳過已渲染的台幣
-                const opt = document.createElement('option'); opt.value = code;
-                opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`;
-                selectEl.appendChild(opt);
+                Object.keys(appData.rates).forEach(code => {
+                    if (code === 'TWD') return;
+                    const opt = document.createElement('option'); opt.value = code;
+                    opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`;
+                    el.appendChild(opt);
+                });
+                
+                const triggerOpt = document.createElement('option');
+                triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 新增幣別...';
+                triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F';
+                el.appendChild(triggerOpt);
             });
-            const triggerOpt = document.createElement('option');
-            triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 其他...';
-            triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F';
-            selectEl.appendChild(triggerOpt);
-            
+
             if (appData.rates[currentVal]) selectEl.value = currentVal;
             else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency;
             else selectEl.value = 'TWD';
 
             // 更新分類選單
             const catSelectEl = document.getElementById('itemCategory');
+            const editCatSelectEl = document.getElementById('editExpCategory');
             const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
-            catSelectEl.innerHTML = '';
-            appData.categories.forEach(cat => {
-                const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
-                catSelectEl.appendChild(opt);
+            
+            [catSelectEl, editCatSelectEl].forEach(el => {
+                el.innerHTML = '';
+                appData.categories.forEach(cat => {
+                    const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
+                    el.appendChild(opt);
+                });
+                const catTrigger = document.createElement('option');
+                catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
+                catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
+                el.appendChild(catTrigger);
             });
-            const catTrigger = document.createElement('option');
-            catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
-            catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
-            catSelectEl.appendChild(catTrigger);
             
             if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal;
             else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
 
-            // 處理分類篩選列 (僅渲染歷史紀錄存在的分類)
+            // 篩選列
             const listEl = document.getElementById('expense-list');
             const usedCategories = new Set(trip.expenses.map(e => e.category));
             const filterContainer = document.getElementById('filterContainer');
             filterContainer.innerHTML = `<div class="filter-chip ${currentFilterCategory === 'ALL' ? 'active' : ''}" onclick="setFilter('ALL', this)">全部</div>`;
-            
             usedCategories.forEach(cat => {
                 const isActive = currentFilterCategory === cat ? 'active' : '';
                 filterContainer.innerHTML += `<div class="filter-chip ${isActive}" onclick="setFilter('${escapeHTML(cat)}', this)">${escapeHTML(cat)}</div>`;
@@ -936,31 +990,8 @@
             dateInput.value = exp.date;
             
             document.getElementById('editPayerInputContainer').style.display = (appData.settings.showPayerSummary !== false) ? 'block' : 'none';
-
-            const selectEl = document.getElementById('editExpCurrency');
-            selectEl.innerHTML = '';
-            const twdOpt = document.createElement('option'); twdOpt.value = 'TWD'; twdOpt.innerText = '台幣 (TWD)';
-            selectEl.appendChild(twdOpt);
-            
-            Object.keys(appData.rates).forEach(code => {
-                if (code === 'TWD') return;
-                const opt = document.createElement('option'); opt.value = code; opt.innerText = code; selectEl.appendChild(opt);
-            });
-            selectEl.value = exp.currency;
-
-            // 編輯畫面：載入分類選項
-            const catSelectEl = document.getElementById('editExpCategory');
-            catSelectEl.innerHTML = '';
-            appData.categories.forEach(cat => {
-                const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
-                catSelectEl.appendChild(opt);
-            });
-            const catTrigger = document.createElement('option');
-            catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
-            catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
-            catSelectEl.appendChild(catTrigger);
-            
-            catSelectEl.value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            document.getElementById('editExpCurrency').value = exp.currency;
+            document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
             
             currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1;
             updateTWDPreview('edit');
