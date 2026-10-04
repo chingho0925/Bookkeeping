@@ -222,7 +222,6 @@
         <div class="card">
             <h3 style="margin-top: 0; color: #2F3E46;">📝 新增消費</h3>
             
-            <!-- 日期移至最上方 -->
             <div class="form-group" style="margin-bottom:8px;">
                 <div><input type="date" id="itemDate" required onchange="handleDateOrCurrencyChange('add')"></div>
             </div>
@@ -239,22 +238,15 @@
                 <div><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
                 <div>
                     <select id="itemCurrency" onchange="handleDateOrCurrencyChange('add')" oncontextmenu="openCurrencyContextMenu(event)" title="💡 提示：在此下拉選單上點擊右鍵可編輯或刪除此幣別">
-                        <option value="TWD" selected>台幣 (TWD)</option>
-                        <option value="JPY">日圓 (JPY)</option>
-                        <option value="CUSTOM_TRIGGER" style="font-weight:bold; color:#E07A5F;">➕ 其他...</option>
+                        <!-- 選項由 JS 產生 -->
                     </select>
                 </div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
             <div class="form-group">
                 <div>
-                    <select id="itemCategory">
-                        <option value="餐飲">🍱 餐飲</option>
-                        <option value="交通">🚃 交通</option>
-                        <option value="住宿">🏨 住宿</option>
-                        <option value="購物">🛍️ 購物</option>
-                        <option value="娛樂">🎟️ 娛樂</option>
-                        <option value="其他">📌 其他</option>
+                    <select id="itemCategory" onchange="handleCategoryChange('add')" oncontextmenu="openCategoryContextMenu(event)" title="💡 提示：在此下拉選單上點擊右鍵可編輯或刪除此分類">
+                        <!-- 選項由 JS 產生 -->
                     </select>
                 </div>
                 <div id="payerInputContainer"><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
@@ -265,23 +257,23 @@
         <!-- 消費紀錄 -->
         <div class="card">
             <h3 style="margin-top: 0; color: #2F3E46;">🧾 消費紀錄</h3>
-            <div class="filter-container">
-                <div class="filter-chip active" onclick="setFilter('ALL', this)">全部</div>
-                <div class="filter-chip" onclick="setFilter('餐飲', this)">🍱 餐飲</div>
-                <div class="filter-chip" onclick="setFilter('交通', this)">🚃 交通</div>
-                <div class="filter-chip" onclick="setFilter('住宿', this)">🏨 住宿</div>
-                <div class="filter-chip" onclick="setFilter('購物', this)">🛍 購物</div>
-                <div class="filter-chip" onclick="setFilter('娛樂', this)">🎟️ 娛樂</div>
-                <div class="filter-chip" onclick="setFilter('其他', this)">📌 其他</div>
+            <div class="filter-container" id="filterContainer">
+                <!-- 篩選列由 JS 動態生成 -->
             </div>
             <div id="expense-list"></div>
         </div>
     </div>
 
-    <!-- 右鍵選單 -->
+    <!-- 右鍵選單：幣別 -->
     <div id="currencyContextMenu" class="context-menu">
         <div class="context-menu-item" onclick="contextEditCurrency()">✏️ 編輯匯率</div>
         <div class="context-menu-item danger" onclick="contextDeleteCurrency()">🗑️ 刪除此幣別</div>
+    </div>
+    
+    <!-- 右鍵選單：分類 -->
+    <div id="categoryContextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="contextEditCategory()">✏️ 重新命名分類</div>
+        <div class="context-menu-item danger" onclick="contextDeleteCategory()">🗑️ 刪除此分類</div>
     </div>
 
     <!-- 編輯消費 Modal -->
@@ -302,14 +294,7 @@
             <div id="editTwdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
             <div class="form-group" style="margin-top:10px;">
                 <div>
-                    <select id="editExpCategory">
-                        <option value="餐飲">🍱 餐飲</option>
-                        <option value="交通">🚃 交通</option>
-                        <option value="住宿">🏨 住宿</option>
-                        <option value="購物">🛍️ 購物</option>
-                        <option value="娛樂">🎟️ 娛樂</option>
-                        <option value="其他">📌 其他</option>
-                    </select>
+                    <select id="editExpCategory" onchange="handleCategoryChange('edit')"></select>
                 </div>
                 <div id="editPayerInputContainer"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
@@ -414,13 +399,14 @@
         }
 
         let previousCurrency = "TWD";
+        let previousCategory = "";
         let appData = null; 
         let contextTargetCurrency = null;
+        let contextTargetCategory = null;
         let currentFilterCategory = 'ALL';
         let expenseChart = null;
         let isFetchingRate = false;
 
-        // 當前介面查詢到的歷史匯率快取變數
         let currentFetchedAddRate = 1; 
         let currentFetchedEditRate = 1;
 
@@ -432,6 +418,7 @@
                 showChart: true
             },
             rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 },
+            categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"],
             trips: [{
                 id: "trip_1", name: "我的新帳本", startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 30000, expenses: []
             }]
@@ -470,6 +457,7 @@
                     if (docSnap.exists) {
                         appData = docSnap.data();
                         if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+                        if (!appData.categories) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"];
                     } else {
                         appData = JSON.parse(JSON.stringify(defaultAppData));
                         await docRef.set(appData); 
@@ -478,7 +466,10 @@
                 } catch (error) {
                     console.warn("無法存取雲端，切換至本機備份模式");
                     const local = localStorage.getItem('local_trip_data');
-                    if (local) appData = JSON.parse(local);
+                    if (local) {
+                        appData = JSON.parse(local);
+                        if (!appData.categories) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"];
+                    }
                     else appData = JSON.parse(JSON.stringify(defaultAppData));
                     if (!appData.settings) appData.settings = { showBudget: true, showPayerSummary: true, showChart: true };
                 }
@@ -513,6 +504,7 @@
             if (!show) document.getElementById('itemDetails').value = ''; 
         }
 
+        // === 幣別右鍵選單邏輯 ===
         function openCurrencyContextMenu(e) {
             e.preventDefault();
             const selectEl = document.getElementById('itemCurrency');
@@ -527,7 +519,6 @@
             contextMenu.style.top = e.pageY + 'px';
         }
 
-        document.addEventListener('click', (e) => { if (e.target.id !== 'itemCurrency') document.getElementById('currencyContextMenu').style.display = 'none'; });
         function contextEditCurrency() {
             if(!contextTargetCurrency) return;
             const newRate = prompt(`請輸入 ${escapeHTML(contextTargetCurrency)} 的新匯率 (對換 TWD):`, appData.rates[contextTargetCurrency]);
@@ -541,6 +532,73 @@
             document.getElementById('currencyContextMenu').style.display = 'none';
         }
 
+        // === 分類右鍵選單與新增邏輯 ===
+        function openCategoryContextMenu(e) {
+            e.preventDefault();
+            const currentVal = e.target.value;
+            if(currentVal === 'CUSTOM_CAT_TRIGGER') return;
+            
+            contextTargetCategory = currentVal;
+            const contextMenu = document.getElementById('categoryContextMenu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = Math.min(e.pageX, window.innerWidth - 140) + 'px';
+            contextMenu.style.top = e.pageY + 'px';
+        }
+
+        function contextEditCategory() {
+            if(!contextTargetCategory) return;
+            const newName = prompt(`請輸入 ${escapeHTML(contextTargetCategory)} 的新名稱:`, contextTargetCategory);
+            if(newName && newName.trim() !== '' && newName.trim() !== contextTargetCategory) { 
+                const trimmed = newName.trim();
+                const idx = appData.categories.indexOf(contextTargetCategory);
+                if(idx > -1) {
+                    appData.categories[idx] = trimmed;
+                    // 同步更新所有消費紀錄中的此分類名稱
+                    appData.trips.forEach(t => t.expenses.forEach(exp => { if(exp.category === contextTargetCategory) exp.category = trimmed; }));
+                    saveData(); updateUI();
+                }
+            }
+            document.getElementById('categoryContextMenu').style.display = 'none';
+        }
+        function contextDeleteCategory() {
+            if(!contextTargetCategory) return;
+            if(confirm(`確定刪除 ${escapeHTML(contextTargetCategory)} 分類？ (這不會刪除已使用此分類的歷史紀錄)`)) { 
+                appData.categories = appData.categories.filter(c => c !== contextTargetCategory);
+                if (currentFilterCategory === contextTargetCategory) currentFilterCategory = 'ALL';
+                saveData(); updateUI(); 
+            }
+            document.getElementById('categoryContextMenu').style.display = 'none';
+        }
+
+        function handleCategoryChange(mode) {
+            const selectId = mode === 'add' ? 'itemCategory' : 'editExpCategory';
+            const val = document.getElementById(selectId).value;
+            if (val === 'CUSTOM_CAT_TRIGGER') {
+                const newCat = prompt('請輸入新分類名稱：');
+                if (newCat && newCat.trim() !== '') {
+                    const trimmed = newCat.trim();
+                    if (!appData.categories.includes(trimmed)) {
+                        appData.categories.push(trimmed);
+                        saveData();
+                    }
+                    updateUI();
+                    document.getElementById(selectId).value = trimmed;
+                    if(mode === 'add') previousCategory = trimmed;
+                } else {
+                    updateUI();
+                    document.getElementById(selectId).value = mode === 'add' && previousCategory ? previousCategory : appData.categories[0];
+                }
+            } else {
+                if(mode === 'add') previousCategory = val;
+            }
+        }
+
+        // 點擊空白處關閉所有右鍵選單
+        document.addEventListener('click', (e) => { 
+            if (e.target.id !== 'itemCurrency') document.getElementById('currencyContextMenu').style.display = 'none'; 
+            if (e.target.id !== 'itemCategory') document.getElementById('categoryContextMenu').style.display = 'none';
+        });
+
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
 
         function updateUI() {
@@ -553,8 +611,6 @@
             document.getElementById('budgetCard').style.display = showBudget ? 'block' : 'none';
             document.getElementById('payerSummaryCard').style.display = showPayer ? 'block' : 'none';
             document.getElementById('payerInputContainer').style.display = showPayer ? 'block' : 'none';
-
-            // Modal 中的預算輸入框也做連動隱藏
             document.getElementById('editTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
             document.getElementById('newTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
 
@@ -566,20 +622,30 @@
             document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             
-            // 處理日期欄位限制 (預設今天，不超過結束日期)
+            // 處理日期欄位限制
             const dateInput = document.getElementById('itemDate');
+            dateInput.min = trip.startDate;
             dateInput.max = trip.endDate;
-            if (!dateInput.value) {
+            if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) {
                 let today = getLocalDateString();
-                dateInput.value = (today > trip.endDate) ? trip.endDate : today;
+                if (today > trip.endDate) dateInput.value = trip.endDate;
+                else if (today < trip.startDate) dateInput.value = trip.startDate;
+                else dateInput.value = today;
             }
 
+            // 更新匯率選單 (台幣優先置頂)
             const selectEl = document.getElementById('itemCurrency');
             const currentVal = selectEl.value || 'TWD';
             selectEl.innerHTML = '';
+            
+            const twdOpt = document.createElement('option'); 
+            twdOpt.value = 'TWD'; twdOpt.innerText = '台幣 (TWD)';
+            selectEl.appendChild(twdOpt);
+
             Object.keys(appData.rates).forEach(code => {
+                if (code === 'TWD') return; // 跳過已渲染的台幣
                 const opt = document.createElement('option'); opt.value = code;
-                opt.innerText = code === 'JPY' ? '日圓 (JPY)' : (code === 'TWD' ? '台幣 (TWD)' : `${code} (${appData.rates[code]})`);
+                opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`;
                 selectEl.appendChild(opt);
             });
             const triggerOpt = document.createElement('option');
@@ -591,7 +657,33 @@
             else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency;
             else selectEl.value = 'TWD';
 
+            // 更新分類選單
+            const catSelectEl = document.getElementById('itemCategory');
+            const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
+            catSelectEl.innerHTML = '';
+            appData.categories.forEach(cat => {
+                const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
+                catSelectEl.appendChild(opt);
+            });
+            const catTrigger = document.createElement('option');
+            catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
+            catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
+            catSelectEl.appendChild(catTrigger);
+            
+            if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal;
+            else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
+
+            // 處理分類篩選列 (僅渲染歷史紀錄存在的分類)
             const listEl = document.getElementById('expense-list');
+            const usedCategories = new Set(trip.expenses.map(e => e.category));
+            const filterContainer = document.getElementById('filterContainer');
+            filterContainer.innerHTML = `<div class="filter-chip ${currentFilterCategory === 'ALL' ? 'active' : ''}" onclick="setFilter('ALL', this)">全部</div>`;
+            
+            usedCategories.forEach(cat => {
+                const isActive = currentFilterCategory === cat ? 'active' : '';
+                filterContainer.innerHTML += `<div class="filter-chip ${isActive}" onclick="setFilter('${escapeHTML(cat)}', this)">${escapeHTML(cat)}</div>`;
+            });
+
             const spentEl = document.getElementById('total-spent');
             const fillEl = document.getElementById('budget-fill');
             listEl.innerHTML = ''; 
@@ -602,7 +694,6 @@
             const filteredExpenses = currentFilterCategory === 'ALL' ? sortedExpenses : sortedExpenses.filter(e => e.category === currentFilterCategory);
 
             trip.expenses.forEach(exp => {
-                // 如果該筆紀錄有存下當下的匯率，就優先使用，否則退回使用設定的匯率
                 const rate = exp.rate || appData.rates[exp.currency] || 1;
                 const twd = Math.round((parseFloat(exp.amount) || 0) * rate);
                 totalTWD += twd;
@@ -693,7 +784,6 @@
             });
         }
 
-        // 查詢指定日期的歷史匯率
         async function handleDateOrCurrencyChange(mode) {
             const dateInputId = mode === 'add' ? 'itemDate' : 'editExpDate';
             const currInputId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency';
@@ -715,15 +805,12 @@
                 return;
             }
             
-            // 提示載入中
             const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
             document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
             
             try {
-                // 利用開源 API 查詢當日歷史匯率
                 let res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${val.toLowerCase()}.json`);
                 if (!res.ok) {
-                    // 若當天資料尚未生成(例如當日或 API 延遲)，則抓取 latest 版本
                     res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${val.toLowerCase()}.json`);
                 }
                 const data = await res.json();
@@ -767,11 +854,10 @@
             const payer = document.getElementById('itemPayer').value.trim() || '我';
             const date = document.getElementById('itemDate').value;
 
-            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER') {
+            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER' || category === 'CUSTOM_CAT_TRIGGER') {
                 return alert('請填寫正確且完整的資訊！');
             }
 
-            // 存入當下的計算匯率
             getActiveTrip().expenses.unshift({ 
                 id: Date.now(), name, details, amount, currency, category, payer, date,
                 rate: currentFetchedAddRate 
@@ -842,10 +928,10 @@
             document.getElementById('editExpName').value = exp.name;
             document.getElementById('editExpDetails').value = exp.details || '';
             document.getElementById('editExpAmount').value = exp.amount;
-            document.getElementById('editExpCategory').value = exp.category;
             document.getElementById('editExpPayer').value = exp.payer || '我';
             
             const dateInput = document.getElementById('editExpDate');
+            dateInput.min = trip.startDate;
             dateInput.max = trip.endDate;
             dateInput.value = exp.date;
             
@@ -853,12 +939,29 @@
 
             const selectEl = document.getElementById('editExpCurrency');
             selectEl.innerHTML = '';
+            const twdOpt = document.createElement('option'); twdOpt.value = 'TWD'; twdOpt.innerText = '台幣 (TWD)';
+            selectEl.appendChild(twdOpt);
+            
             Object.keys(appData.rates).forEach(code => {
+                if (code === 'TWD') return;
                 const opt = document.createElement('option'); opt.value = code; opt.innerText = code; selectEl.appendChild(opt);
             });
             selectEl.value = exp.currency;
+
+            // 編輯畫面：載入分類選項
+            const catSelectEl = document.getElementById('editExpCategory');
+            catSelectEl.innerHTML = '';
+            appData.categories.forEach(cat => {
+                const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
+                catSelectEl.appendChild(opt);
+            });
+            const catTrigger = document.createElement('option');
+            catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
+            catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
+            catSelectEl.appendChild(catTrigger);
             
-            // 帶入該筆消費原本的匯率
+            catSelectEl.value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            
             currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1;
             updateTWDPreview('edit');
             
@@ -875,12 +978,11 @@
             const payer = document.getElementById('editExpPayer').value.trim() || '我';
             const date = document.getElementById('editExpDate').value;
             
-            if (!name || isNaN(amount) || amount <= 0 || !date) return alert('請填寫完整！');
+            if (!name || isNaN(amount) || amount <= 0 || !date || category === 'CUSTOM_CAT_TRIGGER') return alert('請填寫完整！');
             
             const trip = getActiveTrip();
             const index = trip.expenses.findIndex(e => e.id === id);
             if (index > -1) {
-                // 將新的編輯的匯率存入
                 trip.expenses[index] = { ...trip.expenses[index], name, details, amount, currency, category, payer, date, rate: currentFetchedEditRate };
                 saveData(); updateUI(); closeModal('editExpenseModal');
             }
