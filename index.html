@@ -260,8 +260,12 @@
 
         <!-- 消費紀錄 -->
         <div class="card">
+            <!-- 標題與排序列 (加入總計金額標籤) -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #2F3E46;">🧾 消費紀錄</h3>
+                <h3 style="margin: 0; color: #2F3E46; display: flex; align-items: center; gap: 8px;">
+                    🧾 消費紀錄
+                    <span id="record-total" style="font-size: 13px; color: #E07A5F; font-weight: bold; background: #F9F3EC; padding: 2px 8px; border-radius: 12px; border: 1px solid #D6C5B3;">NT$ 0</span>
+                </h3>
                 <select id="sortSelect" onchange="changeSortOrder(this.value)" style="width: auto; margin: 0; padding: 4px 8px; font-size: 12px; border-radius: 8px; background: #E8F0EE; border: 1px solid #84A59D; color: #2F3E46; cursor: pointer; outline: none;">
                     <option value="date-desc">📅 日期 (近到遠)</option>
                     <option value="date-asc">📅 日期 (遠到近)</option>
@@ -737,10 +741,15 @@
             document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).map(p => `<div>👤 <strong>${escapeHTML(p)}</strong> 已支付: NT$ ${payerTotals[p].toLocaleString()}</div>`).join('');
 
             let lastDate = "";
+            let filteredTotalTWD = 0; // 新增：用來記錄當下畫面上顯示的總金額
+            
             if (filteredExpenses.length === 0) {
                 listEl.innerHTML = '<p style="text-align:center; color:#84A59D; margin-top:15px;">尚無相關消費紀錄</p>';
             } else {
                 filteredExpenses.forEach(exp => {
+                    const twdAmount = getTwd(exp);
+                    filteredTotalTWD += twdAmount; // 累加目前顯示的小計
+                    
                     // 只有在使用日期排序時，才顯示獨立的日期群組大標題
                     if (currentSortOrder.startsWith('date-') && exp.date !== lastDate) {
                         lastDate = exp.date;
@@ -749,7 +758,6 @@
                         listEl.appendChild(dHeader);
                     }
                     
-                    const twdAmount = getTwd(exp);
                     const div = document.createElement('div'); div.className = 'expense-item';
                     const detailsHtml = exp.details ? `<br><small style="color:#666;">📝 ${escapeHTML(exp.details)}</small>` : '';
                     const payerTagStyle = showPayer ? 'inline-block' : 'none';
@@ -775,6 +783,12 @@
                     `;
                     listEl.appendChild(div);
                 });
+            }
+
+            // 更新標題旁邊的小計金額
+            const recordTotalEl = document.getElementById('record-total');
+            if (recordTotalEl) {
+                recordTotalEl.innerText = `NT$ ${filteredTotalTWD.toLocaleString()}`;
             }
 
             spentEl.innerText = totalTWD.toLocaleString();
