@@ -260,7 +260,6 @@
 
         <!-- 消費紀錄 -->
         <div class="card">
-            <!-- 標題與排序列 (加入總計金額標籤) -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
                 <h3 style="margin: 0; color: #2F3E46; display: flex; align-items: center; gap: 8px;">
                     🧾 消費紀錄
@@ -440,7 +439,7 @@
         let previousCategory = "";
         let appData = null; 
         let currentFilterCategory = 'ALL';
-        let currentSortOrder = 'date-desc'; // 新增：預設排序狀態
+        let currentSortOrder = 'date-desc';
         let expenseChart = null;
         let isFetchingRate = false;
 
@@ -629,7 +628,6 @@
         // ==========================
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
         
-        // 變更排序方式
         function changeSortOrder(val) {
             currentSortOrder = val;
             updateUI();
@@ -656,7 +654,6 @@
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             document.getElementById('sortSelect').value = currentSortOrder;
             
-            // 日期欄位
             const dateInput = document.getElementById('itemDate');
             dateInput.min = trip.startDate; dateInput.max = trip.endDate;
             if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) {
@@ -664,7 +661,6 @@
                 dateInput.value = (today > trip.endDate) ? trip.endDate : ((today < trip.startDate) ? trip.startDate : today);
             }
 
-            // 更新幣別選單
             const selectEl = document.getElementById('itemCurrency');
             const editSelectEl = document.getElementById('editExpCurrency');
             const currentVal = selectEl.value || 'TWD';
@@ -683,7 +679,6 @@
             else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency;
             else selectEl.value = 'TWD';
 
-            // 更新分類選單
             const catSelectEl = document.getElementById('itemCategory');
             const editCatSelectEl = document.getElementById('editExpCategory');
             const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
@@ -697,7 +692,6 @@
             if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal;
             else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
 
-            // 篩選列
             const listEl = document.getElementById('expense-list');
             const usedCategories = new Set(trip.expenses.map(e => e.category));
             const filterContainer = document.getElementById('filterContainer');
@@ -708,13 +702,11 @@
             const fillEl = document.getElementById('budget-fill');
             listEl.innerHTML = ''; 
             
-            // 計算總和與整理清單
             let totalTWD = 0; const payerTotals = {};
             const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
             
             let sortedExpenses = [...trip.expenses];
             
-            // 執行清單排序
             sortedExpenses.sort((a, b) => {
                 if (currentSortOrder === 'date-desc') {
                     const diff = new Date(b.date) - new Date(a.date);
@@ -741,16 +733,15 @@
             document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).map(p => `<div>👤 <strong>${escapeHTML(p)}</strong> 已支付: NT$ ${payerTotals[p].toLocaleString()}</div>`).join('');
 
             let lastDate = "";
-            let filteredTotalTWD = 0; // 新增：用來記錄當下畫面上顯示的總金額
+            let filteredTotalTWD = 0; 
             
             if (filteredExpenses.length === 0) {
                 listEl.innerHTML = '<p style="text-align:center; color:#84A59D; margin-top:15px;">尚無相關消費紀錄</p>';
             } else {
                 filteredExpenses.forEach(exp => {
                     const twdAmount = getTwd(exp);
-                    filteredTotalTWD += twdAmount; // 累加目前顯示的小計
+                    filteredTotalTWD += twdAmount; 
                     
-                    // 只有在使用日期排序時，才顯示獨立的日期群組大標題
                     if (currentSortOrder.startsWith('date-') && exp.date !== lastDate) {
                         lastDate = exp.date;
                         const dHeader = document.createElement('div');
@@ -761,9 +752,13 @@
                     const div = document.createElement('div'); div.className = 'expense-item';
                     const detailsHtml = exp.details ? `<br><small style="color:#666;">📝 ${escapeHTML(exp.details)}</small>` : '';
                     const payerTagStyle = showPayer ? 'inline-block' : 'none';
-                    
-                    // 如果是用金額排序，為了避免失去日期概念，在分類旁邊補上獨立日期小標籤
                     const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">📅 ${escapeHTML(exp.date)}</span>` : '';
+
+                    // 判斷是否為台幣：若是 TWD 則只顯示金額，不顯示換算台幣價格
+                    const isTWD = (!exp.currency || exp.currency === 'TWD');
+                    const rightAmountHtml = isTWD 
+                        ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` 
+                        : `<strong>${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:#777;">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
 
                     div.innerHTML = `
                         <div>
@@ -777,15 +772,13 @@
                             <button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
                         </div>
                         <div style="text-align: right;">
-                            <strong>${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br>
-                            <small style="color:#777;">≈ NT$ ${twdAmount.toLocaleString()}</small>
+                            ${rightAmountHtml}
                         </div>
                     `;
                     listEl.appendChild(div);
                 });
             }
 
-            // 更新標題旁邊的小計金額
             const recordTotalEl = document.getElementById('record-total');
             if (recordTotalEl) {
                 recordTotalEl.innerText = `NT$ ${filteredTotalTWD.toLocaleString()}`;
@@ -821,7 +814,12 @@
             
             if (!date || !val) return;
             if (val === 'CUSTOM_TRIGGER') { if(mode === 'add') handleCurrencyChange(val); return; }
-            if (val === 'TWD') { if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; updateTWDPreview(mode); return; }
+            if (val === 'TWD') { 
+                if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; 
+                const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
+                document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; 
+                return; 
+            }
             
             const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
             document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
@@ -839,8 +837,16 @@
         }
 
         function updateTWDPreview(mode) { 
-            const amtId = mode === 'add' ? 'itemAmount' : 'editExpAmount';
+            const currId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency';
+            const currency = document.getElementById(currId).value;
             const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
+            
+            if (currency === 'TWD') {
+                document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`;
+                return;
+            }
+
+            const amtId = mode === 'add' ? 'itemAmount' : 'editExpAmount';
             const activeRate = mode === 'add' ? currentFetchedAddRate : currentFetchedEditRate;
             const amt = parseFloat(document.getElementById(amtId).value) || 0;
             document.getElementById(previewId).innerText = `換算台幣: NT$ ${Math.round(amt * activeRate).toLocaleString()}`; 
@@ -858,7 +864,7 @@
 
             if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER' || category === 'CUSTOM_CAT_TRIGGER') return alert('請填寫正確且完整的資訊！');
 
-            getActiveTrip().expenses.unshift({ id: Date.now(), name, details, amount, currency, category, payer, date, rate: currentFetchedAddRate });
+            getActiveTrip().expenses.unshift({ id: Date.now(), name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedAddRate) });
             saveData(); 
             
             document.getElementById('itemName').value = ''; document.getElementById('itemAmount').value = ''; document.getElementById('itemDetails').value = '';
@@ -874,7 +880,6 @@
             if (showPayer) csv += ",付款人";
             csv += ",換算台幣(TWD)\n";
 
-            // 匯出時也依照目前的排序狀態匯出
             let exportExpenses = [...trip.expenses];
             const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
             
@@ -917,7 +922,10 @@
             const id = parseInt(document.getElementById('editExpId').value); const name = document.getElementById('editExpName').value.trim(); const details = document.getElementById('editExpDetails').value.trim(); const amount = parseFloat(document.getElementById('editExpAmount').value); const currency = document.getElementById('editExpCurrency').value; const category = document.getElementById('editExpCategory').value; const payer = document.getElementById('editExpPayer').value.trim() || '我'; const date = document.getElementById('editExpDate').value;
             if (!name || isNaN(amount) || amount <= 0 || !date || category === 'CUSTOM_CAT_TRIGGER') return alert('請填寫完整！');
             const trip = getActiveTrip(); const index = trip.expenses.findIndex(e => e.id === id);
-            if (index > -1) { trip.expenses[index] = { ...trip.expenses[index], name, details, amount, currency, category, payer, date, rate: currentFetchedEditRate }; saveData(); updateUI(); closeModal('editExpenseModal'); }
+            if (index > -1) { 
+                trip.expenses[index] = { ...trip.expenses[index], name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedEditRate) }; 
+                saveData(); updateUI(); closeModal('editExpenseModal'); 
+            }
         }
 
         function toggleSidebar(open) {
