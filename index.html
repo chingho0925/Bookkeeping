@@ -196,7 +196,7 @@
         <div class="card" id="budgetCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin: 0; color: #2F3E46;">預算進度 (TWD)</h3>
-                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏️️</span>
+                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">
                 <span>已花費: $<strong id="total-spent" style="font-size: 17px; color:#E07A5F;">0</strong></span>
@@ -235,23 +235,23 @@
             </div>
             <input type="text" id="itemDetails" placeholder="細項說明 (例如：牛肉麵x2, 小菜x1)" maxlength="100" style="display: none; background-color: #f4f4f4;">
             
+            <!-- 優化版：金額與幣別比例 (縮短幣別欄位) -->
             <div class="form-group">
-                <div><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
-                <!-- 幣別與管理按鈕 -->
-                <div style="display: flex; gap: 4px; margin-top: 8px;">
+                <div style="flex: 1.5;"><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
                     <select id="itemCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('add')"></select>
                     <button type="button" class="manage-btn" onclick="openManageCurrency()" title="管理自訂幣別">⚙️</button>
                 </div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
             
+            <!-- 優化版：分類與付款人比例 (縮短分類欄位) -->
             <div class="form-group">
-                <!-- 分類與管理按鈕 -->
-                <div style="display: flex; gap: 4px; margin-top: 8px;">
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
                     <select id="itemCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('add')"></select>
                     <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙️</button>
                 </div>
-                <div id="payerInputContainer"><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
+                <div id="payerInputContainer" style="flex: 1.5;"><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
             </div>
             <button class="primary-btn" onclick="addExpense()">記上一筆</button>
         </div>
@@ -270,7 +270,15 @@
     <div class="modal" id="manageCurrencyModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">⚙️ 管理幣別與匯率</h3>
-            <p style="font-size:12px; color:#84A59D;">台幣 (TWD) 為預設幣別，無法編輯。刪除幣別不會影響歷史紀錄。</p>
+            <p style="font-size:12px; color:#84A59D;">台幣 (TWD) 為預設幣別。刪除幣別不會影響歷史紀錄。</p>
+            
+            <!-- 新增幣別快速輸入框 -->
+            <div style="display: flex; gap: 6px; margin-bottom: 15px; background: #E8F0EE; padding: 10px; border-radius: 8px; align-items: center;">
+                <input type="text" id="newManageCurrCode" placeholder="代碼(如:GBP)" maxlength="5" style="margin: 0; flex: 1; text-transform: uppercase;">
+                <input type="number" id="newManageCurrRate" placeholder="對台幣匯率" step="any" min="0" style="margin: 0; flex: 1.2;">
+                <button class="primary-btn" style="margin: 0; width: auto; padding: 11px 12px;" onclick="addManageCurrency()">➕</button>
+            </div>
+
             <div id="manageCurrencyList" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto;"></div>
             <button onclick="closeModal('manageCurrencyModal')" style="background:#ccc;">關閉</button>
         </div>
@@ -281,6 +289,13 @@
         <div class="modal-content">
             <h3 style="margin-top:0;">⚙️ 管理消費分類</h3>
             <p style="font-size:12px; color:#84A59D;">重新命名分類將會同步更新所有歷史紀錄中的名稱。</p>
+
+            <!-- 新增分類快速輸入框 -->
+            <div style="display: flex; gap: 6px; margin-bottom: 15px; background: #E8F0EE; padding: 10px; border-radius: 8px; align-items: center;">
+                <input type="text" id="newManageCatInput" placeholder="輸入新分類名稱" style="margin: 0; flex: 1;" maxlength="20">
+                <button class="primary-btn" style="margin: 0; width: auto; padding: 11px 15px;" onclick="addManageCategory()">➕ 新增</button>
+            </div>
+
             <div id="manageCategoryList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;"></div>
             <button onclick="closeModal('manageCategoryModal')" style="background:#ccc;">關閉</button>
         </div>
@@ -298,8 +313,8 @@
             <input type="text" id="editExpDetails" placeholder="細項說明 (可留空)" maxlength="100" style="background-color: #f4f4f4;">
             
             <div class="form-group" style="margin-top:10px;">
-                <div><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any" oninput="updateTWDPreview('edit')"></div>
-                <div style="display: flex; gap: 4px;">
+                <div style="flex: 1.5;"><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any" oninput="updateTWDPreview('edit')"></div>
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
                     <select id="editExpCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('edit')"></select>
                     <button type="button" class="manage-btn" onclick="openManageCurrency()" title="管理自訂幣別">⚙️</button>
                 </div>
@@ -307,11 +322,11 @@
             <div id="editTwdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
             
             <div class="form-group" style="margin-top:10px;">
-                <div style="display: flex; gap: 4px;">
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
                     <select id="editExpCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('edit')"></select>
                     <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙️</button>
                 </div>
-                <div id="editPayerInputContainer"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
+                <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
             <div class="form-group" style="margin-top:15px;">
                 <button onclick="closeModal('editExpenseModal')" style="background:#ccc;">取消</button>
@@ -363,7 +378,7 @@
     <!-- 自訂幣別與查詢彈窗 -->
     <div class="modal" id="customCurrencyModal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">🌐 新增幣別與查詢</h3>
+            <h3 style="margin-top:0;">🌐 查詢即時匯率</h3>
             <label style="font-size:13px; font-weight:bold;">幣別代碼：</label>
             <div class="form-group">
                 <div><input type="text" id="customCodeInput" placeholder="GBP" maxlength="5" style="text-transform:uppercase;"></div>
@@ -550,6 +565,27 @@
                 list.innerHTML = '<p style="color:#84A59D; font-size:13px; text-align:center;">目前沒有自訂幣別</p>';
             }
         }
+        
+        // 面板內新增幣別
+        function addManageCurrency() {
+            const codeInput = document.getElementById('newManageCurrCode');
+            const rateInput = document.getElementById('newManageCurrRate');
+            const code = codeInput.value.trim().toUpperCase();
+            const rate = parseFloat(rateInput.value);
+            
+            if (!code || isNaN(rate) || rate <= 0) {
+                return alert('請完整填寫幣別代碼與匯率！');
+            }
+            
+            appData.rates[code] = rate;
+            saveData();
+            updateUI();
+            renderManageCurrency();
+            
+            // 清空輸入框
+            codeInput.value = '';
+            rateInput.value = '';
+        }
 
         function editManageCurrency(code) {
             const newRate = prompt(`請輸入 ${code} 的新匯率 (對換 TWD):`, appData.rates[code]);
@@ -597,6 +633,22 @@
                 list.appendChild(div);
             });
         }
+        
+        // 面板內新增分類
+        function addManageCategory() {
+            const input = document.getElementById('newManageCatInput');
+            const val = input.value.trim();
+            
+            if (val && !appData.categories.includes(val)) {
+                appData.categories.push(val);
+                saveData();
+                updateUI();
+                renderManageCategory();
+                input.value = ''; // 清空輸入框
+            } else if (appData.categories.includes(val)) {
+                alert('此分類已存在！');
+            }
+        }
 
         function editManageCategory(oldName) {
             const newName = prompt(`請輸入「${oldName}」的新名稱:`, oldName);
@@ -627,20 +679,8 @@
             const selectId = mode === 'add' ? 'itemCategory' : 'editExpCategory';
             const val = document.getElementById(selectId).value;
             if (val === 'CUSTOM_CAT_TRIGGER') {
-                const newCat = prompt('請輸入新分類名稱：');
-                if (newCat && newCat.trim() !== '') {
-                    const trimmed = newCat.trim();
-                    if (!appData.categories.includes(trimmed)) {
-                        appData.categories.push(trimmed);
-                        saveData();
-                    }
-                    updateUI();
-                    document.getElementById(selectId).value = trimmed;
-                    if(mode === 'add') previousCategory = trimmed;
-                } else {
-                    updateUI();
-                    document.getElementById(selectId).value = mode === 'add' && previousCategory ? previousCategory : appData.categories[0];
-                }
+                document.getElementById(selectId).value = mode === 'add' && previousCategory ? previousCategory : appData.categories[0];
+                openManageCategory(); // 改為直接彈出管理面板
             } else {
                 if(mode === 'add') previousCategory = val;
             }
@@ -699,7 +739,7 @@
                 });
                 
                 const triggerOpt = document.createElement('option');
-                triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 新增幣別...';
+                triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...';
                 triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F';
                 el.appendChild(triggerOpt);
             });
@@ -720,7 +760,7 @@
                     el.appendChild(opt);
                 });
                 const catTrigger = document.createElement('option');
-                catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 新增分類...';
+                catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...';
                 catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F';
                 el.appendChild(catTrigger);
             });
