@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風帳簿 (資料夾管理與獨立設定版)</title>
+    <title>和風帳簿 (完美拖曳與介面優化版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -76,23 +76,29 @@
         .edit-title-icon { font-size: 14px; cursor: pointer; opacity: 0.7; }
         .trip-period-text { font-size: 12px; opacity: 0.8; margin-top: 4px; color: #D6C5B3; }
 
+        /* 修正 sidebar 隱藏時露出的問題 (left: -300px 對齊 width: 300px) */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; z-index: 99; backdrop-filter: blur(2px); }
-        .sidebar { position: fixed; top: 0; left: -280px; width: 300px; height: 100%; background-color: #F9F3EC; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 100; transition: left 0.3s ease; display: flex; flex-direction: column; }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background-color: #F9F3EC; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 100; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .sidebar.open { left: 0; }
         .sidebar-overlay.open { display: block; }
         .sidebar-header { background-color: #2F3E46; color: #F9F3EC; padding: 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
         
         /* 側邊欄與資料夾 */
-        .trip-menu-item { position: relative; padding: 12px 15px; margin-bottom: 8px; background: white; border-radius: 8px; border-left: 5px solid #D6C5B3; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .trip-menu-item { position: relative; padding: 10px 12px; margin-bottom: 8px; background: white; border-radius: 8px; border-left: 5px solid #D6C5B3; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; overflow: hidden; }
         .trip-menu-item.active { border-left-color: #84A59D; background-color: #E8F0EE; }
         .folder-item { margin-bottom: 8px; }
         .folder-header { padding: 10px 15px; background: #EAE2D6; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #2F3E46; }
-        .folder-content { padding-left: 12px; margin-left: 12px; border-left: 2px dashed #D6C5B3; margin-top: 8px; min-height: 25px; padding-bottom: 5px; } /* 確保空資料夾有高度可供拖入 */
+        
+        /* 增加空資料夾的 min-height，方便拖曳判定 */
+        .folder-content { padding-left: 12px; margin-left: 12px; border-left: 2px dashed #D6C5B3; margin-top: 8px; min-height: 40px; padding-bottom: 5px; } 
+        
         .sidebar-cb { width: 18px; height: 18px; cursor: pointer; margin: 0; }
         .sortable-ghost { opacity: 0.4; background-color: #F4A261 !important; border: 2px dashed #E07A5F !important; }
-        .settings-icon-btn { border: none; background: transparent; cursor: pointer; color: #2F3E46; opacity: 0.6; transition: opacity 0.2s;}
-        .settings-icon-btn:hover { opacity: 1; }
+        
+        /* 設定按鈕特效 */
+        .settings-icon-btn { border: none; background: transparent; cursor: pointer; color: #2F3E46; opacity: 0.6; transition: all 0.2s; z-index: 10; }
+        .settings-icon-btn:hover { opacity: 1; transform: scale(1.1); }
 
         .card { background: rgba(255, 255, 255, 0.95); padding: 18px; border-radius: 12px; margin-top: 15px; border-left: 6px solid #84A59D; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .budget-bar { background-color: #EAE2D6; border-radius: 8px; height: 18px; width: 100%; overflow: hidden; margin-top: 10px; }
@@ -713,15 +719,16 @@
             const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)), 0);
             
             let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${trip.id}" data-type="trip" onclick="event.stopPropagation()">` : '';
-            // 設定按鈕移至右下角絕對定位
+            
+            // 絕對定位在右下角的微型設定按鈕
             let settingsBtn = (isActive && !isSidebarEditMode) ? 
-                `<button class="settings-icon-btn" style="position: absolute; bottom: 4px; right: 4px; font-size: 13px; padding: 4px;" onclick="openTripSettings(event, '${trip.id}')" title="帳本設定">⚙️</button>` : '';
+                `<button class="settings-icon-btn" style="position: absolute; bottom: 0px; right: 0px; font-size: 14px; padding: 4px 8px; border-radius: 8px 0 8px 0;" onclick="openTripSettings(event, '${trip.id}')" title="帳本設定">⚙️</button>` : '';
 
             return `
             <div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">
-                <div style="display:flex; align-items:center; width:100%;">
+                <div style="display:flex; align-items:center; width:100%; min-height: 48px;">
                     ${cb}
-                    <div style="flex-grow:1; margin-left: ${isSidebarEditMode ? '10px' : '0'}; word-break: break-all; padding-right: 24px;">
+                    <div style="flex-grow:1; margin-left: ${isSidebarEditMode ? '10px' : '0'}; word-break: break-all; padding-right: 10px;">
                         <div style="font-size:15px; color:#2F3E46; font-weight:${isActive ? 'bold' : 'normal'};">${escapeHTML(trip.name)}</div>
                         <small style="color:#666;">${escapeHTML(trip.startDate)}</small><br>
                         <small style="color:#84A59D; font-weight:bold;">花費: $${spent.toLocaleString()}</small>
@@ -731,14 +738,28 @@
             </div>`;
         }
 
+        // ==========================
+        // 拖曳重組邏輯 (優化空資料夾)
+        // ==========================
         function initSortable() {
             sortableInstances.forEach(s => s.destroy());
             sortableInstances = [];
             
+            // 統一的群組設定，並加入空資料夾的偵測閾值
             const opts = {
+                group: 'nested-sortable',
                 animation: 150,
-                delay: 200, 
+                delay: 150, 
                 delayOnTouchOnly: true, 
+                fallbackOnBody: true,         // 解決複雜 DOM 拖曳偏移的問題
+                swapThreshold: 0.65,
+                emptyInsertThreshold: 40,     // 允許輕鬆拖入空資料夾的關鍵
+                onMove: function (evt) {
+                    // 防止資料夾被拖入另一個資料夾內 (只允許單層資料夾)
+                    if (evt.dragged.dataset.type === 'folder' && evt.to.classList.contains('folder-content')) {
+                        return false; 
+                    }
+                },
                 onEnd: function () {
                     updateDataFromDOM();
                     renderSidebarContent();
@@ -747,20 +768,11 @@
             
             const rootEl = document.getElementById('root-sortable');
             if (rootEl) {
-                sortableInstances.push(new Sortable(rootEl, {
-                    ...opts,
-                    group: { name: 'root', put: ['folder-content'] }
-                }));
+                sortableInstances.push(new Sortable(rootEl, opts));
             }
             
             document.querySelectorAll('.folder-content').forEach(el => {
-                sortableInstances.push(new Sortable(el, {
-                    ...opts,
-                    group: { 
-                        name: 'folder-content', 
-                        put: function (to, from, dragEl) { return dragEl.dataset.type === 'trip'; } 
-                    }
-                }));
+                sortableInstances.push(new Sortable(el, opts));
             });
         }
 
