@@ -98,9 +98,17 @@
         .filter-chip { padding: 6px 12px; background: #EAE2D6; border-radius: 16px; font-size: 12px; cursor: pointer; white-space: nowrap; color: #4A3B32; }
         .filter-chip.active { background: #84A59D; color: white; font-weight: bold; }
         
-        #expense-list { overflow-y: auto; padding-right: 5px; } /* 捲動列表 */
+        #expense-list { overflow-y: auto; padding-right: 5px; } 
         .date-header { font-size: 13px; font-weight: bold; color: #2F3E46; padding: 8px 0 4px 0; border-bottom: 2px solid #84A59D; margin-top: 12px; }
-        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #D6C5B3; padding: 10px 0; }
+        
+        /* 消費項目防反白及長按互動樣式 */
+        .expense-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 1px dashed #D6C5B3; padding: 10px 5px; 
+            cursor: pointer; transition: background 0.2s;
+            -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+        }
+        .expense-item:active { background-color: #E8F0EE; border-radius: 8px; }
 
         input, select, button { width: 100%; padding: 11px; margin-top: 8px; border: 1px solid #D6C5B3; border-radius: 8px; font-family: inherit; font-size: 14px; background: white; box-sizing: border-box; }
         input[type="date"] { color: #E07A5F; font-weight: bold; }
@@ -111,14 +119,12 @@
 
         .form-group { display: flex; gap: 8px; }
         .form-group > div { flex: 1; }
-        .delete-btn { background: none; border: none; color: #F28482; cursor: pointer; padding: 3px 6px; width: auto; font-size: 12px; margin-top: 4px; border-radius: 4px; border: 1px solid #F28482; }
         .real-time-preview { font-size: 13px; color: #84A59D; margin-top: 4px; text-align: right; font-weight: bold; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
         .modal.open { display: flex; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
         
-        /* 總覽表格樣式 */
         .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid #D6C5B3; border-radius: 8px; margin-top: 10px; }
         .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
         .summary-table th, .summary-table td { border-bottom: 1px dashed #D6C5B3; padding: 8px 10px; text-align: left; }
@@ -165,20 +171,17 @@
             
             <div id="sidebar-items-container"></div>
             
-            <!-- 正常模式按鈕區 -->
             <div id="sidebar-normal-actions">
                 <div style="display: flex; gap: 8px; margin-top: 15px;">
                     <button class="primary-btn" style="flex: 1;" onclick="openAddTripModal()">➕ 新帳本</button>
                     <button class="primary-btn" style="flex: 1; background-color: #D6C5B3; color: #2F3E46;" onclick="createFolder()">📁 新資料夾</button>
                 </div>
-                <!-- 新增總覽按鈕 -->
                 <button class="primary-btn" style="background-color: #94D2BD; color: #2F3E46; margin-top: 10px;" onclick="openSummaryModal()">📊 消費總覽</button>
                 <button class="primary-btn" style="background-color: #5B7B7A; margin-top: 10px;" onclick="exportToCSV()">📥 匯出 CSV 報表</button>
                 <button class="primary-btn" style="background-color: #E07A5F; margin-top: 10px;" onclick="toggleSidebarEditMode()">📝 批次管理 / 刪除</button>
                 <button class="btn-logout" onclick="logoutApp()">🚪 登出帳號</button>
             </div>
 
-            <!-- 編輯模式按鈕區 -->
             <div id="sidebar-edit-actions" style="display: none; margin-top: 15px;">
                 <button class="primary-btn" style="background-color: #E07A5F;" onclick="deleteSelectedItems()">🗑️ 刪除選取項目</button>
                 <button class="primary-btn" style="background-color: #84A59D;" onclick="toggleSidebarEditMode()">❌ 完成 / 取消</button>
@@ -189,7 +192,7 @@
     <!-- 帳本設定彈窗 -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content" style="max-width: 320px;">
-            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙️ 帳本設定</h3>
+            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙️️ 帳本設定</h3>
             
             <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold; color: #2F3E46;">
             <div class="form-group" style="margin-bottom: 15px;">
@@ -202,7 +205,6 @@
                 <select id="modalFolderSelect" style="margin-top: 5px; padding: 8px; font-weight: bold; color: #2F3E46;"></select>
             </div>
 
-            <!-- 顯示筆數設定 -->
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: bold; color: #2F3E46;">🧾 紀錄顯示筆數 (往下捲動查看)：</label>
                 <input type="number" id="modalVisibleCount" min="1" max="100" style="margin-top: 5px;">
@@ -244,11 +246,20 @@
                 <button onclick="exportToCSV()" class="manage-btn" style="margin: 0; padding: 6px 12px; font-size: 12px; background: #94D2BD; border-color: #94D2BD;">匯出 CSV</button>
             </div>
             
-            <div class="summary-table-container" id="summaryTableContainer">
-                <!-- 動態生成表格 -->
-            </div>
+            <div class="summary-table-container" id="summaryTableContainer"></div>
             
             <button onclick="closeModal('summaryModal')" class="primary-btn" style="background:#ccc; color:#2F3E46; margin-top: 15px;">關閉</button>
+        </div>
+    </div>
+
+    <!-- 消費紀錄操作選項 Modal (長按/右鍵跳出) -->
+    <div class="modal" id="expenseOptionsModal">
+        <div class="modal-content" style="max-width: 280px; text-align: center;">
+            <h3 style="margin-top:0; color: #2F3E46;">⚙️ 紀錄選項</h3>
+            <input type="hidden" id="targetExpenseId">
+            <button class="primary-btn" style="background-color: #84A59D;" onclick="triggerEditExpense()">✏️ 編輯紀錄</button>
+            <button class="primary-btn" style="background-color: #E07A5F; margin-top: 10px;" onclick="triggerDeleteExpense()">🗑️ 刪除紀錄</button>
+            <button class="primary-btn" style="background-color: #E8F0EE; color: #2F3E46; border: 1px solid #84A59D; margin-top: 15px;" onclick="closeModal('expenseOptionsModal')">取消</button>
         </div>
     </div>
 
@@ -263,7 +274,6 @@
             <button class="menu-btn" style="justify-self: end; font-size: 22px; opacity: 0.8;" onclick="openTripSettings(event)" title="目前帳本設定">⚙️</button>
         </div>
 
-        <!-- 預算卡片 -->
         <div class="card" id="budgetCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin: 0; color: #2F3E46;">預算進度 (TWD)</h3>
@@ -276,13 +286,12 @@
             <div class="budget-bar"><div class="budget-fill" id="budget-fill"></div></div>
         </div>
 
-        <!-- 成員分帳統計 -->
         <div class="card" id="payerSummaryCard">
             <h3 style="margin-top:0; color:#2F3E46;">👫 成員付款統計</h3>
             <div id="payerSummaryList" style="font-size:14px; line-height: 1.8;"></div>
         </div>
 
-        <!-- 新增消費 (下拉收合式) -->
+        <!-- 新增消費 -->
         <div class="card">
             <h3 style="margin: 0; color: #2F3E46; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAddExpense()">
                 📝 新增消費 <span id="addExpenseIcon" style="font-size: 14px; color: #84A59D;">▼</span>
@@ -321,9 +330,9 @@
             </div>
         </div>
 
-        <!-- 消費紀錄 (設為捲動區域) -->
+        <!-- 消費紀錄 -->
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
                 <h3 style="margin: 0; color: #2F3E46; display: flex; align-items: center; gap: 8px;">
                     🧾 消費紀錄
                     <span id="record-total" style="font-size: 13px; color: #E07A5F; font-weight: bold; background: #F9F3EC; padding: 2px 8px; border-radius: 12px; border: 1px solid #D6C5B3;">NT$ 0</span>
@@ -337,22 +346,23 @@
             </div>
             
             <div class="filter-container" id="filterContainer"></div>
-            <!-- 加上高度與捲動 -->
+            <!-- 操作提示 -->
+            <div style="font-size: 11px; color: #84A59D; margin-bottom: 8px;">💡 提示：長按或點擊右鍵紀錄，可進行編輯或刪除</div>
+            
             <div id="expense-list"></div>
         </div>
 
-        <!-- 消費佔比圖表 (移至最下方，附自訂圖例與金額) -->
+        <!-- 佔比圖表 -->
         <div class="card" id="chartCard">
             <h3 style="margin-top:0; color:#2F3E46;">📊 消費分類佔比</h3>
             <div style="max-width: 250px; margin: 0 auto;">
                 <canvas id="expenseChart"></canvas>
             </div>
-            <!-- 佔比及金額自訂圖例區 -->
             <div id="customChartLegend"></div>
         </div>
     </div>
 
-    <!-- 管理幣別與分類彈窗保持不變 -->
+    <!-- 各類管理 Modal -->
     <div class="modal" id="manageCurrencyModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">⚙ 管理幣別與匯率</h3>
@@ -380,7 +390,6 @@
         </div>
     </div>
 
-    <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
@@ -414,7 +423,6 @@
         </div>
     </div>
 
-    <!-- 新增帳本彈窗 -->
     <div class="modal" id="addTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">➕ 新增帳本紀錄</h3>
@@ -434,7 +442,6 @@
         </div>
     </div>
 
-    <!-- 查詢匯率 -->
     <div class="modal" id="customCurrencyModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">🌐 查詢線上匯率</h3>
@@ -489,7 +496,7 @@
         let currentSortOrder = 'date-desc';
         let expenseChart = null;
         let isFetchingRate = false;
-        let isAddExpenseOpen = false; // 控制新增表單展開
+        let isAddExpenseOpen = false;
 
         let currentFetchedAddRate = 1; 
         let currentFetchedEditRate = 1;
@@ -595,6 +602,56 @@
         }
 
         // ==========================
+        // 長按與右鍵事件 (操作選項)
+        // ==========================
+        let pressTimer = null;
+        let isPressing = false;
+
+        function handlePointerDown(id, e) {
+            if (e && e.button === 2) return; // Ignore right click mousedown, left to oncontextmenu
+            handlePointerUp(); // 清除之前殘留的計時器
+            isPressing = true;
+            pressTimer = setTimeout(() => {
+                if (isPressing) {
+                    openExpenseOptions(id);
+                    isPressing = false;
+                }
+            }, 600); // 600 毫秒觸發長按
+        }
+
+        function handlePointerUp() {
+            isPressing = false;
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        }
+
+        function handleContextMenu(id, e) {
+            e.preventDefault(); // 阻止預設右鍵選單
+            handlePointerUp(); // 取消可能正在進行的長按計時
+            openExpenseOptions(id);
+        }
+
+        function openExpenseOptions(id) {
+            document.getElementById('targetExpenseId').value = id;
+            document.getElementById('expenseOptionsModal').classList.add('open');
+        }
+
+        function triggerEditExpense() {
+            const id = parseInt(document.getElementById('targetExpenseId').value);
+            closeModal('expenseOptionsModal');
+            openEditExpenseModal(id);
+        }
+
+        function triggerDeleteExpense() {
+            const id = parseInt(document.getElementById('targetExpenseId').value);
+            closeModal('expenseOptionsModal');
+            deleteExpense(id);
+        }
+
+
+        // ==========================
         // 側邊欄與拖曳排序
         // ==========================
         function toggleSidebar(open) {
@@ -678,7 +735,7 @@
         }
 
         // ==========================
-        // 核心 UI、設定、折疊表單
+        // UI與設定操作
         // ==========================
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
         function switchTrip(id) { appData.activeTripId = id; saveData(); updateUI(); toggleSidebar(false); }
@@ -745,9 +802,9 @@
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             document.getElementById('sortSelect').value = currentSortOrder;
             
-            // 重新計算最大高度：因每筆紀錄可能有日期標題及不同字數，預估改為每筆約 115px
+            // 重新計算最大高度，每筆約抓 70px (因為移除了按鈕，單筆高度縮小)
             const listLimit = trip.settings.visibleCount || 5;
-            document.getElementById('expense-list').style.maxHeight = `${listLimit * 115}px`;
+            document.getElementById('expense-list').style.maxHeight = `${listLimit * 70}px`;
 
             const dateInput = document.getElementById('itemDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate;
             if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) {
@@ -798,21 +855,32 @@
                 filteredExpenses.forEach(exp => {
                     const twdAmount = getTwd(exp); filteredTotalTWD += twdAmount; 
                     if (currentSortOrder.startsWith('date-') && exp.date !== lastDate) { lastDate = exp.date; const dHeader = document.createElement('div'); dHeader.className = 'date-header'; dHeader.innerText = `${escapeHTML(exp.date)}`; listEl.appendChild(dHeader); }
-                    const div = document.createElement('div'); div.className = 'expense-item';
+                    
                     const detailsHtml = exp.details ? `<br><small style="color:#666;">📝 ${escapeHTML(exp.details)}</small>` : '';
                     const payerTagStyle = showPayer ? 'inline-block' : 'none';
                     const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">${escapeHTML(exp.date)}</span>` : '';
                     const isTWD = (!exp.currency || exp.currency === 'TWD');
                     const rightAmountHtml = isTWD ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` : `<strong>${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:#777;">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
 
+                    const div = document.createElement('div');
+                    div.className = 'expense-item';
+                    
+                    // 加入長按與右鍵事件
+                    div.setAttribute('onmousedown', `handlePointerDown(${exp.id}, event)`);
+                    div.setAttribute('onmouseup', `handlePointerUp()`);
+                    div.setAttribute('onmouseleave', `handlePointerUp()`);
+                    div.setAttribute('ontouchstart', `handlePointerDown(${exp.id}, event)`);
+                    div.setAttribute('ontouchend', `handlePointerUp()`);
+                    div.setAttribute('ontouchmove', `handlePointerUp()`);
+                    div.setAttribute('oncontextmenu', `handleContextMenu(${exp.id}, event)`);
+
                     div.innerHTML = `
-                        <div>
+                        <div style="flex-grow: 1;">
                             <strong>${escapeHTML(exp.name)}</strong> <span class="payer-tag" style="display:${payerTagStyle};">${escapeHTML(exp.payer || '我')}</span>${detailsHtml}<br>
-                            <small style="color:#84A59D; font-weight:bold;">${escapeHTML(exp.category)}</small>${dateTagHtml}<br>
-                            <button class="delete-btn" style="color:#84A59D; border-color:#84A59D;" onclick="openEditExpenseModal(${exp.id})">編輯</button>
-                            <button class="delete-btn" onclick="deleteExpense(${exp.id})">刪除</button>
+                            <small style="color:#84A59D; font-weight:bold;">${escapeHTML(exp.category)}</small>${dateTagHtml}
                         </div>
-                        <div style="text-align: right;">${rightAmountHtml}</div>`;
+                        <div style="text-align: right; flex-shrink: 0; padding-left: 10px;">${rightAmountHtml}</div>`;
+                    
                     listEl.appendChild(div);
                 });
             }
@@ -837,10 +905,9 @@
             
             expenseChart = new Chart(ctx, {
                 type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: chartColors, borderWidth: 2, borderColor: '#FFF' }] },
-                options: { responsive: true, plugins: { legend: { display: false } } } // 關閉預設圖例
+                options: { responsive: true, plugins: { legend: { display: false } } } 
             });
 
-            // 產生自訂圖例與金額
             let legendHtml = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; justify-content:center;">';
             labels.forEach((label, i) => {
                 const val = data[i]; const pct = grandTotal > 0 ? Math.round((val / grandTotal) * 100) : 0;
@@ -925,7 +992,6 @@
             getActiveTrip().expenses.unshift({ id: Date.now(), name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedAddRate) }); saveData(); 
             document.getElementById('itemName').value = ''; document.getElementById('itemAmount').value = ''; document.getElementById('itemDetails').value = ''; document.getElementById('enableDetailsBtn').checked = false; toggleDetailsInput(false); updateUI();
             
-            // 新增完自動收合
             if(isAddExpenseOpen) toggleAddExpense();
         }
 
@@ -995,7 +1061,7 @@
             let csv = "\uFEFF日期,分類,項目名稱,細項說明";
             if (hasForeign) csv += ",原幣金額,幣別";
             if (showPayer) csv += ",付款人";
-            csv += ",換算台幣(TWD)\n";
+            csv += ",金額(TWD)\n";
 
             let exportExpenses = [...trip.expenses];
             const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
@@ -1016,7 +1082,6 @@
                 row += `,${twd}\n`; csv += row;
             });
             
-            // 加上總計列
             const emptyCols = hasForeign ? (showPayer ? 6 : 5) : (showPayer ? 4 : 3);
             csv += `${",".repeat(emptyCols)},"總計",${totalTWD}\n`;
             
