@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>帳簿beta (標題列設定優化版)</title>
+    <title>和風帳簿 (設定選單優化版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -73,7 +73,6 @@
         }
         .header-title-container { text-align: center; }
         .header h1 { margin: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .edit-title-icon { font-size: 14px; cursor: pointer; opacity: 0.7; }
         .trip-period-text { font-size: 12px; opacity: 0.8; margin-top: 4px; color: #D6C5B3; }
 
         /* 側邊欄與資料夾 */
@@ -193,8 +192,13 @@
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content" style="max-width: 320px;">
             <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 5px;">⚙️ 帳本設定</h3>
-            <p style="font-size: 13px; color: #84A59D; margin-top: 0;">設定僅套用於當前的帳本。</p>
+            <p style="font-size: 13px; color: #84A59D; margin-top: 0; margin-bottom: 15px;">設定僅套用於當前的帳本。</p>
             
+            <!-- 編輯帳本按鈕 (取代原本的標題旁筆圖示) -->
+            <button class="manage-btn" style="width: 100%; margin-bottom: 15px; font-weight: bold; background-color: #E8F0EE; color: #2F3E46;" onclick="closeModal('tripSettingsModal'); openEditTripModal();">
+                ✏️ 編輯帳本名稱、日期與總預算
+            </button>
+
             <!-- 資料夾選擇 (若有資料夾才會顯示) -->
             <div id="folderSelectContainer" style="display: none; margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: bold; color: #2F3E46;">📁 所屬資料夾：</label>
@@ -202,18 +206,23 @@
             </div>
 
             <div style="margin-bottom: 8px; font-size: 13px; font-weight: bold; color: #2F3E46;">📊 模組顯示：</div>
-            <label class="toggle-label">
-                <input type="checkbox" id="modalToggleBudget" onchange="toggleCurrentTripFeature('showBudget', this.checked)">
-                顯示預算進度卡片
-            </label>
-            <label class="toggle-label">
-                <input type="checkbox" id="modalToggleChart" onchange="toggleCurrentTripFeature('showChart', this.checked)">
-                顯示消費分類佔比圓餅圖
-            </label>
-            <label class="toggle-label">
-                <input type="checkbox" id="modalTogglePayerSummary" onchange="toggleCurrentTripFeature('showPayerSummary', this.checked)">
-                顯示成員付款統計與欄位
-            </label>
+            
+            <!-- 模組顯示勾選框 (改為同行並排) -->
+            <div style="display: flex; gap: 6px; margin-bottom: 15px;">
+                <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
+                    <input type="checkbox" id="modalToggleBudget" onchange="toggleCurrentTripFeature('showBudget', this.checked)">
+                    預算
+                </label>
+                <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
+                    <input type="checkbox" id="modalToggleChart" onchange="toggleCurrentTripFeature('showChart', this.checked)">
+                    佔比圓餅圖
+                </label>
+                <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
+                    <input type="checkbox" id="modalTogglePayerSummary" onchange="toggleCurrentTripFeature('showPayerSummary', this.checked)">
+                    成員付款
+                </label>
+            </div>
+
             <div style="margin-top: 15px;">
                 <button onclick="closeModal('tripSettingsModal')" class="primary-btn" style="background-color: #2F3E46;">完成</button>
             </div>
@@ -228,7 +237,7 @@
             <div class="header-title-container">
                 <h1>
                     <span id="header-trip-name">載入中...</span>
-                    <span class="edit-title-icon" onclick="openEditTripModal()">✏</span>
+                    <!-- 標題旁的筆圖示已移除，整合至設定選單 -->
                 </h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
@@ -1050,7 +1059,7 @@
                     <div><strong style="color: #2F3E46;">${escapeHTML(code)}</strong> <small style="color: #84A59D;">(匯率: ${appData.rates[code]})</small></div>
                     <div style="display: flex; gap: 4px;">
                         <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#84A59D; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button>
-                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#F28482; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑️️</button>
+                        <button style="width:auto; padding:5px 10px; margin:0; font-size:12px; background:#F28482; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑</button>
                     </div>`;
                 list.appendChild(div);
             });
