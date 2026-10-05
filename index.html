@@ -101,7 +101,6 @@
         #expense-list { overflow-y: auto; padding-right: 5px; } 
         .date-header { font-size: 13px; font-weight: bold; color: #2F3E46; padding: 8px 0 4px 0; border-bottom: 2px solid #84A59D; margin-top: 12px; }
         
-        /* 消費項目防反白及長按互動樣式 */
         .expense-item { 
             display: flex; justify-content: space-between; align-items: center; 
             border-bottom: 1px dashed #D6C5B3; padding: 10px 5px; 
@@ -379,7 +378,7 @@
         </div>
     </div>
 
-    <!-- 編輯消費 Modal (更新刪除按鈕) -->
+    <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
@@ -407,7 +406,6 @@
                 <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
             
-            <!-- 修改底部的按鈕群組 -->
             <div class="form-group" style="margin-top:15px; display: flex; gap: 8px;">
                 <button onclick="deleteExpenseFromEdit()" style="background:#E07A5F; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">🗑️ 刪除</button>
                 <button onclick="closeModal('editExpenseModal')" style="background:#ccc; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">取消</button>
@@ -486,6 +484,7 @@
 
         let previousCurrency = "TWD";
         let previousCategory = "";
+        let activeCurrencyMode = 'add'; // 追蹤目前是新增還是編輯觸發幣別查詢
         let appData = null; 
         let currentFilterCategory = 'ALL';
         let currentSortOrder = 'date-desc';
@@ -603,15 +602,15 @@
         let isPressing = false;
 
         function handlePointerDown(id, e) {
-            if (e && e.button === 2) return; // 忽略滑鼠右鍵按下 (留給 oncontextmenu 處理)
-            handlePointerUp(); // 清除之前殘留的計時器
+            if (e && e.button === 2) return; 
+            handlePointerUp(); 
             isPressing = true;
             pressTimer = setTimeout(() => {
                 if (isPressing) {
                     openEditExpenseModal(id);
                     isPressing = false;
                 }
-            }, 600); // 600 毫秒觸發長按
+            }, 600); 
         }
 
         function handlePointerUp() {
@@ -623,8 +622,8 @@
         }
 
         function handleContextMenu(id, e) {
-            e.preventDefault(); // 阻止預設右鍵選單
-            handlePointerUp(); // 取消可能正在進行的長按計時
+            e.preventDefault(); 
+            handlePointerUp(); 
             openEditExpenseModal(id);
         }
 
@@ -779,7 +778,6 @@
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             document.getElementById('sortSelect').value = currentSortOrder;
             
-            // 重新計算最大高度，每筆約抓 70px (因為移除了按鈕，單筆高度縮小)
             const listLimit = trip.settings.visibleCount || 5;
             document.getElementById('expense-list').style.maxHeight = `${listLimit * 70}px`;
 
@@ -788,22 +786,29 @@
                 let today = getLocalDateString(); dateInput.value = (today > trip.endDate) ? trip.endDate : ((today < trip.startDate) ? trip.startDate : today);
             }
 
-            const selectEl = document.getElementById('itemCurrency'); const editSelectEl = document.getElementById('editExpCurrency'); const currentVal = selectEl.value || 'TWD';
-            [selectEl, editSelectEl].forEach(el => {
+            const selectEl = document.getElementById('itemCurrency'); const editSelectEl = document.getElementById('editExpCurrency'); const currentVal = selectEl.value || 'TWD'; const currentEditVal = editSelectEl.value || 'TWD';
+            
+            [selectEl, editSelectEl].forEach((el, index) => {
+                const preservedVal = index === 0 ? currentVal : currentEditVal;
                 el.innerHTML = '<option value="TWD">台幣 (TWD)</option>';
                 Object.keys(appData.rates).forEach(code => {
                     if (code === 'TWD') return; const opt = document.createElement('option'); opt.value = code; opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`; el.appendChild(opt);
                 });
                 const triggerOpt = document.createElement('option'); triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...'; triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F'; el.appendChild(triggerOpt);
+                if (appData.rates[preservedVal] || preservedVal === 'TWD') el.value = preservedVal;
             });
-            if (appData.rates[currentVal]) selectEl.value = currentVal; else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency; else selectEl.value = 'TWD';
 
-            const catSelectEl = document.getElementById('itemCategory'); const editCatSelectEl = document.getElementById('editExpCategory'); const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
-            [catSelectEl, editCatSelectEl].forEach(el => {
-                el.innerHTML = ''; appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; el.appendChild(opt); });
+            const catSelectEl = document.getElementById('itemCategory'); const editCatSelectEl = document.getElementById('editExpCategory'); 
+            const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0]; 
+            const currentEditCatVal = editCatSelectEl.value || appData.categories[0];
+
+            [catSelectEl, editCatSelectEl].forEach((el, index) => {
+                const preservedCat = index === 0 ? currentCatVal : currentEditCatVal;
+                el.innerHTML = ''; 
+                appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; el.appendChild(opt); });
                 const catTrigger = document.createElement('option'); catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...'; catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F'; el.appendChild(catTrigger);
+                if (appData.categories.includes(preservedCat)) el.value = preservedCat;
             });
-            if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal; else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
 
             const listEl = document.getElementById('expense-list'); const usedCategories = new Set(trip.expenses.map(e => e.category)); const filterContainer = document.getElementById('filterContainer');
             filterContainer.innerHTML = `<div class="filter-chip ${currentFilterCategory === 'ALL' ? 'active' : ''}" onclick="setFilter('ALL', this)">全部</div>`;
@@ -842,7 +847,6 @@
                     const div = document.createElement('div');
                     div.className = 'expense-item';
                     
-                    // 加入長按與右鍵事件
                     div.setAttribute('onmousedown', `handlePointerDown(${exp.id}, event)`);
                     div.setAttribute('onmouseup', `handlePointerUp()`);
                     div.setAttribute('onmouseleave', `handlePointerUp()`);
@@ -931,16 +935,43 @@
             if(newName && newName.trim() !== '' && newName.trim() !== oldName) { const trimmed = newName.trim(); const idx = appData.categories.indexOf(oldName); if(idx > -1) { appData.categories[idx] = trimmed; appData.trips.forEach(t => t.expenses.forEach(exp => { if(exp.category === oldName) exp.category = trimmed; })); if (currentFilterCategory === oldName) currentFilterCategory = trimmed; if (previousCategory === oldName) previousCategory = trimmed; saveData(); updateUI(); renderManageCategory(); } }
         }
         function deleteManageCategory(name) { if(confirm(`確定刪除「${name}」分類？\n(注意：這不會刪除已使用此分類的歷史紀錄)`)) { appData.categories = appData.categories.filter(c => c !== name); if (currentFilterCategory === name) currentFilterCategory = 'ALL'; saveData(); updateUI(); renderManageCategory(); } }
-        function handleCategoryChange(mode) { const selectId = mode === 'add' ? 'itemCategory' : 'editExpCategory'; const val = document.getElementById(selectId).value; if (val === 'CUSTOM_CAT_TRIGGER') { document.getElementById(selectId).value = mode === 'add' && previousCategory ? previousCategory : appData.categories[0]; openManageCategory(); } else if(mode === 'add') { previousCategory = val; } }
+        
+        function handleCategoryChange(mode) { 
+            const selectId = mode === 'add' ? 'itemCategory' : 'editExpCategory'; 
+            const val = document.getElementById(selectId).value; 
+            if (val === 'CUSTOM_CAT_TRIGGER') { 
+                openManageCategory(); 
+            } else if(mode === 'add') { 
+                previousCategory = val; 
+            } 
+        }
 
         async function handleDateOrCurrencyChange(mode) {
-            const dateInputId = mode === 'add' ? 'itemDate' : 'editExpDate'; const currInputId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency';
-            const date = document.getElementById(dateInputId).value; const val = document.getElementById(currInputId).value;
+            const dateInputId = mode === 'add' ? 'itemDate' : 'editExpDate'; 
+            const currInputId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency';
+            const date = document.getElementById(dateInputId).value; 
+            const val = document.getElementById(currInputId).value;
             if (!date || !val) return;
-            if (val === 'CUSTOM_TRIGGER') { if(mode === 'add') handleCurrencyChange(val); return; }
-            if (val === 'TWD') { if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; return; }
             
-            const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
+            if (val === 'CUSTOM_TRIGGER') { 
+                activeCurrencyMode = mode;
+                document.getElementById('customCodeInput').value = '';
+                document.getElementById('customRateInput').value = '';
+                document.getElementById('apiStatusContainer').style.display = 'none';
+                document.getElementById('applyCustomBtn').disabled = true;
+                document.getElementById('customCurrencyModal').classList.add('open');
+                return; 
+            }
+            
+            if (val === 'TWD') { 
+                if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; 
+                const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; 
+                document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; 
+                return; 
+            }
+            
+            const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; 
+            document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
             try {
                 let res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${val.toLowerCase()}.json`);
                 if (!res.ok) res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${val.toLowerCase()}.json`);
@@ -948,7 +979,8 @@
                 let foundRate = (data && data[val.toLowerCase()] && data[val.toLowerCase()].twd) ? data[val.toLowerCase()].twd : (appData.rates[val] || 1);
                 if(mode === 'add') currentFetchedAddRate = foundRate; else currentFetchedEditRate = foundRate;
             } catch(e) {
-                const fallbackRate = appData.rates[val] || 1; if(mode === 'add') currentFetchedAddRate = fallbackRate; else currentFetchedEditRate = fallbackRate;
+                const fallbackRate = appData.rates[val] || 1; 
+                if(mode === 'add') currentFetchedAddRate = fallbackRate; else currentFetchedEditRate = fallbackRate;
             }
             updateTWDPreview(mode);
         }
@@ -974,7 +1006,6 @@
 
         function setFilter(category, el) { currentFilterCategory = category; document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); updateUI(); }
         
-        // 刪除按鍵已轉移到編輯頁面內處理
         function deleteExpenseFromEdit() {
             const id = parseInt(document.getElementById('editExpId').value);
             if (confirm('確定要刪除這筆紀錄嗎？')) {
@@ -989,10 +1020,16 @@
         function openEditExpenseModal(id) {
             const trip = getActiveTrip(); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
             document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; document.getElementById('editExpPayer').value = exp.payer || '我';
+            
             const dateInput = document.getElementById('editExpDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate; dateInput.value = exp.date;
             document.getElementById('editPayerInputContainer').style.display = (trip.settings.showPayerSummary !== false) ? 'block' : 'none';
-            document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
-            currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1; updateTWDPreview('edit'); document.getElementById('editExpenseModal').classList.add('open');
+            
+            document.getElementById('editExpCurrency').value = exp.currency; 
+            document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            
+            currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1; 
+            updateTWDPreview('edit'); 
+            document.getElementById('editExpenseModal').classList.add('open');
         }
 
         function saveExpenseEdit() {
@@ -1057,7 +1094,7 @@
                 if (currentSortOrder === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id;
                 else if (currentSortOrder === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id;
                 else if (currentSortOrder === 'amount-desc') return getTwd(b) - getTwd(a) || b.id - a.id;
-                else if (currentSortOrder === 'amount-asc') return getTwd(a) - getTwd(b) || b.id - a.id;
+                else if (currentSortOrder === 'amount-asc') return getTwd(a) - getTwd(b) || a.id - b.id;
             });
 
             let totalTWD = 0;
@@ -1089,7 +1126,13 @@
             appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false); 
         }
         
-        function cancelCustomCurrency() { closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = previousCurrency || 'TWD'; handleDateOrCurrencyChange('add'); }
+        function cancelCustomCurrency() { 
+            closeModal('customCurrencyModal'); 
+            const targetSelectId = activeCurrencyMode === 'add' ? 'itemCurrency' : 'editExpCurrency';
+            document.getElementById(targetSelectId).value = 'TWD'; 
+            handleDateOrCurrencyChange(activeCurrencyMode); 
+        }
+
         async function fetchCurrencyRate() { 
             if (isFetchingRate) return; 
             const rawCode = document.getElementById('customCodeInput').value.trim().toUpperCase(); if (!rawCode || !/^[A-Z]{3,5}$/.test(rawCode)) return alert('請輸入有效的 3-5 位英文字母幣別代碼 (如 USD)'); 
@@ -1102,7 +1145,20 @@
             finally { setTimeout(() => { isFetchingRate = false; }, 2000); } 
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0); 
         }
-        function applyCustomCurrency() { const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value); if (!code || isNaN(rate) || rate <= 0) return alert('請輸入正確的幣別與匯率'); appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); document.getElementById('itemCurrency').value = code; closeModal('customCurrencyModal'); handleDateOrCurrencyChange('add'); }
+
+        function applyCustomCurrency() { 
+            const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); 
+            const rate = parseFloat(document.getElementById('customRateInput').value); 
+            if (!code || isNaN(rate) || rate <= 0) return alert('請輸入正確的幣別與匯率'); 
+            appData.rates[code] = rate; 
+            saveData(); 
+            updateUI(); 
+            
+            const targetSelectId = activeCurrencyMode === 'add' ? 'itemCurrency' : 'editExpCurrency';
+            document.getElementById(targetSelectId).value = code; 
+            closeModal('customCurrencyModal'); 
+            handleDateOrCurrencyChange(activeCurrencyMode); 
+        }
     </script>
 </body>
 </html>
