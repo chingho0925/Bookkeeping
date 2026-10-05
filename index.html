@@ -285,7 +285,7 @@
         <!-- 新增消費 (下拉收合式) -->
         <div class="card">
             <h3 style="margin: 0; color: #2F3E46; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAddExpense()">
-                📝 新增消費 <span id="addExpenseIcon" style="font-size: 14px; color: #84A59D;">▼ 展開</span>
+                📝 新增消費 <span id="addExpenseIcon" style="font-size: 14px; color: #84A59D;">▼</span>
             </h3>
             
             <div id="addExpenseForm" style="display: none; margin-top: 15px;">
@@ -355,7 +355,7 @@
     <!-- 管理幣別與分類彈窗保持不變 -->
     <div class="modal" id="manageCurrencyModal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">⚙️️ 管理幣別與匯率</h3>
+            <h3 style="margin-top:0;">⚙ 管理幣別與匯率</h3>
             <p style="font-size:12px; color:#84A59D;">台幣 (TWD) 為預設幣別。刪除幣別不會影響歷史紀錄。</p>
             <div style="display: flex; gap: 6px; margin-bottom: 15px; background: #E8F0EE; padding: 10px; border-radius: 8px; align-items: center;">
                 <input type="text" id="newManageCurrCode" placeholder="代碼(如:GBP)" maxlength="5" style="margin: 0; flex: 1; text-transform: uppercase;">
@@ -686,7 +686,7 @@
         function toggleAddExpense() {
             isAddExpenseOpen = !isAddExpenseOpen;
             document.getElementById('addExpenseForm').style.display = isAddExpenseOpen ? 'block' : 'none';
-            document.getElementById('addExpenseIcon').innerText = isAddExpenseOpen ? '▲ 收合' : '▼ 展開';
+            document.getElementById('addExpenseIcon').innerText = isAddExpenseOpen ? '▲' : '▼';
         }
 
         function openTripSettings(e) {
@@ -745,9 +745,9 @@
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
             document.getElementById('sortSelect').value = currentSortOrder;
             
-            // 設定紀錄列表最大高度 (每個 item 大約 75px)
+            // 重新計算最大高度：因每筆紀錄可能有日期標題及不同字數，預估改為每筆約 115px
             const listLimit = trip.settings.visibleCount || 5;
-            document.getElementById('expense-list').style.maxHeight = `${listLimit * 80}px`;
+            document.getElementById('expense-list').style.maxHeight = `${listLimit * 115}px`;
 
             const dateInput = document.getElementById('itemDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate;
             if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) {
