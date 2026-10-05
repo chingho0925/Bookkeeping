@@ -192,7 +192,7 @@
     <!-- 帳本設定彈窗 -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content" style="max-width: 320px;">
-            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙️️ 帳本設定</h3>
+            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙ 帳本設定</h3>
             
             <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold; color: #2F3E46;">
             <div class="form-group" style="margin-bottom: 15px;">
@@ -249,17 +249,6 @@
             <div class="summary-table-container" id="summaryTableContainer"></div>
             
             <button onclick="closeModal('summaryModal')" class="primary-btn" style="background:#ccc; color:#2F3E46; margin-top: 15px;">關閉</button>
-        </div>
-    </div>
-
-    <!-- 消費紀錄操作選項 Modal (長按/右鍵跳出) -->
-    <div class="modal" id="expenseOptionsModal">
-        <div class="modal-content" style="max-width: 280px; text-align: center;">
-            <h3 style="margin-top:0; color: #2F3E46;">⚙️ 紀錄選項</h3>
-            <input type="hidden" id="targetExpenseId">
-            <button class="primary-btn" style="background-color: #84A59D;" onclick="triggerEditExpense()">✏️ 編輯紀錄</button>
-            <button class="primary-btn" style="background-color: #E07A5F; margin-top: 10px;" onclick="triggerDeleteExpense()">🗑️ 刪除紀錄</button>
-            <button class="primary-btn" style="background-color: #E8F0EE; color: #2F3E46; border: 1px solid #84A59D; margin-top: 15px;" onclick="closeModal('expenseOptionsModal')">取消</button>
         </div>
     </div>
 
@@ -390,6 +379,7 @@
         </div>
     </div>
 
+    <!-- 編輯消費 Modal (更新刪除按鈕) -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
@@ -416,13 +406,17 @@
                 </div>
                 <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
-            <div class="form-group" style="margin-top:15px;">
-                <button onclick="closeModal('editExpenseModal')" style="background:#ccc;">取消</button>
-                <button class="primary-btn" style="margin-top:0;" onclick="saveExpenseEdit()">儲存修改</button>
+            
+            <!-- 修改底部的按鈕群組 -->
+            <div class="form-group" style="margin-top:15px; display: flex; gap: 8px;">
+                <button onclick="deleteExpenseFromEdit()" style="background:#E07A5F; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">🗑️ 刪除</button>
+                <button onclick="closeModal('editExpenseModal')" style="background:#ccc; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">取消</button>
+                <button class="primary-btn" style="margin-top:0; flex: 1.5;" onclick="saveExpenseEdit()">儲存修改</button>
             </div>
         </div>
     </div>
 
+    <!-- 新增帳本彈窗 -->
     <div class="modal" id="addTripModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">➕ 新增帳本紀錄</h3>
@@ -442,6 +436,7 @@
         </div>
     </div>
 
+    <!-- 查詢匯率 -->
     <div class="modal" id="customCurrencyModal">
         <div class="modal-content">
             <h3 style="margin-top:0;">🌐 查詢線上匯率</h3>
@@ -602,18 +597,18 @@
         }
 
         // ==========================
-        // 長按與右鍵事件 (操作選項)
+        // 長按與右鍵事件 (直接進入編輯)
         // ==========================
         let pressTimer = null;
         let isPressing = false;
 
         function handlePointerDown(id, e) {
-            if (e && e.button === 2) return; // Ignore right click mousedown, left to oncontextmenu
+            if (e && e.button === 2) return; // 忽略滑鼠右鍵按下 (留給 oncontextmenu 處理)
             handlePointerUp(); // 清除之前殘留的計時器
             isPressing = true;
             pressTimer = setTimeout(() => {
                 if (isPressing) {
-                    openExpenseOptions(id);
+                    openEditExpenseModal(id);
                     isPressing = false;
                 }
             }, 600); // 600 毫秒觸發長按
@@ -630,26 +625,8 @@
         function handleContextMenu(id, e) {
             e.preventDefault(); // 阻止預設右鍵選單
             handlePointerUp(); // 取消可能正在進行的長按計時
-            openExpenseOptions(id);
-        }
-
-        function openExpenseOptions(id) {
-            document.getElementById('targetExpenseId').value = id;
-            document.getElementById('expenseOptionsModal').classList.add('open');
-        }
-
-        function triggerEditExpense() {
-            const id = parseInt(document.getElementById('targetExpenseId').value);
-            closeModal('expenseOptionsModal');
             openEditExpenseModal(id);
         }
-
-        function triggerDeleteExpense() {
-            const id = parseInt(document.getElementById('targetExpenseId').value);
-            closeModal('expenseOptionsModal');
-            deleteExpense(id);
-        }
-
 
         // ==========================
         // 側邊欄與拖曳排序
@@ -996,7 +973,18 @@
         }
 
         function setFilter(category, el) { currentFilterCategory = category; document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); updateUI(); }
-        function deleteExpense(id) { if (confirm('確定刪除該筆花費？')) { const trip = getActiveTrip(); trip.expenses = trip.expenses.filter(e => e.id !== id); saveData(); updateUI(); } }
+        
+        // 刪除按鍵已轉移到編輯頁面內處理
+        function deleteExpenseFromEdit() {
+            const id = parseInt(document.getElementById('editExpId').value);
+            if (confirm('確定要刪除這筆紀錄嗎？')) {
+                const trip = getActiveTrip();
+                trip.expenses = trip.expenses.filter(e => e.id !== id);
+                saveData();
+                updateUI();
+                closeModal('editExpenseModal');
+            }
+        }
 
         function openEditExpenseModal(id) {
             const trip = getActiveTrip(); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
