@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和風帳簿 (設定選單優化版)</title>
+    <title>和風帳簿 (設定功能整合版)</title>
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -188,43 +188,51 @@
         </div>
     </div>
 
-    <!-- 獨立帳本顯示設定彈窗 -->
+    <!-- 整合後的：帳本基本設定與模組開關彈窗 -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content" style="max-width: 320px;">
-            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 5px;">⚙️ 帳本設定</h3>
-            <p style="font-size: 13px; color: #84A59D; margin-top: 0; margin-bottom: 15px;">設定僅套用於當前的帳本。</p>
+            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙️ 帳本設定</h3>
             
-            <!-- 編輯帳本按鈕 (取代原本的標題旁筆圖示) -->
-            <button class="manage-btn" style="width: 100%; margin-bottom: 15px; font-weight: bold; background-color: #E8F0EE; color: #2F3E46;" onclick="closeModal('tripSettingsModal'); openEditTripModal();">
-                ✏️ 編輯帳本名稱、日期與總預算
-            </button>
+            <!-- 名稱與日期編輯 -->
+            <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold; color: #2F3E46;">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <div><label style="font-size:13px; color:#84A59D; font-weight: bold;">開始：</label><input type="date" id="modalTripStartInput"></div>
+                <div><label style="font-size:13px; color:#84A59D; font-weight: bold;">結束：</label><input type="date" id="modalTripEndInput"></div>
+            </div>
 
             <!-- 資料夾選擇 (若有資料夾才會顯示) -->
             <div id="folderSelectContainer" style="display: none; margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: bold; color: #2F3E46;">📁 所屬資料夾：</label>
-                <select id="modalFolderSelect" onchange="changeTripFolder(this.value)" style="margin-top: 5px; padding: 8px; font-weight: bold;"></select>
+                <select id="modalFolderSelect" style="margin-top: 5px; padding: 8px; font-weight: bold; color: #2F3E46;"></select>
             </div>
 
             <div style="margin-bottom: 8px; font-size: 13px; font-weight: bold; color: #2F3E46;">📊 模組顯示：</div>
             
-            <!-- 模組顯示勾選框 (改為同行並排) -->
-            <div style="display: flex; gap: 6px; margin-bottom: 15px;">
+            <!-- 模組顯示勾選框 (同行並排) -->
+            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
                 <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
-                    <input type="checkbox" id="modalToggleBudget" onchange="toggleCurrentTripFeature('showBudget', this.checked)">
+                    <input type="checkbox" id="modalToggleBudget" onchange="document.getElementById('modalTripBudgetContainer').style.display = this.checked ? 'block' : 'none';">
                     預算
                 </label>
                 <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
-                    <input type="checkbox" id="modalToggleChart" onchange="toggleCurrentTripFeature('showChart', this.checked)">
+                    <input type="checkbox" id="modalToggleChart">
                     佔比圓餅圖
                 </label>
                 <label class="toggle-label" style="flex: 1; margin: 0; padding: 8px 4px; justify-content: center; font-size: 12px;">
-                    <input type="checkbox" id="modalTogglePayerSummary" onchange="toggleCurrentTripFeature('showPayerSummary', this.checked)">
+                    <input type="checkbox" id="modalTogglePayerSummary">
                     成員付款
                 </label>
             </div>
 
-            <div style="margin-top: 15px;">
-                <button onclick="closeModal('tripSettingsModal')" class="primary-btn" style="background-color: #2F3E46;">完成</button>
+            <!-- 動態顯示的預算輸入框 (綁定上方「預算」開關) -->
+            <div id="modalTripBudgetContainer" style="display:none; margin-bottom: 15px; background: #F9F3EC; padding: 12px; border-radius: 8px; border: 1px dashed #D6C5B3;">
+                <label style="font-size:13px; display:block; color: #2F3E46; font-weight:bold;">💰 總預算 (台幣 TWD)：</label>
+                <input type="number" id="modalTripBudgetInput" min="0" max="999999999" placeholder="請輸入預算金額" style="margin-top: 6px; font-weight: bold; color: #E07A5F;">
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button onclick="closeModal('tripSettingsModal')" style="background:#ccc; flex:1;">取消</button>
+                <button onclick="saveTripSettings()" class="primary-btn" style="margin-top:0; background-color: #2F3E46; flex:1.5;">儲存設定</button>
             </div>
         </div>
     </div>
@@ -235,10 +243,7 @@
         <div class="header">
             <button class="menu-btn" style="justify-self: start;" onclick="toggleSidebar(true)">☰</button>
             <div class="header-title-container">
-                <h1>
-                    <span id="header-trip-name">載入中...</span>
-                    <!-- 標題旁的筆圖示已移除，整合至設定選單 -->
-                </h1>
+                <h1 id="header-trip-name">載入中...</h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
             <button class="menu-btn" style="justify-self: end; font-size: 22px; opacity: 0.8;" onclick="openTripSettings(event)" title="目前帳本設定">⚙️</button>
@@ -248,7 +253,7 @@
         <div class="card" id="budgetCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin: 0; color: #2F3E46;">預算進度 (TWD)</h3>
-                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openEditTripModal()">修改預算 ✏</span>
+                <span style="font-size:12px; color:#84A59D; cursor:pointer;" onclick="openTripSettings(event)">修改預算 ⚙️</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">
                 <span>已花費: $<strong id="total-spent" style="font-size: 17px; color:#E07A5F;">0</strong></span>
@@ -393,26 +398,6 @@
             <div class="form-group" style="margin-top:15px;">
                 <button onclick="closeModal('editExpenseModal')" style="background:#ccc;">取消</button>
                 <button class="primary-btn" style="margin-top:0;" onclick="saveExpenseEdit()">儲存修改</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 編輯設定彈窗 -->
-    <div class="modal" id="editTripModal">
-        <div class="modal-content">
-            <h3 style="margin-top:0;">✏️ 編輯基本設定</h3>
-            <input type="text" id="editTripNameInput" placeholder="帳本名稱" maxlength="50">
-            <div class="form-group" style="margin-top:10px;">
-                <div><label style="font-size:13px;">開始：</label><input type="date" id="editTripStartInput"></div>
-                <div><label style="font-size:13px;">結束：</label><input type="date" id="editTripEndInput"></div>
-            </div>
-            <div id="editTripBudgetContainer">
-                <label style="font-size:13px; margin-top:10px; display:block;">總預算 (台幣 TWD)：</label>
-                <input type="number" id="editTripBudgetInput" min="0" max="999999999">
-            </div>
-            <div class="form-group" style="margin-top:15px;">
-                <button onclick="closeModal('editTripModal')" style="background:#ccc;">取消</button>
-                <button class="primary-btn" style="margin-top:0;" onclick="saveTripDetails()">儲存修改</button>
             </div>
         </div>
     </div>
@@ -815,7 +800,7 @@
         }
 
         // ==========================
-        // 核心 UI 與個別設定彈窗
+        // 核心 UI 與個別設定彈窗 (整合版)
         // ==========================
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
         
@@ -826,17 +811,21 @@
             const trip = getActiveTrip();
             if (!trip) return;
 
-            // 處理資料夾選項下拉選單
+            // 1. 填入基本設定 (名稱與日期)
+            document.getElementById('modalTripNameInput').value = trip.name;
+            document.getElementById('modalTripStartInput').value = trip.startDate;
+            document.getElementById('modalTripEndInput').value = trip.endDate;
+            document.getElementById('modalTripBudgetInput').value = trip.budget || 0;
+
+            // 2. 處理資料夾選項
             const folderContainer = document.getElementById('folderSelectContainer');
             const folderSelect = document.getElementById('modalFolderSelect');
-            
             if (appData.folders && appData.folders.length > 0) {
                 folderContainer.style.display = 'block';
                 folderSelect.innerHTML = '<option value="">(無 / 最外層)</option>';
                 appData.folders.forEach(f => {
                     const opt = document.createElement('option');
-                    opt.value = f.id;
-                    opt.innerText = f.name;
+                    opt.value = f.id; opt.innerText = f.name;
                     folderSelect.appendChild(opt);
                 });
                 folderSelect.value = trip.folderId || "";
@@ -844,29 +833,58 @@
                 folderContainer.style.display = 'none';
             }
 
-            document.getElementById('modalToggleBudget').checked = trip.settings.showBudget !== false;
+            // 3. 讀取模組開關狀態
+            if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+            const showBudget = trip.settings.showBudget !== false;
+            document.getElementById('modalToggleBudget').checked = showBudget;
             document.getElementById('modalToggleChart').checked = trip.settings.showChart !== false;
             document.getElementById('modalTogglePayerSummary').checked = trip.settings.showPayerSummary !== false;
+            
+            // 根據預算開關，決定是否顯示預算輸入框
+            document.getElementById('modalTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
+
             document.getElementById('tripSettingsModal').classList.add('open');
         }
 
-        function changeTripFolder(folderId) {
+        function saveTripSettings() {
             const trip = getActiveTrip();
-            if (trip) {
-                trip.folderId = folderId || null;
-                saveData();
-                renderSidebarContent();
-            }
-        }
+            if (!trip) return;
 
-        function toggleCurrentTripFeature(key, enabled) {
-            const trip = getActiveTrip();
-            if (trip) {
-                if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
-                trip.settings[key] = enabled;
-                saveData();
-                updateUI();
+            // 獲取輸入值
+            const name = document.getElementById('modalTripNameInput').value.trim();
+            const start = document.getElementById('modalTripStartInput').value;
+            const end = document.getElementById('modalTripEndInput').value;
+            const budget = parseFloat(document.getElementById('modalTripBudgetInput').value) || 0;
+            
+            if (!name || !start || !end) return alert('請填寫完整的帳本名稱與日期！');
+            if (budget < 0) return alert('預算金額不可小於 0！');
+
+            // 儲存文字輸入
+            trip.name = name;
+            trip.startDate = start;
+            trip.endDate = end;
+            
+            // 儲存模組開關
+            if (!trip.settings) trip.settings = {};
+            trip.settings.showBudget = document.getElementById('modalToggleBudget').checked;
+            trip.settings.showChart = document.getElementById('modalToggleChart').checked;
+            trip.settings.showPayerSummary = document.getElementById('modalTogglePayerSummary').checked;
+            
+            // 只有啟用預算時，才確實保存預算金額
+            if (trip.settings.showBudget) {
+                trip.budget = budget;
             }
+
+            // 儲存資料夾位置
+            const folderContainer = document.getElementById('folderSelectContainer');
+            if (folderContainer.style.display !== 'none') {
+                trip.folderId = document.getElementById('modalFolderSelect').value || null;
+            }
+
+            saveData();
+            updateUI();
+            renderSidebarContent(); // 更新側邊欄 (因為名稱可能改了)
+            closeModal('tripSettingsModal');
         }
         
         function toggleDetailsInput(show) { document.getElementById('itemDetails').style.display = show ? 'block' : 'none'; if (!show) document.getElementById('itemDetails').value = ''; }
@@ -886,7 +904,6 @@
             document.getElementById('budgetCard').style.display = showBudget ? 'block' : 'none';
             document.getElementById('payerSummaryCard').style.display = showPayer ? 'block' : 'none';
             document.getElementById('payerInputContainer').style.display = showPayer ? 'block' : 'none';
-            document.getElementById('editTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
             document.getElementById('newTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
             
             document.getElementById('header-trip-name').innerText = trip.name;
@@ -1251,9 +1268,6 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link); toggleSidebar(false);
         }
 
-        function openEditTripModal() { const t = getActiveTrip(); document.getElementById('editTripNameInput').value = t.name; document.getElementById('editTripStartInput').value = t.startDate; document.getElementById('editTripEndInput').value = t.endDate; document.getElementById('editTripBudgetInput').value = t.budget; document.getElementById('editTripModal').classList.add('open'); }
-        function saveTripDetails() { const name = document.getElementById('editTripNameInput').value.trim(); const start = document.getElementById('editTripStartInput').value; const end = document.getElementById('editTripEndInput').value; const budget = parseFloat(document.getElementById('editTripBudgetInput').value); if (!name || isNaN(budget) || budget < 0 || !start || !end) return alert('請填寫完整正確的資訊！'); const t = getActiveTrip(); t.name = name; t.startDate = start; t.endDate = end; t.budget = budget; saveData(); updateUI(); closeModal('editTripModal'); }
-        
         function openAddTripModal() { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=getLocalDateString(); document.getElementById('newTripEndInput').value=getLocalDateString(); document.getElementById('addTripModal').classList.add('open'); }
         
         function createNewTrip() { 
