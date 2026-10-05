@@ -83,13 +83,16 @@
         .sidebar-header { background-color: #2F3E46; color: #F9F3EC; padding: 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
         
-        .trip-menu-item { padding: 12px 15px; margin-bottom: 8px; background: white; border-radius: 8px; border-left: 5px solid #D6C5B3; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        /* 側邊欄與資料夾 */
+        .trip-menu-item { position: relative; padding: 12px 15px; margin-bottom: 8px; background: white; border-radius: 8px; border-left: 5px solid #D6C5B3; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
         .trip-menu-item.active { border-left-color: #84A59D; background-color: #E8F0EE; }
         .folder-item { margin-bottom: 8px; }
         .folder-header { padding: 10px 15px; background: #EAE2D6; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #2F3E46; }
-        .folder-content { padding-left: 12px; margin-left: 12px; border-left: 2px dashed #D6C5B3; margin-top: 8px; }
+        .folder-content { padding-left: 12px; margin-left: 12px; border-left: 2px dashed #D6C5B3; margin-top: 8px; min-height: 25px; padding-bottom: 5px; } /* 確保空資料夾有高度可供拖入 */
         .sidebar-cb { width: 18px; height: 18px; cursor: pointer; margin: 0; }
         .sortable-ghost { opacity: 0.4; background-color: #F4A261 !important; border: 2px dashed #E07A5F !important; }
+        .settings-icon-btn { border: none; background: transparent; cursor: pointer; color: #2F3E46; opacity: 0.6; transition: opacity 0.2s;}
+        .settings-icon-btn:hover { opacity: 1; }
 
         .card { background: rgba(255, 255, 255, 0.95); padding: 18px; border-radius: 12px; margin-top: 15px; border-left: 6px solid #84A59D; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .budget-bar { background-color: #EAE2D6; border-radius: 8px; height: 18px; width: 100%; overflow: hidden; margin-top: 10px; }
@@ -134,8 +137,6 @@
             border: 1px solid #84A59D; border-radius: 8px; cursor: pointer; 
         }
         .manage-btn:hover { background: #D0E2DF; }
-        .settings-icon-btn { border: none; background: transparent; font-size: 18px; padding: 6px; cursor: pointer; color: #2F3E46; opacity: 0.7; transition: opacity 0.2s;}
-        .settings-icon-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -164,7 +165,7 @@
         </div>
         <div class="sidebar-content">
             <div id="user-info" style="font-size:13px; color:#84A59D; margin-bottom:10px; text-align:center;"></div>
-            <p style="font-size:11px; color:#84A59D; margin:0 0 10px 0; text-align:center;" id="drag-hint">💡 提示：長按項目可拖曳自訂排序</p>
+            <p style="font-size:11px; color:#84A59D; margin:0 0 10px 0; text-align:center;" id="drag-hint">💡 提示：長按項目可拖曳移入資料夾或排序</p>
             
             <!-- 帳本列表渲染區 -->
             <div id="sidebar-items-container"></div>
@@ -191,8 +192,16 @@
     <!-- 獨立帳本顯示設定彈窗 -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content" style="max-width: 320px;">
-            <h3 style="margin-top:0; color:#2F3E46;">⚙️ 目前帳本顯示設定</h3>
-            <p style="font-size: 13px; color: #84A59D;">這些設定僅會套用於當前的帳本。</p>
+            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 5px;">⚙️ 帳本設定</h3>
+            <p style="font-size: 13px; color: #84A59D; margin-top: 0;">設定僅套用於當前的帳本。</p>
+            
+            <!-- 資料夾選擇 (若有資料夾才會顯示) -->
+            <div id="folderSelectContainer" style="display: none; margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: #2F3E46;">📁 所屬資料夾：</label>
+                <select id="modalFolderSelect" onchange="changeTripFolder(this.value)" style="margin-top: 5px; padding: 8px; font-weight: bold;"></select>
+            </div>
+
+            <div style="margin-bottom: 8px; font-size: 13px; font-weight: bold; color: #2F3E46;">📊 模組顯示：</div>
             <label class="toggle-label">
                 <input type="checkbox" id="modalToggleBudget" onchange="toggleCurrentTripFeature('showBudget', this.checked)">
                 顯示預算進度卡片
@@ -367,7 +376,7 @@
             <div class="form-group" style="margin-top:10px;">
                 <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
                     <select id="editExpCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('edit')"></select>
-                    <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙️️</button>
+                    <button type="button" class="manage-btn" onclick="openManageCategory()" title="管理分類">⚙</button>
                 </div>
                 <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
@@ -704,20 +713,21 @@
             const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)), 0);
             
             let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${trip.id}" data-type="trip" onclick="event.stopPropagation()">` : '';
+            // 設定按鈕移至右下角絕對定位
             let settingsBtn = (isActive && !isSidebarEditMode) ? 
-                `<button class="settings-icon-btn" onclick="openTripSettings(event, '${trip.id}')" title="帳本顯示設定">⚙️</button>` : '';
+                `<button class="settings-icon-btn" style="position: absolute; bottom: 4px; right: 4px; font-size: 13px; padding: 4px;" onclick="openTripSettings(event, '${trip.id}')" title="帳本設定">⚙️</button>` : '';
 
             return `
             <div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">
                 <div style="display:flex; align-items:center; width:100%;">
                     ${cb}
-                    <div style="flex-grow:1; margin-left: ${isSidebarEditMode ? '10px' : '0'}; word-break: break-all;">
+                    <div style="flex-grow:1; margin-left: ${isSidebarEditMode ? '10px' : '0'}; word-break: break-all; padding-right: 24px;">
                         <div style="font-size:15px; color:#2F3E46; font-weight:${isActive ? 'bold' : 'normal'};">${escapeHTML(trip.name)}</div>
                         <small style="color:#666;">${escapeHTML(trip.startDate)}</small><br>
                         <small style="color:#84A59D; font-weight:bold;">花費: $${spent.toLocaleString()}</small>
                     </div>
-                    ${settingsBtn}
                 </div>
+                ${settingsBtn}
             </div>`;
         }
 
@@ -782,7 +792,7 @@
         }
 
         // ==========================
-        // 核心 UI 更新邏輯
+        // 核心 UI 與個別設定彈窗
         // ==========================
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
         
@@ -792,10 +802,38 @@
             e.stopPropagation();
             const trip = getActiveTrip();
             if (!trip) return;
+
+            // 處理資料夾選項下拉選單
+            const folderContainer = document.getElementById('folderSelectContainer');
+            const folderSelect = document.getElementById('modalFolderSelect');
+            
+            if (appData.folders && appData.folders.length > 0) {
+                folderContainer.style.display = 'block';
+                folderSelect.innerHTML = '<option value="">(無 / 最外層)</option>';
+                appData.folders.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.innerText = f.name;
+                    folderSelect.appendChild(opt);
+                });
+                folderSelect.value = trip.folderId || "";
+            } else {
+                folderContainer.style.display = 'none';
+            }
+
             document.getElementById('modalToggleBudget').checked = trip.settings.showBudget !== false;
             document.getElementById('modalToggleChart').checked = trip.settings.showChart !== false;
             document.getElementById('modalTogglePayerSummary').checked = trip.settings.showPayerSummary !== false;
             document.getElementById('tripSettingsModal').classList.add('open');
+        }
+
+        function changeTripFolder(folderId) {
+            const trip = getActiveTrip();
+            if (trip) {
+                trip.folderId = folderId || null;
+                saveData();
+                renderSidebarContent();
+            }
         }
 
         function toggleCurrentTripFeature(key, enabled) {
