@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 強制瀏覽器使用淺色模式配色，防止深色模式自動反轉顏色 -->
     <meta name="color-scheme" content="light">
-    <title>帳簿beta</title>
+    <title>和風帳簿</title>
     
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -54,8 +54,9 @@
         /* 頂部 Header */
         .header { background-color: #2F3E46; color: #F9F3EC; padding: 15px 20px; border-radius: 16px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
         .menu-btn { background: none; border: none; color: #F9F3EC; font-size: 24px; cursor: pointer; padding: 0; margin: 0; z-index: 5; box-shadow: none; }
+        .header-title-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .header h1 { margin: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .trip-period-text { font-size: 12px; opacity: 0.8; margin-top: 4px; color: #D6C5B3; }
+        .trip-period-text { font-size: 13px; opacity: 0.85; margin-top: 6px; color: #D6C5B3; letter-spacing: 0.5px; }
 
         /* 預算進度條 */
         .budget-bar { position: relative; background-color: #EAE2D6; border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid #D6C5B3; }
@@ -67,7 +68,7 @@
         .tab-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 底部分頁導覽列 - 移除文字，僅保留圖示 */
+        /* 底部分頁導覽列 */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #EAE2D6; display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); height: 60px; }
         .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.5; }
         .nav-item.active { opacity: 1; }
@@ -122,14 +123,14 @@
         .trip-menu-item.active { border-left-color: #84A59D; background-color: #E8F0EE; }
         .folder-header { padding: 12px 15px; background: #EAE2D6; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #2F3E46; margin-bottom: 8px; }
         
-        /* 登入卡片與新版 Google 登入按鈕 */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #F9F3EC; z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { background: white; padding: 35px 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; border-top: 8px solid #84A59D; }
         
-        button.btn-google { background-color: #FFFFFF; color: #3C4043; border: 1px solid #D6C5B3; margin-top: 20px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 12px; border-radius: 12px; padding: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: background 0.2s, transform 0.2s; }
-        button.btn-google:hover { background-color: #F8F9FA; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-        button.btn-google:active { transform: scale(0.98); }
-        
+        /* Google 登入按鈕優化 */
+        .btn-google { background-color: #FFFFFF; color: #3c4043; border: 1px solid #dadce0; margin-top: 15px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 12px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s; font-weight: bold; width: 100%; }
+        .btn-google:hover { background-color: #F8F9FA; }
+        .btn-google:active { background-color: #E8EAED; transform: scale(0.98); }
+
         .btn-logout { background-color: #E07A5F; color: white; border: none; font-weight: bold; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 15px;}
         
         .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid #D6C5B3; border-radius: 12px; margin-top: 10px; }
@@ -149,18 +150,15 @@
     <div id="login-overlay">
         <div class="login-card">
             <h2 style="color: #2F3E46; margin-top: 0; font-size: 24px;">⛩️ 和風帳簿</h2>
-            <p style="font-size: 14px; color: #84A59D; margin-bottom: 20px;">雲端同步，紀錄每一刻的花費</p>
-            
-            <!-- 原生彩色 SVG Google 圖標 -->
+            <p style="font-size: 14px; color: #84A59D; margin-bottom: 25px;">雲端同步，紀錄每一刻的花費</p>
             <button class="btn-google" onclick="loginWithGoogle()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    <path fill="none" d="M0 0h48v48H0z"/>
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
                 </svg>
-                使用 Google 帳號登入
+                <span>使用 Google 帳號登入</span>
             </button>
         </div>
     </div>
@@ -173,7 +171,6 @@
             <span style="cursor:pointer; font-size: 22px;" onclick="toggleSidebar(false)">✕</span>
         </div>
         <div class="sidebar-content">
-            <!-- 顯示自訂使用者名稱的區塊 -->
             <div id="user-info" style="font-size:14px; margin-bottom:15px; text-align:center; font-weight:bold;"></div>
             
             <div id="sidebar-items-container"></div>
@@ -203,7 +200,8 @@
                 <h1 id="header-trip-name">載入中...</h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
-            <button class="menu-btn" style="justify-self: end; font-size: 22px;" onclick="switchTab('settings')" title="設定">⚙️</button>
+            <!-- 右側放空 DIV 保證標題絕對置中 -->
+            <div></div> 
         </div>
 
         <!-- ================= 分頁 1：明細 (Records) ================= -->
@@ -226,7 +224,6 @@
 
             <!-- 消費清單卡片 -->
             <div class="card" style="padding-bottom: 10px;">
-                <!-- 修正手機版跑版的 Flexbox 設定 -->
                 <div style="display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 5px; overflow: hidden;">
                     <h3 style="margin: 0; color: #2F3E46; display: flex; align-items: center; gap: 5px; font-size: 16px; white-space: nowrap; flex-shrink: 0;">
                         🧾 帳目明細
