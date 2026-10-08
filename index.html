@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 強制瀏覽器使用淺色模式配色，防止深色模式自動反轉顏色 -->
     <meta name="color-scheme" content="light">
-    <title>和風帳簿</title>
+    <title>彗星帳簿</title>
     
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -23,10 +23,10 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: 'Klee One', 'LXGW WenKai TC', cursive; 
-            background-color: #F9F3EC; 
-            background-image: radial-gradient(#D6C5B3 1px, transparent 1px);
+            background-color: #F0F5FA; /* 淺星空藍底色 */
+            background-image: radial-gradient(#C8D7E8 1px, transparent 1px);
             background-size: 20px 20px;
-            color: #4A3B32; 
+            color: #1C2E4A; /* 深空藍文字 */
             margin: 0; padding: 0; 
         }
         
@@ -34,35 +34,35 @@
         #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .toast-msg { padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px); }
 
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F9F3EC; z-index: 2000; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #84A59D; }
-        #network-status { background-color: #E07A5F; color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: bold; display: none; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F0F5FA; z-index: 2000; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #4A90E2; }
+        #network-status { background-color: #E63946; color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: bold; display: none; }
 
         .app-container { max-width: 600px; margin: 0 auto; padding: 15px; padding-bottom: 90px; display: none; }
 
         /* 輸入框增強 */
-        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #D6C5B3; border-radius: 12px; font-family: inherit; font-size: 15px; background: white; color: #2F3E46; box-sizing: border-box; transition: all 0.2s; outline: none; }
-        input:focus, select:focus { border-color: #84A59D; box-shadow: 0 0 0 3px rgba(132, 165, 157, 0.2); }
-        input[type="date"] { color: #E07A5F; font-weight: bold; font-family: inherit; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #C8D7E8; border-radius: 12px; font-family: inherit; font-size: 15px; background: white; color: #0A192F; box-sizing: border-box; transition: all 0.2s; outline: none; }
+        input:focus, select:focus { border-color: #4A90E2; box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); }
+        input[type="date"] { color: #4A90E2; font-weight: bold; font-family: inherit; }
         
-        button.primary-btn { background-color: #84A59D; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; }
-        button.primary-btn:hover { background-color: #6C8D85; }
+        button.primary-btn { background-color: #4A90E2; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; }
+        button.primary-btn:hover { background-color: #357ABD; }
         button.primary-btn:active { transform: scale(0.98); }
-        .manage-btn { width: auto; margin-top: 0; padding: 12px 14px; background: #E8F0EE; color: #2F3E46; border: 1px solid #84A59D; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .manage-btn { width: auto; margin-top: 0; padding: 12px 14px; background: #E1EDF8; color: #0A192F; border: 1px solid #4A90E2; border-radius: 12px; cursor: pointer; font-weight: bold; }
 
         /* 卡片設計升級 */
-        .card { background: rgba(255, 255, 255, 0.98); padding: 20px; border-radius: 16px; margin-top: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); border-left: 6px solid #84A59D; }
+        .card { background: rgba(255, 255, 255, 0.98); padding: 20px; border-radius: 16px; margin-top: 15px; box-shadow: 0 8px 24px rgba(10, 25, 47, 0.05); border-left: 6px solid #4A90E2; }
         
         /* 頂部 Header */
-        .header { background-color: #2F3E46; color: #F9F3EC; padding: 15px 20px; border-radius: 16px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-        .menu-btn { background: none; border: none; color: #F9F3EC; font-size: 24px; cursor: pointer; padding: 0; margin: 0; z-index: 5; box-shadow: none; }
+        .header { background-color: #0A192F; color: #F0F5FA; padding: 15px 20px; border-radius: 16px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; box-shadow: 0 6px 15px rgba(10, 25, 47, 0.15); }
+        .menu-btn { background: none; border: none; color: #F0F5FA; font-size: 24px; cursor: pointer; padding: 0; margin: 0; z-index: 5; box-shadow: none; }
         .header-title-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .header h1 { margin: 0; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; }
-        .trip-period-text { font-size: 14px; opacity: 0.85; margin-top: 6px; color: #D6C5B3; letter-spacing: 0.5px; }
+        .header h1 { margin: 0; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; color: #FFFFFF;}
+        .trip-period-text { font-size: 14px; opacity: 0.85; margin-top: 6px; color: #C8D7E8; letter-spacing: 0.5px; }
 
         /* 預算進度條 */
-        .budget-bar { position: relative; background-color: #EAE2D6; border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid #D6C5B3; }
-        .budget-fill { background-color: #F28482; height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
-        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #2F3E46; z-index: 2; font-family: 'LXGW WenKai TC', sans-serif; }
+        .budget-bar { position: relative; background-color: #D9E8F5; border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid #C8D7E8; }
+        .budget-fill { background-color: #4A90E2; height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
+        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #0A192F; z-index: 2; font-family: 'LXGW WenKai TC', sans-serif; }
 
         /* 分頁切換邏輯 (Tabs) */
         .tab-view { display: none; animation: fadeIn 0.3s ease; }
@@ -70,36 +70,36 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 底部分頁導覽列 */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #EAE2D6; display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); height: 60px; }
-        .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.5; }
-        .nav-item.active { opacity: 1; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #D9E8F5; display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; box-shadow: 0 -4px 20px rgba(10, 25, 47, 0.06); height: 60px; }
+        .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.5; color: #0A192F;}
+        .nav-item.active { opacity: 1; color: #4A90E2; }
         .nav-icon { font-size: 26px; transition: transform 0.2s; }
-        .nav-item.active .nav-icon { transform: scale(1.15); filter: drop-shadow(0 2px 4px rgba(132,165,157,0.4)); }
+        .nav-item.active .nav-icon { transform: scale(1.15); filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.4)); }
 
-        /* 懸浮按鈕 (FAB) */
-        .fab { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #E07A5F; color: white; display: flex; justify-content: center; align-items: center; font-size: 30px; box-shadow: 0 6px 16px rgba(224, 122, 95, 0.4); cursor: pointer; z-index: 90; transition: transform 0.2s, background 0.2s; }
-        .fab:active { transform: scale(0.9); background: #D0694F; }
+        /* 懸浮按鈕 (FAB) - 星光金 */
+        .fab { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #FFB703; color: #0A192F; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: bold; box-shadow: 0 6px 16px rgba(255, 183, 3, 0.4); cursor: pointer; z-index: 90; transition: transform 0.2s, background 0.2s; }
+        .fab:active { transform: scale(0.9); background: #E5A400; }
 
         /* 隱藏過濾條捲動軸 */
         .filter-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 5px; scrollbar-width: none; -ms-overflow-style: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-chip { padding: 8px 16px; background: #EAE2D6; border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: #4A3B32; font-weight: bold; transition: all 0.2s; border: 1px solid transparent; }
-        .filter-chip.active { background: #84A59D; color: white; border-color: #6C8D85; box-shadow: 0 4px 10px rgba(132, 165, 157, 0.3); }
+        .filter-chip { padding: 8px 16px; background: #D9E8F5; border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: #1C2E4A; font-weight: bold; transition: all 0.2s; border: 1px solid transparent; }
+        .filter-chip.active { background: #4A90E2; color: white; border-color: #357ABD; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); }
         
         /* 消費清單與吸頂日期 */
         #expense-list { max-height: 65vh; overflow-y: auto; padding-right: 5px; margin-top: 5px; } 
-        .date-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); font-size: 15px; font-weight: bold; color: #2F3E46; padding: 10px 0 6px 0; border-bottom: 2px solid #84A59D; z-index: 10; margin-top: 10px; border-radius: 0 0 8px 8px; }
-        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #D6C5B3; padding: 12px 5px; cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-        .expense-item:active { background-color: #E8F0EE; border-radius: 12px; }
+        .date-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); font-size: 15px; font-weight: bold; color: #0A192F; padding: 10px 0 6px 0; border-bottom: 2px solid #4A90E2; z-index: 10; margin-top: 10px; border-radius: 0 0 8px 8px; }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #C8D7E8; padding: 12px 5px; cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        .expense-item:active { background-color: #E1EDF8; border-radius: 12px; }
 
         /* 空狀態 Empty State */
-        .empty-state { text-align: center; padding: 40px 10px; color: #D6C5B3; animation: fadeIn 0.5s ease; }
+        .empty-state { text-align: center; padding: 40px 10px; color: #8ECAE6; animation: fadeIn 0.5s ease; }
         .empty-state-icon { font-size: 50px; margin-bottom: 12px; opacity: 0.8; }
-        .empty-state-title { font-size: 18px; font-weight: bold; color: #84A59D; margin-bottom: 4px; }
+        .empty-state-title { font-size: 18px; font-weight: bold; color: #4A90E2; margin-bottom: 4px; }
         .empty-state-desc { font-size: 14px; }
 
         /* 模態彈窗 & Bottom Sheet */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(2px); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 47, 0.6); z-index: 200; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(2px); }
         .modal.open { display: flex; }
         .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         
@@ -108,37 +108,37 @@
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         .form-group { display: flex; gap: 8px; } .form-group > div { flex: 1; }
-        .real-time-preview { font-size: 14px; color: #84A59D; margin-top: 4px; text-align: right; font-weight: bold; }
-        .payer-tag { display: inline-block; background: #E8F0EE; color: #2F3E46; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 4px; border: 1px solid #84A59D; }
-        .date-tag { display: inline-block; background: #F9F3EC; color: #4A3B32; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 6px; border: 1px solid #D6C5B3; }
-        .inline-checkbox-label { font-size: 15px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 12px 10px; border-radius: 12px; background: #E8F0EE; border: 1px solid #84A59D; font-weight: bold; }
+        .real-time-preview { font-size: 14px; color: #4A90E2; margin-top: 4px; text-align: right; font-weight: bold; }
+        .payer-tag { display: inline-block; background: #E1EDF8; color: #0A192F; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 4px; border: 1px solid #4A90E2; }
+        .date-tag { display: inline-block; background: #F0F5FA; color: #1C2E4A; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 6px; border: 1px solid #C8D7E8; }
+        .inline-checkbox-label { font-size: 15px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 12px 10px; border-radius: 12px; background: #E1EDF8; border: 1px solid #4A90E2; font-weight: bold; color: #0A192F;}
         .inline-checkbox-label input { margin: 0; width: auto; }
         
         /* 側邊欄 */
-        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; z-index: 190; backdrop-filter: blur(2px); }
-        .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background-color: #F9F3EC; box-shadow: 2px 0 15px rgba(0,0,0,0.2); z-index: 195; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 25, 47, 0.5); display: none; z-index: 190; backdrop-filter: blur(2px); }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background-color: #F0F5FA; box-shadow: 2px 0 15px rgba(0,0,0,0.2); z-index: 195; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
         .sidebar.open { left: 0; } .sidebar-overlay.open { display: block; }
-        .sidebar-header { background-color: #2F3E46; color: #F9F3EC; padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header { background-color: #0A192F; color: #F0F5FA; padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
-        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: white; border-radius: 12px; border-left: 6px solid #D6C5B3; cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .trip-menu-item.active { border-left-color: #84A59D; background-color: #E8F0EE; }
-        .folder-header { padding: 12px 15px; background: #EAE2D6; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #2F3E46; margin-bottom: 8px; font-size: 15px; }
+        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: white; border-radius: 12px; border-left: 6px solid #C8D7E8; cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(10,25,47,0.03); }
+        .trip-menu-item.active { border-left-color: #4A90E2; background-color: #E1EDF8; }
+        .folder-header { padding: 12px 15px; background: #D9E8F5; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #0A192F; margin-bottom: 8px; font-size: 15px; }
         
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #F9F3EC; z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-        .login-card { background: white; padding: 35px 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; border-top: 8px solid #84A59D; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #F0F5FA; z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .login-card { background: white; padding: 35px 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(10,25,47,0.1); width: 100%; max-width: 350px; text-align: center; border-top: 8px solid #4A90E2; }
         
         /* Google 登入按鈕優化 */
         .btn-google { background-color: #FFFFFF; color: #3c4043; border: 1px solid #dadce0; margin-top: 15px; font-size: 16px; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 12px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s; font-weight: bold; width: 100%; font-family: inherit; }
         .btn-google:hover { background-color: #F8F9FA; }
         .btn-google:active { background-color: #E8EAED; transform: scale(0.98); }
 
-        .btn-logout { background-color: #E07A5F; color: white; border: none; font-weight: bold; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px;}
+        .btn-logout { background-color: #E63946; color: white; border: none; font-weight: bold; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px;}
         
-        .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid #D6C5B3; border-radius: 12px; margin-top: 10px; }
+        .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid #C8D7E8; border-radius: 12px; margin-top: 10px; }
         .summary-table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
-        .summary-table th, .summary-table td { border-bottom: 1px dashed #D6C5B3; padding: 10px; text-align: left; }
-        .summary-table th { background-color: #E8F0EE; color: #2F3E46; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #84A59D; }
-        .summary-table tfoot th, .summary-table tfoot td { font-weight: bold; background-color: #F9F3EC; border-top: 2px solid #84A59D; position: sticky; bottom: 0; }
+        .summary-table th, .summary-table td { border-bottom: 1px dashed #C8D7E8; padding: 10px; text-align: left; }
+        .summary-table th { background-color: #E1EDF8; color: #0A192F; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #4A90E2; }
+        .summary-table tfoot th, .summary-table tfoot td { font-weight: bold; background-color: #F0F5FA; border-top: 2px solid #4A90E2; position: sticky; bottom: 0; }
     </style>
 </head>
 <body>
@@ -150,8 +150,8 @@
     <!-- 登入畫面 -->
     <div id="login-overlay">
         <div class="login-card">
-            <h2 style="color: #2F3E46; margin-top: 0; font-size: 28px; font-weight: 700;">⛩️ 和風帳簿</h2>
-            <p style="font-size: 15px; color: #84A59D; margin-bottom: 25px;">雲端同步，紀錄每一刻的花費</p>
+            <h2 style="color: #0A192F; margin-top: 0; font-size: 28px; font-weight: 700;">☄️ 彗星帳簿</h2>
+            <p style="font-size: 15px; color: #4A90E2; margin-bottom: 25px;">雲端同步，紀錄每一刻的花費</p>
             <button class="btn-google" onclick="loginWithGoogle()">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -168,7 +168,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span>⛩ 帳本與資料夾</span>
+            <span>☄️ 帳本與資料夾</span>
             <span style="cursor:pointer; font-size: 22px;" onclick="toggleSidebar(false)">✕</span>
         </div>
         <div class="sidebar-content">
@@ -179,15 +179,15 @@
             <div id="sidebar-normal-actions">
                 <div style="display: flex; gap: 8px; margin-top: 20px;">
                     <button class="primary-btn" style="flex: 1; padding: 12px;" onclick="openAddTripModal()">➕ 新帳本</button>
-                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: #D6C5B3; color: #2F3E46;" onclick="createFolder()">📁 新資料夾</button>
+                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: #D9E8F5; color: #0A192F;" onclick="createFolder()">📁 新資料夾</button>
                 </div>
-                <button class="primary-btn" style="background-color: #E07A5F; margin-top: 10px; width: 100%; padding: 12px;" onclick="toggleSidebarEditMode()">📝 批次管理 / 刪除帳本</button>
+                <button class="primary-btn" style="background-color: #FFB703; color: #0A192F; margin-top: 10px; width: 100%; padding: 12px;" onclick="toggleSidebarEditMode()">📝 批次管理 / 刪除帳本</button>
                 <button class="btn-logout" onclick="logoutApp()">🚪 登出帳號</button>
             </div>
 
             <div id="sidebar-edit-actions" style="display: none; margin-top: 20px;">
-                <button class="primary-btn" style="background-color: #E07A5F; padding: 12px; width:100%;" onclick="deleteSelectedItems()">🗑️ 刪除選取的帳本/資料夾</button>
-                <button class="primary-btn" style="background-color: #84A59D; padding: 12px; width:100%; margin-top:10px;" onclick="toggleSidebarEditMode()">✅ 完成</button>
+                <button class="primary-btn" style="background-color: #E63946; padding: 12px; width:100%;" onclick="deleteSelectedItems()">🗑️ 刪除選取的帳本/資料夾</button>
+                <button class="primary-btn" style="background-color: #4A90E2; padding: 12px; width:100%; margin-top:10px;" onclick="toggleSidebarEditMode()">✅ 完成</button>
             </div>
         </div>
     </div>
@@ -210,12 +210,12 @@
             <!-- 預算卡片 -->
             <div class="card" id="budgetCard">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin: 0; color: #2F3E46; font-size: 18px;">💰 預算進度 (TWD)</h3>
-                    <span style="font-size:14px; color:#84A59D; cursor:pointer; font-weight:bold;" onclick="openTripSettings(event)">修改 ⚙️</span>
+                    <h3 style="margin: 0; color: #0A192F; font-size: 18px;">💰 預算進度 (TWD)</h3>
+                    <span style="font-size:14px; color:#4A90E2; cursor:pointer; font-weight:bold;" onclick="openTripSettings(event)">修改 ⚙️</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 15px; margin-top: 12px; font-weight: bold;">
-                    <span style="color: #666;">已花費: <span id="total-spent" style="font-size: 18px; color:#E07A5F;">0</span></span>
-                    <span style="color: #666;">總預算: <span id="total-budget" style="font-size: 18px; color:#2F3E46;">0</span></span>
+                    <span style="color: #666;">已花費: <span id="total-spent" style="font-size: 18px; color:#4A90E2;">0</span></span>
+                    <span style="color: #666;">總預算: <span id="total-budget" style="font-size: 18px; color:#0A192F;">0</span></span>
                 </div>
                 <div class="budget-bar">
                     <div class="budget-fill" id="budget-fill"></div>
@@ -226,13 +226,13 @@
             <!-- 消費清單卡片 -->
             <div class="card" style="padding-bottom: 10px;">
                 <div style="display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 5px; overflow: hidden;">
-                    <h3 style="margin: 0; color: #2F3E46; display: flex; align-items: center; gap: 5px; font-size: 18px; white-space: nowrap; flex-shrink: 0;">
+                    <h3 style="margin: 0; color: #0A192F; display: flex; align-items: center; gap: 5px; font-size: 18px; white-space: nowrap; flex-shrink: 0;">
                         🧾 帳目明細
                     </h3>
                     <div style="flex-grow: 1; min-width: 0; padding: 0 5px; display: flex; align-items: center;">
-                        <span id="record-total" style="font-size: 14px; color: #E07A5F; font-weight: bold; background: #F9F3EC; padding: 3px 10px; border-radius: 12px; border: 1px solid #D6C5B3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">NT$ 0</span>
+                        <span id="record-total" style="font-size: 14px; color: #FFB703; font-weight: bold; background: #0A192F; padding: 3px 10px; border-radius: 12px; border: 1px solid #C8D7E8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">NT$ 0</span>
                     </div>
-                    <select id="sortSelect" onchange="changeSortOrder(this.value)" style="width: auto; margin: 0; padding: 6px 8px; font-size: 14px; border-radius: 10px; background: #E8F0EE; border: 1px solid #84A59D; color: #2F3E46; font-weight:bold; cursor: pointer; flex-shrink: 0;">
+                    <select id="sortSelect" onchange="changeSortOrder(this.value)" style="width: auto; margin: 0; padding: 6px 8px; font-size: 14px; border-radius: 10px; background: #E1EDF8; border: 1px solid #4A90E2; color: #0A192F; font-weight:bold; cursor: pointer; flex-shrink: 0;">
                         <option value="date-desc">📅 近到遠</option>
                         <option value="date-asc">📅 遠到近</option>
                         <option value="amount-desc">💰 高到低</option>
@@ -241,7 +241,7 @@
                 </div>
                 
                 <div class="filter-container" id="filterContainer"></div>
-                <div style="font-size: 13px; color: #84A59D; margin-bottom: 5px; font-weight: bold;">💡 長按或點擊右鍵紀錄，可進行編輯或刪除</div>
+                <!-- 已移除原本的提示字區塊 -->
                 
                 <div id="expense-list"></div>
             </div>
@@ -250,7 +250,7 @@
         <!-- ================= 分頁 2：統計 (Stats) ================= -->
         <div id="tab-stats" class="tab-view">
             <div class="card" id="chartCard">
-                <h3 style="margin-top:0; color:#2F3E46; font-size: 18px;">📊 消費分類佔比</h3>
+                <h3 style="margin-top:0; color:#0A192F; font-size: 18px;">📊 消費分類佔比</h3>
                 <div style="max-width: 260px; margin: 10px auto;">
                     <canvas id="expenseChart"></canvas>
                 </div>
@@ -258,27 +258,27 @@
             </div>
             
             <div class="card" id="payerSummaryCard">
-                <h3 style="margin-top:0; color:#2F3E46; font-size: 18px;">👫 成員付款統計</h3>
+                <h3 style="margin-top:0; color:#0A192F; font-size: 18px;">👫 成員付款統計</h3>
                 <div id="payerSummaryList" style="font-size:16px; line-height: 2; margin-top:10px;"></div>
             </div>
             
             <div class="card">
-                <h3 style="margin-top:0; color:#2F3E46; font-size: 18px;">📈 詳細報表</h3>
-                <button class="primary-btn" style="background-color: #94D2BD; color: #2F3E46; width: 100%; padding: 14px;" onclick="openSummaryModal()">📋 檢視表格總覽</button>
-                <button class="primary-btn" style="background-color: #5B7B7A; width: 100%; padding: 14px;" onclick="exportToCSV()">📥 下載 CSV 報表</button>
+                <h3 style="margin-top:0; color:#0A192F; font-size: 18px;">📈 詳細報表</h3>
+                <button class="primary-btn" style="background-color: #8ECAE6; color: #0A192F; width: 100%; padding: 14px;" onclick="openSummaryModal()">📋 檢視表格總覽</button>
+                <button class="primary-btn" style="background-color: #219EBC; width: 100%; padding: 14px;" onclick="exportToCSV()">📥 下載 CSV 報表</button>
             </div>
         </div>
 
         <!-- ================= 分頁 3：設定 (Settings) ================= -->
         <div id="tab-settings" class="tab-view">
             <div class="card">
-                <h3 style="margin-top:0; color:#2F3E46; font-size: 18px;">⚙️ 目前帳本設定</h3>
-                <p style="font-size: 14px; color: #84A59D; margin-bottom: 15px;">修改名稱、日期、預算與顯示模組</p>
+                <h3 style="margin-top:0; color:#0A192F; font-size: 18px;">⚙️ 目前帳本設定</h3>
+                <p style="font-size: 14px; color: #4A90E2; margin-bottom: 15px;">修改名稱、日期、預算與顯示模組</p>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px;" onclick="openTripSettings(event)">✏️ 編輯「<span id="settings-trip-name"></span>」設定</button>
             </div>
             <div class="card">
-                <h3 style="margin-top:0; color:#2F3E46; font-size: 18px;">🛠️ 全域設定 (共用)</h3>
-                <p style="font-size: 14px; color: #84A59D; margin-bottom: 15px;">自訂您的分類名稱與專屬幣別</p>
+                <h3 style="margin-top:0; color:#0A192F; font-size: 18px;">🛠️ 全域設定 (共用)</h3>
+                <p style="font-size: 14px; color: #4A90E2; margin-bottom: 15px;">自訂您的分類名稱與專屬幣別</p>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px; margin-bottom: 10px;" onclick="openManageCategory()">🏷️ 管理消費分類</button>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px;" onclick="openManageCurrency()">💱 管理自訂幣別與匯率</button>
             </div>
@@ -307,8 +307,8 @@
     <div class="modal bottom-sheet" id="addExpenseModal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; color: #2F3E46; font-size: 20px;">📝 新增一筆消費</h3>
-                <span style="font-size: 24px; color: #84A59D; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('addExpenseModal')">✕</span>
+                <h3 style="margin:0; color: #0A192F; font-size: 20px;">📝 新增一筆消費</h3>
+                <span style="font-size: 24px; color: #4A90E2; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('addExpenseModal')">✕</span>
             </div>
             
             <div class="form-group" style="margin-bottom:8px;">
@@ -320,7 +320,7 @@
                     <input type="checkbox" id="enableDetailsBtn" onchange="toggleDetailsInput(this.checked)"> ➕ 細項
                 </label>
             </div>
-            <input type="text" id="itemDetails" placeholder="細項說明 (例如：牛肉麵x2, 小菜x1)" maxlength="100" style="display: none; background-color: #f8f8f8;">
+            <input type="text" id="itemDetails" placeholder="細項說明 (例如：牛肉麵x2, 小菜x1)" maxlength="100" style="display: none; background-color: #F0F5FA;">
             
             <div class="form-group">
                 <div style="flex: 1.5;"><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
@@ -344,13 +344,13 @@
     <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal" style="z-index: 210;">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2F3E46;">✏️ 編輯消費紀錄</h3>
+            <h3 style="margin-top:0; color:#0A192F;">✏️ 編輯消費紀錄</h3>
             <input type="hidden" id="editExpId">
             <div class="form-group" style="margin-bottom:8px;">
                 <div><input type="date" id="editExpDate" onchange="handleDateOrCurrencyChange('edit')"></div>
             </div>
             <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
-            <input type="text" id="editExpDetails" placeholder="細項說明 (可留空)" maxlength="100" style="background-color: #f8f8f8;">
+            <input type="text" id="editExpDetails" placeholder="細項說明 (可留空)" maxlength="100" style="background-color: #F0F5FA;">
             
             <div class="form-group" style="margin-top:10px;">
                 <div style="flex: 1.5;"><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any" oninput="updateTWDPreview('edit')"></div>
@@ -368,8 +368,8 @@
             </div>
             
             <div class="form-group" style="margin-top:20px; display: flex; gap: 8px;">
-                <button onclick="deleteExpenseFromEdit()" style="background:#E07A5F; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px; font-family: inherit;">🗑️ 刪除</button>
-                <button onclick="closeModal('editExpenseModal')" style="background:#ccc; color:#2F3E46; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px; font-family: inherit;">取消</button>
+                <button onclick="deleteExpenseFromEdit()" style="background:#E63946; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px; font-family: inherit;">🗑️ 刪除</button>
+                <button onclick="closeModal('editExpenseModal')" style="background:#C8D7E8; color:#0A192F; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px; font-family: inherit;">取消</button>
                 <button class="primary-btn" style="margin-top:0; flex: 1.5; padding: 12px; border-radius:12px;" onclick="saveExpenseEdit()">儲存修改</button>
             </div>
         </div>
@@ -378,29 +378,29 @@
     <!-- 帳本設定彈窗 -->
     <div class="modal" id="tripSettingsModal" style="z-index: 220;">
         <div class="modal-content" style="max-width: 340px;">
-            <h3 style="margin-top:0; color:#2F3E46; margin-bottom: 15px;">⚙ 帳本設定</h3>
-            <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold; color: #2F3E46;">
+            <h3 style="margin-top:0; color:#0A192F; margin-bottom: 15px;">⚙ 帳本設定</h3>
+            <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold; color: #0A192F;">
             <div class="form-group" style="margin-bottom: 15px;">
-                <div><label style="font-size:14px; color:#84A59D; font-weight: bold;">開始：</label><input type="date" id="modalTripStartInput"></div>
-                <div><label style="font-size:14px; color:#84A59D; font-weight: bold;">結束：</label><input type="date" id="modalTripEndInput"></div>
+                <div><label style="font-size:14px; color:#4A90E2; font-weight: bold;">開始：</label><input type="date" id="modalTripStartInput"></div>
+                <div><label style="font-size:14px; color:#4A90E2; font-weight: bold;">結束：</label><input type="date" id="modalTripEndInput"></div>
             </div>
             <div id="folderSelectContainer" style="display: none; margin-bottom: 15px;">
-                <label style="font-size: 14px; font-weight: bold; color: #2F3E46;">📁 所屬資料夾：</label>
-                <select id="modalFolderSelect" style="margin-top: 5px; font-weight: bold; color: #2F3E46;"></select>
+                <label style="font-size: 14px; font-weight: bold; color: #0A192F;">📁 所屬資料夾：</label>
+                <select id="modalFolderSelect" style="margin-top: 5px; font-weight: bold; color: #0A192F;"></select>
             </div>
-            <div style="margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #2F3E46;">📊 模組顯示開關：</div>
+            <div style="margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #0A192F;">📊 模組顯示開關：</div>
             <div style="display: flex; gap: 6px; margin-bottom: 10px;">
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalToggleBudget" onchange="document.getElementById('modalTripBudgetContainer').style.display = this.checked ? 'block' : 'none';">預算</label>
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalToggleChart">圓餅圖</label>
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalTogglePayerSummary">成員付款</label>
             </div>
-            <div id="modalTripBudgetContainer" style="display:none; margin-bottom: 15px; background: #f8f8f8; padding: 15px; border-radius: 12px; border: 1px dashed #D6C5B3;">
-                <label style="font-size:14px; display:block; color: #2F3E46; font-weight:bold;">💰 總預算 (台幣 TWD)：</label>
-                <input type="number" id="modalTripBudgetInput" min="0" max="999999999" placeholder="請輸入預算金額" style="margin-top: 8px; font-weight: bold; color: #E07A5F;">
+            <div id="modalTripBudgetContainer" style="display:none; margin-bottom: 15px; background: #F0F5FA; padding: 15px; border-radius: 12px; border: 1px dashed #C8D7E8;">
+                <label style="font-size:14px; display:block; color: #0A192F; font-weight:bold;">💰 總預算 (台幣 TWD)：</label>
+                <input type="number" id="modalTripBudgetInput" min="0" max="999999999" placeholder="請輸入預算金額" style="margin-top: 8px; font-weight: bold; color: #4A90E2;">
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button onclick="closeModal('tripSettingsModal')" class="manage-btn" style="flex:1;">取消</button>
-                <button onclick="saveTripSettings()" class="primary-btn" style="margin-top:0; background-color: #2F3E46; flex:1.5;">儲存設定</button>
+                <button onclick="saveTripSettings()" class="primary-btn" style="margin-top:0; background-color: #0A192F; flex:1.5;">儲存設定</button>
             </div>
         </div>
     </div>
@@ -408,9 +408,9 @@
     <!-- 各類管理 Modals -->
     <div class="modal" id="manageCurrencyModal" style="z-index: 250;">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2F3E46;">💱 管理幣別與匯率</h3>
-            <p style="font-size:14px; color:#84A59D;">台幣 (TWD) 為預設幣別。刪除幣別不會影響歷史紀錄。</p>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #E8F0EE; padding: 12px; border-radius: 12px; align-items: center;">
+            <h3 style="margin-top:0; color:#0A192F;">💱 管理幣別與匯率</h3>
+            <p style="font-size:14px; color:#4A90E2;">台幣 (TWD) 為預設幣別。刪除幣別不會影響歷史紀錄。</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #E1EDF8; padding: 12px; border-radius: 12px; align-items: center;">
                 <input type="text" id="newManageCurrCode" placeholder="代碼(如:GBP)" maxlength="5" style="margin: 0; flex: 1; text-transform: uppercase;">
                 <input type="number" id="newManageCurrRate" placeholder="對台幣匯率" step="any" min="0" style="margin: 0; flex: 1.2;">
                 <button class="primary-btn" style="margin: 0; width: auto; padding: 12px 15px; border-radius:12px;" onclick="addManageCurrency()">➕</button>
@@ -422,9 +422,9 @@
     
     <div class="modal" id="manageCategoryModal" style="z-index: 250;">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2F3E46;">🏷️ 管理消費分類</h3>
-            <p style="font-size:14px; color:#84A59D;">重新命名分類將會同步更新所有歷史紀錄中的名稱。</p>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #E8F0EE; padding: 12px; border-radius: 12px; align-items: center;">
+            <h3 style="margin-top:0; color:#0A192F;">🏷️ 管理消費分類</h3>
+            <p style="font-size:14px; color:#4A90E2;">重新命名分類將會同步更新所有歷史紀錄中的名稱。</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #E1EDF8; padding: 12px; border-radius: 12px; align-items: center;">
                 <input type="text" id="newManageCatInput" placeholder="輸入新分類名稱" style="margin: 0; flex: 1;" maxlength="20">
                 <button class="primary-btn" style="margin: 0; width: auto; padding: 12px 18px; border-radius:12px;" onclick="addManageCategory()">新增</button>
             </div>
@@ -436,16 +436,16 @@
     <!-- 查詢匯率 -->
     <div class="modal" id="customCurrencyModal" style="z-index: 260;">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2F3E46;">🌐 查詢線上匯率</h3>
-            <label style="font-size:14px; font-weight:bold; color:#2F3E46;">幣別代碼：</label>
+            <h3 style="margin-top:0; color:#0A192F;">🌐 查詢線上匯率</h3>
+            <label style="font-size:14px; font-weight:bold; color:#0A192F;">幣別代碼：</label>
             <div class="form-group">
                 <div><input type="text" id="customCodeInput" placeholder="GBP" maxlength="5" style="text-transform:uppercase;"></div>
                 <div style="flex:0 0 100px;"><button class="primary-btn" style="margin-top:8px; border-radius:12px;" onclick="fetchCurrencyRate()">🔍 查詢</button></div>
             </div>
-            <div id="apiStatusContainer" style="display:none; margin-top:10px; background:#f8f8f8; padding:12px; border-radius:12px; border:1px solid #D6C5B3;">
-                <div id="apiStatusMessage" style="font-size:15px; font-weight:bold; color:#84A59D;">查詢中...</div>
+            <div id="apiStatusContainer" style="display:none; margin-top:10px; background:#F0F5FA; padding:12px; border-radius:12px; border:1px solid #C8D7E8;">
+                <div id="apiStatusMessage" style="font-size:15px; font-weight:bold; color:#4A90E2;">查詢中...</div>
                 <div style="margin-top:10px;">
-                    <label style="font-size:14px; font-weight:bold; color:#2F3E46;">匯率 (對換 TWD)：</label>
+                    <label style="font-size:14px; font-weight:bold; color:#0A192F;">匯率 (對換 TWD)：</label>
                     <input type="number" id="customRateInput" step="any" min="0" style="margin-top:4px;">
                 </div>
             </div>
@@ -460,25 +460,25 @@
     <div class="modal" id="summaryModal" style="z-index: 210;">
         <div class="modal-content" style="max-width: 95%; width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin:0; color:#2F3E46;">📊 報表總覽</h3>
-                <span style="font-size: 24px; color: #84A59D; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('summaryModal')">✕</span>
+                <h3 style="margin:0; color:#0A192F;">📊 報表總覽</h3>
+                <span style="font-size: 24px; color: #4A90E2; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('summaryModal')">✕</span>
             </div>
             <div class="summary-table-container" id="summaryTableContainer"></div>
-            <button class="primary-btn" style="background-color: #5B7B7A; width: 100%; margin-top: 15px; padding: 12px; border-radius:12px;" onclick="exportToCSV()">📥 下載 CSV</button>
+            <button class="primary-btn" style="background-color: #219EBC; width: 100%; margin-top: 15px; padding: 12px; border-radius:12px;" onclick="exportToCSV()">📥 下載 CSV</button>
         </div>
     </div>
 
     <!-- 新增帳本彈窗 -->
     <div class="modal" id="addTripModal" style="z-index: 220;">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2F3E46;">➕ 新增帳本紀錄</h3>
+            <h3 style="margin-top:0; color:#0A192F;">➕ 新增帳本紀錄</h3>
             <input type="text" id="newTripNameInput" placeholder="例如：日常開銷 / 京都旅遊" maxlength="50">
             <div class="form-group" style="margin-top:10px;">
-                <div><label style="font-size:14px; font-weight:bold; color:#84A59D;">開始：</label><input type="date" id="newTripStartInput"></div>
-                <div><label style="font-size:14px; font-weight:bold; color:#84A59D;">結束：</label><input type="date" id="newTripEndInput"></div>
+                <div><label style="font-size:14px; font-weight:bold; color:#4A90E2;">開始：</label><input type="date" id="newTripStartInput"></div>
+                <div><label style="font-size:14px; font-weight:bold; color:#4A90E2;">結束：</label><input type="date" id="newTripEndInput"></div>
             </div>
             <div id="newTripBudgetContainer" style="margin-top: 10px;">
-                <label style="font-size:14px; font-weight:bold; color:#2F3E46;">總預算 (台幣 TWD)：</label>
+                <label style="font-size:14px; font-weight:bold; color:#0A192F;">總預算 (台幣 TWD)：</label>
                 <input type="number" id="newTripBudgetInput" placeholder="40000" min="0" max="999999999">
             </div>
             <div class="form-group" style="margin-top:20px;">
@@ -494,7 +494,7 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast-msg';
-            toast.style.background = type === 'error' ? '#E07A5F' : (type === 'warn' ? '#F4A261' : '#84A59D');
+            toast.style.background = type === 'error' ? '#E63946' : (type === 'warn' ? '#FFB703' : '#4A90E2');
             toast.innerText = msg;
             container.appendChild(toast);
             
@@ -550,7 +550,9 @@
         let currentFetchedEditRate = 1;
         let isSidebarEditMode = false;
         let sortableInstances = [];
-        const chartColors = ['#84A59D', '#E07A5F', '#F4A261', '#2F3E46', '#D6C5B3', '#94D2BD', '#A8DADC', '#457B9D'];
+        
+        // 星街彗星主題 Chart.js 圓餅圖配色
+        const chartColors = ['#4A90E2', '#FFB703', '#8ECAE6', '#0A192F', '#BDE0FE', '#E63946', '#219EBC', '#FFD166'];
 
         const defaultAppData = {
             activeTripId: "trip_1",
@@ -631,7 +633,7 @@
         function renderUserName() {
             if (!auth.currentUser) return;
             const name = appData.customUserName || auth.currentUser.displayName || (auth.currentUser.email ? auth.currentUser.email.split('@')[0] : "使用者");
-            document.getElementById('user-info').innerHTML = `<span style="cursor:pointer; display:inline-block; padding:8px 15px; background:#E8F0EE; border-radius:12px; border:1px solid #84A59D; color:#2F3E46; transition: 0.2s;" onclick="editUserName()">👤 ${escapeHTML(name)} ✏️</span>`;
+            document.getElementById('user-info').innerHTML = `<span style="cursor:pointer; display:inline-block; padding:8px 15px; background:#E1EDF8; border-radius:12px; border:1px solid #4A90E2; color:#0A192F; transition: 0.2s;" onclick="editUserName()">👤 ${escapeHTML(name)} ✏️</span>`;
         }
 
         function editUserName() {
@@ -732,7 +734,7 @@
                     let children = appData.trips.filter(t => t.folderId === item.id).sort((a, b) => a.order - b.order);
                     let expanded = item.expanded !== false;
                     let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${item.id}" data-type="folder" onclick="event.stopPropagation()">` : '';
-                    html += `<div class="folder-item" data-id="${item.id}" data-type="folder"><div class="folder-header" onclick="toggleFolder('${item.id}')"><div style="display:flex; align-items:center; gap:8px;">${cb} <span>${escapeHTML(item.name)}</span></div></div><div class="folder-content sortable-list" data-folder-id="${item.id}" style="display: ${expanded ? 'block' : 'none'}; padding-left:12px; margin-left:12px; border-left:2px dashed #D6C5B3; margin-top:8px; min-height:40px;">`;
+                    html += `<div class="folder-item" data-id="${item.id}" data-type="folder"><div class="folder-header" onclick="toggleFolder('${item.id}')"><div style="display:flex; align-items:center; gap:8px;">${cb} <span>${escapeHTML(item.name)}</span></div></div><div class="folder-content sortable-list" data-folder-id="${item.id}" style="display: ${expanded ? 'block' : 'none'}; padding-left:12px; margin-left:12px; border-left:2px dashed #C8D7E8; margin-top:8px; min-height:40px;">`;
                     children.forEach(t => { html += renderTripItem(t); }); html += `</div></div>`;
                 } else { html += renderTripItem(item); }
             });
@@ -744,7 +746,7 @@
             const isActive = trip.id === appData.activeTripId;
             const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)), 0);
             let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${trip.id}" data-type="trip" onclick="event.stopPropagation()">` : '';
-            return `<div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">${cb}<div style="flex-grow:1; display: flex; flex-direction: column; width: 100%;"><div style="font-size:16px; color:#2F3E46; font-weight:${isActive ? 'bold' : 'normal'}; line-height: 1.3; margin-bottom: 2px;">${escapeHTML(trip.name)}</div><small style="color:#666; line-height: 1.3; font-size:13px;">${escapeHTML(trip.startDate)}</small><small style="color:#84A59D; font-weight:bold; line-height: 1.3; margin-top: 4px; font-size:13px;">花費: $${spent.toLocaleString()}</small></div></div>`;
+            return `<div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">${cb}<div style="flex-grow:1; display: flex; flex-direction: column; width: 100%;"><div style="font-size:16px; color:#0A192F; font-weight:${isActive ? 'bold' : 'normal'}; line-height: 1.3; margin-bottom: 2px;">${escapeHTML(trip.name)}</div><small style="color:#666; line-height: 1.3; font-size:13px;">${escapeHTML(trip.startDate)}</small><small style="color:#4A90E2; font-weight:bold; line-height: 1.3; margin-top: 4px; font-size:13px;">花費: $${spent.toLocaleString()}</small></div></div>`;
         }
 
         function initSortable() {
@@ -876,14 +878,14 @@
                 Object.keys(appData.rates).forEach(code => {
                     if (code === 'TWD') return; const opt = document.createElement('option'); opt.value = code; opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`; el.appendChild(opt);
                 });
-                const triggerOpt = document.createElement('option'); triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...'; triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E07A5F'; el.appendChild(triggerOpt);
+                const triggerOpt = document.createElement('option'); triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...'; triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E63946'; el.appendChild(triggerOpt);
             });
             if (appData.rates[currentVal]) selectEl.value = currentVal; else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency; else selectEl.value = 'TWD';
 
             const catSelectEl = document.getElementById('itemCategory'); const editCatSelectEl = document.getElementById('editExpCategory'); const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
             [catSelectEl, editCatSelectEl].forEach(el => {
                 el.innerHTML = ''; appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; el.appendChild(opt); });
-                const catTrigger = document.createElement('option'); catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...'; catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E07A5F'; el.appendChild(catTrigger);
+                const catTrigger = document.createElement('option'); catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...'; catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E63946'; el.appendChild(catTrigger);
             });
             if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal; else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
 
@@ -910,7 +912,7 @@
             trip.expenses.forEach(exp => { const twd = getTwd(exp); totalTWD += twd; const payer = exp.payer || '我'; payerTotals[payer] = (payerTotals[payer] || 0) + twd; });
             
             // 付款統計
-            document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).length === 0 ? '<p style="color:#84A59D; font-size:14px;">無資料</p>' : Object.keys(payerTotals).map(p => `<div style="display:flex; justify-content:space-between; border-bottom: 1px dashed #D6C5B3; padding: 6px 0;"><span>👤 <strong>${escapeHTML(p)}</strong></span> <span>NT$ ${payerTotals[p].toLocaleString()}</span></div>`).join('');
+            document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).length === 0 ? '<p style="color:#4A90E2; font-size:14px;">無資料</p>' : Object.keys(payerTotals).map(p => `<div style="display:flex; justify-content:space-between; border-bottom: 1px dashed #C8D7E8; padding: 6px 0;"><span>👤 <strong>${escapeHTML(p)}</strong></span> <span style="color:#0A192F;">NT$ ${payerTotals[p].toLocaleString()}</span></div>`).join('');
 
             let lastDate = ""; let filteredTotalTWD = 0; 
             
@@ -918,9 +920,9 @@
             if (itemsToDisplay.length === 0) { 
                 listEl.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">🍃</div>
-                    <div class="empty-state-title">此處猶如枯山水般寧靜</div>
-                    <div class="empty-state-desc">點擊右下角新增第一筆紀錄吧！</div>
+                    <div class="empty-state-icon">☄️</div>
+                    <div class="empty-state-title">目前沒有任何紀錄</div>
+                    <div class="empty-state-desc">點擊右下角新增第一筆星詠紀錄吧！</div>
                 </div>`; 
             } 
             else {
@@ -934,11 +936,11 @@
                         listEl.appendChild(dHeader); 
                     }
                     
-                    const detailsHtml = exp.details ? `<br><small style="color:#888;">📝 ${escapeHTML(exp.details)}</small>` : '';
+                    const detailsHtml = exp.details ? `<br><small style="color:#666;">📝 ${escapeHTML(exp.details)}</small>` : '';
                     const payerTagStyle = showPayer ? 'inline-block' : 'none';
                     const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">${escapeHTML(exp.date)}</span>` : '';
                     const isTWD = (!exp.currency || exp.currency === 'TWD');
-                    const rightAmountHtml = isTWD ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` : `<strong style="color:#E07A5F;">${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:#777;">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
+                    const rightAmountHtml = isTWD ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` : `<strong style="color:#FFB703;">${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:#888;">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
 
                     const div = document.createElement('div');
                     div.className = 'expense-item';
@@ -953,10 +955,10 @@
 
                     div.innerHTML = `
                         <div style="flex-grow: 1;">
-                            <strong style="color: #2F3E46; font-size:16px;">${escapeHTML(exp.name)}</strong> <span class="payer-tag" style="display:${payerTagStyle};">${escapeHTML(exp.payer || '我')}</span>${detailsHtml}<br>
-                            <small style="color:#84A59D; font-weight:bold; display:inline-block; margin-top:4px; font-size:13px;">${escapeHTML(exp.category)}</small>${dateTagHtml}
+                            <strong style="color: #0A192F; font-size:16px;">${escapeHTML(exp.name)}</strong> <span class="payer-tag" style="display:${payerTagStyle};">${escapeHTML(exp.payer || '我')}</span>${detailsHtml}<br>
+                            <small style="color:#4A90E2; font-weight:bold; display:inline-block; margin-top:4px; font-size:13px;">${escapeHTML(exp.category)}</small>${dateTagHtml}
                         </div>
-                        <div style="text-align: right; flex-shrink: 0; padding-left: 10px; font-size:15px;">${rightAmountHtml}</div>`;
+                        <div style="text-align: right; flex-shrink: 0; padding-left: 10px; font-size:15px; color:#0A192F;">${rightAmountHtml}</div>`;
                     
                     listEl.appendChild(div);
                 });
@@ -968,9 +970,9 @@
             // 預算進度文字更新
             const percentage = trip.budget > 0 ? Math.min((totalTWD / trip.budget) * 100, 100) : 0; 
             fillEl.style.width = percentage + '%'; 
-            fillEl.style.backgroundColor = percentage >= 100 ? '#E07A5F' : (percentage >= 80 ? '#F4A261' : '#F28482');
+            fillEl.style.backgroundColor = percentage >= 100 ? '#E63946' : (percentage >= 80 ? '#FFB703' : '#4A90E2');
             document.getElementById('budget-text').innerText = `${Math.round(percentage)}%`;
-            document.getElementById('budget-text').style.color = percentage > 55 ? '#FFF' : '#2F3E46';
+            document.getElementById('budget-text').style.color = percentage > 55 ? '#FFF' : '#0A192F';
 
             renderChart(trip, totalTWD);
             if(document.getElementById('sidebar').classList.contains('open') && !isSidebarEditMode) renderSidebarContent();
@@ -996,9 +998,9 @@
             labels.forEach((label, i) => {
                 const val = data[i]; const pct = grandTotal > 0 ? Math.round((val / grandTotal) * 100) : 0;
                 legendHtml += `
-                    <div style="text-align:center; font-size:13px; border:1px solid #D6C5B3; padding:8px 12px; border-radius:12px; background:#F9F3EC; flex: 1; min-width: 90px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                    <div style="text-align:center; font-size:13px; border:1px solid #C8D7E8; padding:8px 12px; border-radius:12px; background:#F0F5FA; flex: 1; min-width: 90px; box-shadow: 0 2px 5px rgba(10,25,47,0.03);">
                         <div style="color:${chartColors[i % chartColors.length]}; font-weight:bold; margin-bottom: 4px;">${escapeHTML(label)} ${pct}%</div>
-                        <div style="color:#2F3E46; font-weight:bold;">NT$ ${val.toLocaleString()}</div>
+                        <div style="color:#0A192F; font-weight:bold;">NT$ ${val.toLocaleString()}</div>
                     </div>`;
             });
             legendHtml += '</div>';
@@ -1013,11 +1015,11 @@
             const list = document.getElementById('manageCurrencyList'); list.innerHTML = '';
             Object.keys(appData.rates).forEach(code => {
                 if(code === 'TWD') return; 
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #D6C5B3';
-                div.innerHTML = `<div><strong style="color: #2F3E46;">${escapeHTML(code)}</strong> <small style="color: #84A59D;">(匯率: ${appData.rates[code]})</small></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#84A59D; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#F28482; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑</button></div>`;
+                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #C8D7E8';
+                div.innerHTML = `<div><strong style="color: #0A192F;">${escapeHTML(code)}</strong> <small style="color: #4A90E2;">(匯率: ${appData.rates[code]})</small></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#4A90E2; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#E63946; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑</button></div>`;
                 list.appendChild(div);
             });
-            if(list.innerHTML === '') list.innerHTML = '<p style="color:#84A59D; font-size:14px; text-align:center;">目前沒有自訂幣別</p>';
+            if(list.innerHTML === '') list.innerHTML = '<p style="color:#4A90E2; font-size:14px; text-align:center;">目前沒有自訂幣別</p>';
         }
         function addManageCurrency() { const codeInput = document.getElementById('newManageCurrCode'); const rateInput = document.getElementById('newManageCurrRate'); const code = codeInput.value.trim().toUpperCase(); const rate = parseFloat(rateInput.value); if (!code || isNaN(rate) || rate <= 0) return showToast('請完整填寫幣別代碼與正確匯率', 'error'); appData.rates[code] = rate; saveData(); updateUI(); renderManageCurrency(); codeInput.value = ''; rateInput.value = ''; showToast('幣別已新增'); }
         function editManageCurrency(code) { const newRate = prompt(`請輸入 ${code} 的新匯率 (對換 TWD):`, appData.rates[code]); const parsedRate = parseFloat(newRate); if(newRate && !isNaN(parsedRate) && parsedRate > 0) { appData.rates[code] = parsedRate; saveData(); updateUI(); renderManageCurrency(); showToast('匯率已更新');} }
@@ -1027,8 +1029,8 @@
         function renderManageCategory() {
             const list = document.getElementById('manageCategoryList'); list.innerHTML = '';
             appData.categories.forEach(cat => {
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #D6C5B3';
-                div.innerHTML = `<div><strong style="color: #2F3E46;">${escapeHTML(cat)}</strong></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#84A59D; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCategory('${escapeHTML(cat)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#F28482; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCategory('${escapeHTML(cat)}')">🗑️</button></div>`;
+                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #C8D7E8';
+                div.innerHTML = `<div><strong style="color: #0A192F;">${escapeHTML(cat)}</strong></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#4A90E2; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCategory('${escapeHTML(cat)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#E63946; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCategory('${escapeHTML(cat)}')">🗑️</button></div>`;
                 list.appendChild(div);
             });
         }
@@ -1138,7 +1140,7 @@
             const sortedExpenses = [...trip.expenses].sort((a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
             
             if (sortedExpenses.length === 0) {
-                html += `<tr><td colspan="${hasForeign ? (showPayer ? 8 : 7) : (showPayer ? 6 : 5)}" style="text-align:center; color:#84A59D; padding: 20px;">無消費紀錄</td></tr>`;
+                html += `<tr><td colspan="${hasForeign ? (showPayer ? 8 : 7) : (showPayer ? 6 : 5)}" style="text-align:center; color:#4A90E2; padding: 20px;">無消費紀錄</td></tr>`;
             } else {
                 sortedExpenses.forEach(e => {
                     const twd = Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1));
@@ -1216,9 +1218,9 @@
             isFetchingRate = true; document.getElementById('apiStatusContainer').style.display = 'block'; document.getElementById('apiStatusMessage').innerHTML = '⏳ 查詢中...'; 
             try { 
                 const res = await fetch(`https://open.er-api.com/v6/latest/${encodeURIComponent(rawCode)}`); const data = await res.json(); 
-                if (data.result === 'success' && data.rates && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('apiStatusMessage').style.color = '#84A59D'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; } 
-                else { document.getElementById('apiStatusMessage').innerHTML = '⚠ 找不到匯率，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E07A5F'; document.getElementById('applyCustomBtn').disabled = false; } 
-            } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠ 連線失敗，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E07A5F'; document.getElementById('applyCustomBtn').disabled = false; } 
+                if (data.result === 'success' && data.rates && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('apiStatusMessage').style.color = '#4A90E2'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; } 
+                else { document.getElementById('apiStatusMessage').innerHTML = '⚠ 找不到匯率，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E63946'; document.getElementById('applyCustomBtn').disabled = false; } 
+            } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠ 連線失敗，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E63946'; document.getElementById('applyCustomBtn').disabled = false; } 
             finally { setTimeout(() => { isFetchingRate = false; }, 2000); } 
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0); 
         }
