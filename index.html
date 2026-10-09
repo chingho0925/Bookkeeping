@@ -3,41 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA 支援 -->
+    <!-- PWA 支援與系統主題自動適應 -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0A192F">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F0F5FA">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A192F">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="彗星帳簿">
-    
-    <!-- 強制瀏覽器使用深色模式配色 -->
-    <meta name="color-scheme" content="dark">
     <title>彗星帳簿</title>
     
-    <!-- 
-    ========================================================
-    [重要] Firestore 安全隱私規則 (Security Rules) 設定指引
-    ========================================================
-    因本程式直接在前端與 Firestore 溝通，上線前請務必至 
-    Firebase 控制台 -> Firestore Database -> Rules 貼上以下防護規則：
-
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        // 使用者全域設定：只能讀寫自己的資料
-        match /users/{userId} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
-        }
-        // 共用帳本：必須在權限名單 (members) 內才能讀寫
-        match /trips/{tripId} {
-          allow read, write: if request.auth != null && (request.auth.uid in resource.data.members);
-          allow create: if request.auth != null;
-        }
-      }
-    }
-    ========================================================
-    -->
-
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -48,130 +23,205 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <style>
-        /* 引入日系硬筆手寫風 Klee One 與 繁中手寫風備援 LXGW WenKai TC */
         @import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
         
+        /* =========================================
+           色彩變數系統 (支援手動/自動深淺色切換)
+           ========================================= */
+        :root {
+            /* 🌞 淺色模式 (Light Mode Default) */
+            --theme-bg: #F0F5FA;
+            --theme-bg-dot: #C8D7E8;
+            --theme-text-main: #1C2E4A;
+            --theme-text-heading: #0A192F;
+            --theme-text-muted: #666666;
+            --theme-primary: #4A90E2;
+            --theme-primary-hover: #357ABD;
+            --theme-primary-light: #E1EDF8;
+            --theme-primary-text: #FFFFFF;
+            --theme-accent: #FFB703;
+            --theme-accent-hover: #E5A400;
+            --theme-card-bg: rgba(255, 255, 255, 0.98);
+            --theme-header-bg: #0A192F;
+            --theme-header-text: #FFFFFF;
+            --theme-border: #C8D7E8;
+            --theme-input-bg: #FFFFFF;
+            --theme-nav-bg: rgba(255, 255, 255, 0.95);
+            --theme-modal-bg: #FFFFFF;
+            --theme-modal-overlay: rgba(10, 25, 47, 0.6);
+            --theme-sidebar-bg: #F0F5FA;
+            --theme-sidebar-item: #FFFFFF;
+            --theme-budget-bar: #D9E8F5;
+            --theme-danger: #E63946;
+        }
+
+        /* 當設定為系統預設且系統為深色時，或手動強制深色時 */
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --theme-bg: #0A192F;
+                --theme-bg-dot: #233554;
+                --theme-text-main: #E6F1FF;
+                --theme-text-heading: #FFB703;
+                --theme-text-muted: #8892B0;
+                --theme-primary: #FFB703;
+                --theme-primary-hover: #E5A400;
+                --theme-primary-light: #112240;
+                --theme-primary-text: #0A192F;
+                --theme-accent: #FFB703;
+                --theme-accent-hover: #E5A400;
+                --theme-card-bg: rgba(17, 34, 64, 0.98);
+                --theme-header-bg: #020C1B;
+                --theme-header-text: #FFB703;
+                --theme-border: #233554;
+                --theme-input-bg: #020C1B;
+                --theme-nav-bg: rgba(2, 12, 27, 0.95);
+                --theme-modal-bg: #0A192F;
+                --theme-modal-overlay: rgba(2, 12, 27, 0.8);
+                --theme-sidebar-bg: #0A192F;
+                --theme-sidebar-item: #112240;
+                --theme-budget-bar: #020C1B;
+                --theme-danger: #E63946;
+            }
+        }
+        
+        /* 強制套用深色 */
+        :root[data-theme="dark"] {
+            --theme-bg: #0A192F; --theme-bg-dot: #233554; --theme-text-main: #E6F1FF;
+            --theme-text-heading: #FFB703; --theme-text-muted: #8892B0;
+            --theme-primary: #FFB703; --theme-primary-hover: #E5A400;
+            --theme-primary-light: #112240; --theme-primary-text: #0A192F;
+            --theme-accent: #FFB703; --theme-accent-hover: #E5A400;
+            --theme-card-bg: rgba(17, 34, 64, 0.98); --theme-header-bg: #020C1B;
+            --theme-header-text: #FFB703; --theme-border: #233554;
+            --theme-input-bg: #020C1B; --theme-nav-bg: rgba(2, 12, 27, 0.95);
+            --theme-modal-bg: #0A192F; --theme-modal-overlay: rgba(2, 12, 27, 0.8);
+            --theme-sidebar-bg: #0A192F; --theme-sidebar-item: #112240;
+            --theme-budget-bar: #020C1B; --theme-danger: #E63946;
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: 'Klee One', 'LXGW WenKai TC', cursive; 
-            background-color: #0A192F; /* 星空深色模式：深邃宇宙藍 */
-            background-image: radial-gradient(#233554 1px, transparent 1px);
+            background-color: var(--theme-bg); 
+            background-image: radial-gradient(var(--theme-bg-dot) 1px, transparent 1px);
             background-size: 20px 20px;
-            color: #E6F1FF; /* 星光白 */
+            color: var(--theme-text-main); 
             margin: 0; padding: 0; 
+            transition: background-color 0.3s, color 0.3s;
         }
         
-        h1, h2, h3 { color: #E6F1FF !important; }
+        h1, h2, h3 { color: var(--theme-text-heading) !important; transition: color 0.3s; }
 
         /* Toast 提示系統 */
         #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast-msg { padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; color: #0A192F; box-shadow: 0 4px 15px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px); }
+        .toast-msg { padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px); }
 
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0A192F; z-index: 2000; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #FFB703; }
-        #network-status { background-color: #E63946; color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: bold; display: none; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-bg); z-index: 2000; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: var(--theme-primary); }
+        #network-status { background-color: var(--theme-danger); color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: bold; display: none; }
 
         .app-container { max-width: 600px; margin: 0 auto; padding: 15px; padding-bottom: 90px; display: none; }
 
-        /* 輸入框增強 (Dark Mode) */
-        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #233554; border-radius: 12px; font-family: inherit; font-size: 15px; background: #020C1B; color: #E6F1FF; box-sizing: border-box; transition: all 0.2s; outline: none; }
-        input:focus, select:focus { border-color: #FFB703; box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.2); }
-        input[type="date"] { color: #FFB703; font-weight: bold; font-family: inherit; }
+        /* 輸入框增強 */
+        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 12px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); box-sizing: border-box; transition: all 0.2s; outline: none; }
+        input:focus, select:focus { border-color: var(--theme-primary); box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); }
+        @media (prefers-color-scheme: dark) { input:focus, select:focus { box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.2); } }
+        :root[data-theme="dark"] input:focus, :root[data-theme="dark"] select:focus { box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.2); }
+        input[type="date"] { color: var(--theme-primary); font-weight: bold; font-family: inherit; }
         
-        button.primary-btn { background-color: #FFB703; color: #0A192F; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; }
-        button.primary-btn:hover { background-color: #E5A400; }
+        button.primary-btn { background-color: var(--theme-primary); color: var(--theme-primary-text); border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; }
+        button.primary-btn:hover { background-color: var(--theme-primary-hover); }
         button.primary-btn:active { transform: scale(0.98); }
-        .manage-btn { width: auto; margin-top: 0; padding: 12px 14px; background: #112240; color: #E6F1FF; border: 1px solid #FFB703; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .manage-btn { width: auto; margin-top: 0; padding: 12px 14px; background: var(--theme-primary-light); color: var(--theme-text-main); border: 1px solid var(--theme-primary); border-radius: 12px; cursor: pointer; font-weight: bold; }
 
         /* 卡片設計升級 */
-        .card { background: rgba(17, 34, 64, 0.98); padding: 20px; border-radius: 16px; margin-top: 15px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); border-left: 6px solid #FFB703; }
+        .card { background: var(--theme-card-bg); padding: 20px; border-radius: 16px; margin-top: 15px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); border-left: 6px solid var(--theme-primary); transition: background 0.3s; }
         
         /* 頂部 Header */
-        .header { background-color: #020C1B; color: #FFB703; padding: 15px 20px; border-radius: 16px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); }
-        .menu-btn { background: none; border: none; color: #FFB703; font-size: 24px; cursor: pointer; padding: 0; margin: 0; z-index: 5; box-shadow: none; }
+        .header { background-color: var(--theme-header-bg); color: var(--theme-header-text); padding: 15px 20px; border-radius: 16px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); transition: background-color 0.3s; }
+        .menu-btn { background: none; border: none; color: var(--theme-header-text); font-size: 24px; cursor: pointer; padding: 0; margin: 0; z-index: 5; box-shadow: none; }
         .header-title-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .header h1 { margin: 0; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; color: #FFB703 !important;}
-        .trip-period-text { font-size: 14px; opacity: 0.85; margin-top: 6px; color: #8892B0; letter-spacing: 0.5px; }
+        .header h1 { margin: 0; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; color: var(--theme-header-text) !important;}
+        .trip-period-text { font-size: 14px; opacity: 0.85; margin-top: 6px; color: var(--theme-text-muted); letter-spacing: 0.5px; }
 
         /* 預算進度條 */
-        .budget-bar { position: relative; background-color: #020C1B; border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid #233554; }
-        .budget-fill { background-color: #FFB703; height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
-        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #E6F1FF; z-index: 2; font-family: 'LXGW WenKai TC', sans-serif; }
+        .budget-bar { position: relative; background-color: var(--theme-budget-bar); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--theme-border); }
+        .budget-fill { background-color: var(--theme-primary); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
+        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: var(--theme-primary-text); z-index: 2; font-family: 'LXGW WenKai TC', sans-serif; }
 
-        /* 分頁切換邏輯 (Tabs) */
+        /* 分頁切換邏輯 */
         .tab-view { display: none; animation: fadeIn 0.3s ease; }
         .tab-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 底部分頁導覽列 */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(2, 12, 27, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #233554; display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3); height: 60px; }
-        .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.5; color: #8892B0;}
-        .nav-item.active { opacity: 1; color: #FFB703; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--theme-nav-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--theme-border); display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1); height: 60px; transition: background 0.3s; }
+        .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.5; color: var(--theme-text-muted);}
+        .nav-item.active { opacity: 1; color: var(--theme-primary); }
         .nav-icon { font-size: 26px; transition: transform 0.2s; }
-        .nav-item.active .nav-icon { transform: scale(1.15); filter: drop-shadow(0 2px 4px rgba(255, 183, 3, 0.4)); }
+        .nav-item.active .nav-icon { transform: scale(1.15); filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.4)); }
 
-        /* 懸浮按鈕 (FAB) - 星光金 */
-        .fab { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #FFB703; color: #0A192F; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: bold; box-shadow: 0 6px 16px rgba(255, 183, 3, 0.4); cursor: pointer; z-index: 90; transition: transform 0.2s, background 0.2s; }
-        .fab:active { transform: scale(0.9); background: #E5A400; }
+        /* 懸浮按鈕 (FAB) */
+        .fab { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--theme-accent); color: #0A192F; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: bold; box-shadow: 0 6px 16px rgba(255, 183, 3, 0.4); cursor: pointer; z-index: 90; transition: transform 0.2s, background 0.2s; }
+        .fab:active { transform: scale(0.9); background: var(--theme-accent-hover); }
 
         /* 隱藏過濾條捲動軸 */
         .filter-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 5px; scrollbar-width: none; -ms-overflow-style: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-chip { padding: 8px 16px; background: #112240; border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: #8892B0; font-weight: bold; transition: all 0.2s; border: 1px solid #233554; }
-        .filter-chip.active { background: #FFB703; color: #0A192F; border-color: #E5A400; box-shadow: 0 4px 10px rgba(255, 183, 3, 0.3); }
+        .filter-chip { padding: 8px 16px; background: var(--theme-primary-light); border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: bold; transition: all 0.2s; border: 1px solid var(--theme-border); }
+        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-accent); box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); }
         
         /* 消費清單與吸頂日期 */
         #expense-list { max-height: 65vh; overflow-y: auto; padding-right: 5px; margin-top: 5px; } 
-        .date-header { position: sticky; top: 0; background: rgba(2, 12, 27, 0.95); backdrop-filter: blur(4px); font-size: 15px; font-weight: bold; color: #FFB703; padding: 10px 0 6px 0; border-bottom: 2px solid #FFB703; z-index: 10; margin-top: 10px; border-radius: 0 0 8px 8px; }
-        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #233554; padding: 12px 5px; cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-        .expense-item:active { background-color: #112240; border-radius: 12px; }
+        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(4px); font-size: 15px; font-weight: bold; color: var(--theme-text-heading); padding: 10px 0 6px 0; border-bottom: 2px solid var(--theme-primary); z-index: 10; margin-top: 10px; border-radius: 0 0 8px 8px; transition: background 0.3s;}
+        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--theme-border); padding: 12px 5px; cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        .expense-item:active { background-color: var(--theme-primary-light); border-radius: 12px; }
 
-        /* 空狀態 Empty State */
-        .empty-state { text-align: center; padding: 40px 10px; color: #8892B0; animation: fadeIn 0.5s ease; }
+        /* 空狀態 */
+        .empty-state { text-align: center; padding: 40px 10px; color: var(--theme-text-muted); animation: fadeIn 0.5s ease; }
         .empty-state-icon { font-size: 50px; margin-bottom: 12px; opacity: 0.8; }
-        .empty-state-title { font-size: 18px; font-weight: bold; color: #FFB703; margin-bottom: 4px; }
+        .empty-state-title { font-size: 18px; font-weight: bold; color: var(--theme-text-heading); margin-bottom: 4px; }
         .empty-state-desc { font-size: 14px; }
 
-        /* 模態彈窗 & Bottom Sheet */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 12, 27, 0.8); z-index: 200; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
+        /* 模態彈窗 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-modal-overlay); z-index: 200; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
         .modal.open { display: flex; }
-        .modal-content { background: #0A192F; padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #233554; }
+        .modal-content { background: var(--theme-modal-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--theme-border); }
         
         .modal.bottom-sheet { align-items: flex-end; padding: 0; }
         .modal.bottom-sheet .modal-content { max-width: 100%; border-radius: 24px 24px 0 0; padding: 25px 20px calc(25px + env(safe-area-inset-bottom)); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         .form-group { display: flex; gap: 8px; } .form-group > div { flex: 1; }
-        .real-time-preview { font-size: 14px; color: #FFB703; margin-top: 4px; text-align: right; font-weight: bold; }
-        .payer-tag { display: inline-block; background: #112240; color: #E6F1FF; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 4px; border: 1px solid #FFB703; }
-        .date-tag { display: inline-block; background: #020C1B; color: #8892B0; padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 6px; border: 1px solid #233554; }
-        .inline-checkbox-label { font-size: 15px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 12px 10px; border-radius: 12px; background: #112240; border: 1px solid #FFB703; font-weight: bold; color: #E6F1FF;}
+        .real-time-preview { font-size: 14px; color: var(--theme-primary); margin-top: 4px; text-align: right; font-weight: bold; }
+        .payer-tag { display: inline-block; background: var(--theme-primary-light); color: var(--theme-text-main); padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 4px; border: 1px solid var(--theme-primary); }
+        .date-tag { display: inline-block; background: var(--theme-bg); color: var(--theme-text-muted); padding: 2px 6px; border-radius: 6px; font-size: 13px; margin-left: 6px; border: 1px solid var(--theme-border); }
+        .inline-checkbox-label { font-size: 15px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 12px 10px; border-radius: 12px; background: var(--theme-primary-light); border: 1px solid var(--theme-primary); font-weight: bold; color: var(--theme-text-main);}
         .inline-checkbox-label input { margin: 0; width: auto; }
         
         /* 側邊欄 */
-        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(2, 12, 27, 0.7); display: none; z-index: 190; backdrop-filter: blur(2px); }
-        .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background-color: #0A192F; box-shadow: 2px 0 15px rgba(0,0,0,0.5); z-index: 195; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--theme-modal-overlay); display: none; z-index: 190; backdrop-filter: blur(2px); }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background-color: var(--theme-sidebar-bg); box-shadow: 2px 0 15px rgba(0,0,0,0.3); z-index: 195; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
         .sidebar.open { left: 0; } .sidebar-overlay.open { display: block; }
-        .sidebar-header { background-color: #020C1B; color: #FFB703; padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #233554;}
+        .sidebar-header { background-color: var(--theme-header-bg); color: var(--theme-header-text); padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border);}
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
-        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: #112240; border-radius: 12px; border-left: 6px solid #233554; cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .trip-menu-item.active { border-left-color: #FFB703; background-color: #233554; }
-        .folder-header { padding: 12px 15px; background: #020C1B; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #E6F1FF; margin-bottom: 8px; font-size: 15px; border: 1px solid #233554; }
+        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .trip-menu-item.active { border-left-color: var(--theme-primary); background-color: var(--theme-border); }
+        .folder-header { padding: 12px 15px; background: var(--theme-header-bg); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--theme-header-text); margin-bottom: 8px; font-size: 15px; border: 1px solid var(--theme-border); }
         
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0A192F; z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-        .login-card { background: #112240; padding: 35px 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); width: 100%; max-width: 350px; text-align: center; border-top: 8px solid #FFB703; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--theme-bg); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .login-card { background: var(--theme-sidebar-item); padding: 35px 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); width: 100%; max-width: 350px; text-align: center; border-top: 8px solid var(--theme-primary); }
         
-        /* Google 登入按鈕優化 */
-        .btn-google { background-color: #020C1B; color: #E6F1FF; border: 1px solid #233554; margin-top: 15px; font-size: 16px; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 12px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background 0.2s; font-weight: bold; width: 100%; font-family: inherit; }
-        .btn-google:hover { background-color: #233554; }
-        .btn-google:active { background-color: #112240; transform: scale(0.98); }
+        .btn-google { background-color: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); margin-top: 15px; font-size: 16px; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 12px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s; font-weight: bold; width: 100%; font-family: inherit; }
+        .btn-google:hover { background-color: var(--theme-primary-light); }
+        .btn-google:active { transform: scale(0.98); }
 
-        .btn-logout { background-color: #E63946; color: white; border: none; font-weight: bold; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px;}
+        .btn-logout { background-color: var(--theme-danger); color: white; border: none; font-weight: bold; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px;}
         
-        .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid #233554; border-radius: 12px; margin-top: 10px; background: #0A192F;}
+        .summary-table-container { max-height: 60vh; overflow-y: auto; border: 1px solid var(--theme-border); border-radius: 12px; margin-top: 10px; background: var(--theme-bg);}
         .summary-table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
-        .summary-table th, .summary-table td { border-bottom: 1px dashed #233554; padding: 10px; text-align: left; }
-        .summary-table th { background-color: #112240; color: #FFB703; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #FFB703; }
-        .summary-table tfoot th, .summary-table tfoot td { font-weight: bold; background-color: #020C1B; border-top: 2px solid #FFB703; position: sticky; bottom: 0; color: #FFB703;}
+        .summary-table th, .summary-table td { border-bottom: 1px dashed var(--theme-border); padding: 10px; text-align: left; }
+        .summary-table th { background-color: var(--theme-sidebar-item); color: var(--theme-text-heading); position: sticky; top: 0; z-index: 10; border-bottom: 2px solid var(--theme-primary); }
+        .summary-table tfoot th, .summary-table tfoot td { font-weight: bold; background-color: var(--theme-header-bg); border-top: 2px solid var(--theme-primary); position: sticky; bottom: 0; color: var(--theme-header-text);}
     </style>
 </head>
 <body>
@@ -183,8 +233,8 @@
     <!-- 登入畫面 -->
     <div id="login-overlay">
         <div class="login-card">
-            <h2 style="color: #FFB703; margin-top: 0; font-size: 28px; font-weight: 700;">☄️ 彗星帳簿</h2>
-            <p style="font-size: 15px; color: #8892B0; margin-bottom: 25px;">雲端同步，紀錄每一刻的花費</p>
+            <h2 style="margin-top: 0; font-size: 28px; font-weight: 700;">☄️ 彗星帳簿</h2>
+            <p style="font-size: 15px; color: var(--theme-text-muted); margin-bottom: 25px;">雲端同步，紀錄每一刻的花費</p>
             <button class="btn-google" onclick="loginWithGoogle()">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -197,7 +247,7 @@
         </div>
     </div>
 
-    <!-- 側邊欄 (自訂名稱與帳本管理) -->
+    <!-- 側邊欄 -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -206,24 +256,23 @@
         </div>
         <div class="sidebar-content">
             <div id="user-info" style="font-size:15px; margin-bottom:15px; text-align:center; font-weight:bold;"></div>
-            
             <div id="sidebar-items-container"></div>
             
             <div id="sidebar-normal-actions">
                 <div style="display: flex; gap: 8px; margin-top: 20px;">
                     <button class="primary-btn" style="flex: 1; padding: 12px;" onclick="openAddTripModal()">➕ 新帳本</button>
-                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: #112240; color: #FFB703;" onclick="createFolder()">📁 新資料夾</button>
+                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: var(--theme-primary-light); color: var(--theme-text-main);" onclick="createFolder()">📁 新資料夾</button>
                 </div>
                 <div style="display: flex; gap: 8px; margin-top: 10px;">
-                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: #233554; color: #FFB703;" onclick="joinSharedTrip()">🤝 加入共用帳本</button>
+                    <button class="primary-btn" style="flex: 1; padding: 12px; background-color: var(--theme-border); color: var(--theme-text-heading);" onclick="joinSharedTrip()">🤝 加入共用帳本</button>
                 </div>
-                <button class="primary-btn" style="background-color: #FFB703; color: #0A192F; margin-top: 10px; width: 100%; padding: 12px;" onclick="toggleSidebarEditMode()">📝 批次管理 / 刪除帳本</button>
+                <button class="primary-btn" style="background-color: var(--theme-accent); color: #0A192F; margin-top: 10px; width: 100%; padding: 12px;" onclick="toggleSidebarEditMode()">📝 批次管理 / 刪除帳本</button>
                 <button class="btn-logout" onclick="logoutApp()">🚪 登出帳號</button>
             </div>
 
             <div id="sidebar-edit-actions" style="display: none; margin-top: 20px;">
-                <button class="primary-btn" style="background-color: #E63946; padding: 12px; width:100%;" onclick="deleteSelectedItems()">🗑️ 刪除選取的帳本/資料夾</button>
-                <button class="primary-btn" style="background-color: #FFB703; padding: 12px; width:100%; margin-top:10px;" onclick="toggleSidebarEditMode()">✅ 完成</button>
+                <button class="primary-btn" style="background-color: var(--theme-danger); color: white; padding: 12px; width:100%;" onclick="deleteSelectedItems()">🗑️ 刪除選取的帳本/資料夾</button>
+                <button class="primary-btn" style="padding: 12px; width:100%; margin-top:10px;" onclick="toggleSidebarEditMode()">✅ 完成</button>
             </div>
         </div>
     </div>
@@ -237,21 +286,19 @@
                 <h1 id="header-trip-name">載入中...</h1>
                 <div id="header-trip-period" class="trip-period-text">--</div>
             </div>
-            <!-- 右側放空 DIV 保證標題絕對置中 -->
             <div></div> 
         </div>
 
-        <!-- ================= 分頁 1：明細 (Records) ================= -->
+        <!-- 分頁 1：明細 -->
         <div id="tab-records" class="tab-view active">
-            <!-- 預算卡片 -->
             <div class="card" id="budgetCard">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin: 0; font-size: 18px;">💰 預算進度 (TWD)</h3>
-                    <span style="font-size:14px; color:#FFB703; cursor:pointer; font-weight:bold;" onclick="openTripSettings(event)">修改 ⚙️</span>
+                    <span style="font-size:14px; color:var(--theme-primary); cursor:pointer; font-weight:bold;" onclick="openTripSettings(event)">修改 ⚙️</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 15px; margin-top: 12px; font-weight: bold;">
-                    <span style="color: #8892B0;">已花費: <span id="total-spent" style="font-size: 18px; color:#FFB703;">0</span></span>
-                    <span style="color: #8892B0;">總預算: <span id="total-budget" style="font-size: 18px; color:#E6F1FF;">0</span></span>
+                    <span style="color: var(--theme-text-muted);">已花費: <span id="total-spent" style="font-size: 18px; color:var(--theme-primary);">0</span></span>
+                    <span style="color: var(--theme-text-muted);">總預算: <span id="total-budget" style="font-size: 18px; color:var(--theme-text-main);">0</span></span>
                 </div>
                 <div class="budget-bar">
                     <div class="budget-fill" id="budget-fill"></div>
@@ -259,30 +306,28 @@
                 </div>
             </div>
 
-            <!-- 消費清單卡片 -->
             <div class="card" style="padding-bottom: 10px;">
-                <div style="display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 5px; overflow: hidden;">
-                    <h3 style="margin: 0; display: flex; align-items: center; gap: 5px; font-size: 18px; white-space: nowrap; flex-shrink: 0;">
+                <!-- 修正點：支援彈性換行 (flex-wrap)，防止手機版總金額被截斷 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 5px; font-size: 18px; white-space: nowrap;">
                         🧾 帳目明細
                     </h3>
-                    <div style="flex-grow: 1; min-width: 0; padding: 0 5px; display: flex; align-items: center;">
-                        <span id="record-total" style="font-size: 14px; color: #0A192F; font-weight: bold; background: #FFB703; padding: 3px 10px; border-radius: 12px; border: 1px solid #FFB703; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">NT$ 0</span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span id="record-total" style="font-size: 14px; color: var(--theme-primary-text); font-weight: bold; background: var(--theme-primary); padding: 4px 10px; border-radius: 12px; white-space: nowrap;">NT$ 0</span>
+                        <select id="sortSelect" onchange="changeSortOrder(this.value)" style="width: auto; margin: 0; padding: 6px 8px; font-size: 14px; border-radius: 10px; background: var(--theme-primary-light); border: 1px solid var(--theme-primary); font-weight:bold; cursor: pointer;">
+                            <option value="date-desc">📅 近到遠</option>
+                            <option value="date-asc">📅 遠到近</option>
+                            <option value="amount-desc">💰 高到低</option>
+                            <option value="amount-asc">💰 低到高</option>
+                        </select>
                     </div>
-                    <select id="sortSelect" onchange="changeSortOrder(this.value)" style="width: auto; margin: 0; padding: 6px 8px; font-size: 14px; border-radius: 10px; background: #112240; border: 1px solid #FFB703; color: #E6F1FF; font-weight:bold; cursor: pointer; flex-shrink: 0;">
-                        <option value="date-desc">📅 近到遠</option>
-                        <option value="date-asc">📅 遠到近</option>
-                        <option value="amount-desc">💰 高到低</option>
-                        <option value="amount-asc">💰 低到高</option>
-                    </select>
                 </div>
-                
                 <div class="filter-container" id="filterContainer"></div>
-                
                 <div id="expense-list"></div>
             </div>
         </div>
 
-        <!-- ================= 分頁 2：統計 (Stats) ================= -->
+        <!-- 分頁 2：統計 -->
         <div id="tab-stats" class="tab-view">
             <div class="card" id="chartCard">
                 <h3 style="margin-top:0; font-size: 18px;">📊 消費分類佔比</h3>
@@ -299,79 +344,70 @@
             
             <div class="card">
                 <h3 style="margin-top:0; font-size: 18px;">📈 詳細報表</h3>
-                <button class="primary-btn" style="background-color: #233554; color: #FFB703; width: 100%; padding: 14px;" onclick="openSummaryModal()">📋 檢視表格總覽</button>
+                <button class="primary-btn" style="background-color: var(--theme-border); color: var(--theme-text-heading); width: 100%; padding: 14px;" onclick="openSummaryModal()">📋 檢視表格總覽</button>
                 <button class="primary-btn" style="width: 100%; padding: 14px;" onclick="exportToCSV()">📥 下載 CSV 報表</button>
             </div>
         </div>
 
-        <!-- ================= 分頁 3：設定 (Settings) ================= -->
+        <!-- 分頁 3：設定 -->
         <div id="tab-settings" class="tab-view">
+            <!-- 新增點：獨立的主題外觀切換卡片 -->
+            <div class="card">
+                <h3 style="margin-top:0; font-size: 18px;">🎨 介面外觀設定</h3>
+                <p style="font-size: 14px; color: var(--theme-text-muted); margin-bottom: 10px;">切換您喜歡的主題風格</p>
+                <select id="themeSelect" onchange="changeTheme(this.value)" style="font-weight: bold; cursor: pointer; text-align: center;">
+                    <option value="system">📱 跟隨系統預設</option>
+                    <option value="light">🌞 淺色模式</option>
+                    <option value="dark">🌙 星空深色</option>
+                </select>
+            </div>
+            
             <div class="card">
                 <h3 style="margin-top:0; font-size: 18px;">⚙️ 目前帳本設定</h3>
-                <p style="font-size: 14px; color: #8892B0; margin-bottom: 15px;">修改名稱、日期、預算與顯示模組，分享邀請碼。</p>
+                <p style="font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px;">修改名稱、日期、預算與顯示模組，分享邀請碼。</p>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px;" onclick="openTripSettings(event)">✏️ 編輯「<span id="settings-trip-name"></span>」設定</button>
             </div>
             <div class="card">
                 <h3 style="margin-top:0; font-size: 18px;">🛠️ 全域設定 (共用)</h3>
-                <p style="font-size: 14px; color: #8892B0; margin-bottom: 15px;">自訂您的分類名稱與專屬幣別</p>
+                <p style="font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px;">自訂您的分類名稱與專屬幣別</p>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px; margin-bottom: 10px;" onclick="openManageCategory()">🏷️ 管理消費分類</button>
                 <button class="manage-btn" style="width: 100%; text-align: left; padding: 15px;" onclick="openManageCurrency()">💱 管理自訂幣別與匯率</button>
             </div>
         </div>
     </div>
 
-    <!-- 右下角懸浮按鈕 (FAB) -->
+    <!-- 懸浮按鈕 (FAB) -->
     <div class="fab" id="fabBtn" onclick="openAddExpenseSheet()">＋</div>
 
-    <!-- 底部導覽列 (純圖示無文字) -->
+    <!-- 底部導覽列 -->
     <div class="bottom-nav">
-        <div class="nav-item active" id="nav-records" onclick="switchTab('records')">
-            <span class="nav-icon">🧾</span>
-        </div>
-        <div class="nav-item" id="nav-stats" onclick="switchTab('stats')">
-            <span class="nav-icon">📊</span>
-        </div>
-        <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
-            <span class="nav-icon">⚙️</span>
-        </div>
+        <div class="nav-item active" id="nav-records" onclick="switchTab('records')"><span class="nav-icon">🧾</span></div>
+        <div class="nav-item" id="nav-stats" onclick="switchTab('stats')"><span class="nav-icon">📊</span></div>
+        <div class="nav-item" id="nav-settings" onclick="switchTab('settings')"><span class="nav-icon">⚙️</span></div>
     </div>
 
     <!-- ================= 彈跳視窗區 (Modals) ================= -->
-
-    <!-- 新增消費 (Bottom Sheet) -->
     <div class="modal bottom-sheet" id="addExpenseModal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin:0; font-size: 20px;">📝 新增一筆消費</h3>
-                <span style="font-size: 24px; color: #FFB703; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('addExpenseModal')">✕</span>
+                <span style="font-size: 24px; color: var(--theme-primary); cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('addExpenseModal')">✕</span>
             </div>
-            
-            <div class="form-group" style="margin-bottom:8px;">
-                <div><input type="date" id="itemDate" required onchange="handleDateOrCurrencyChange('add')"></div>
-            </div>
+            <div class="form-group" style="margin-bottom:8px;"><div><input type="date" id="itemDate" required onchange="handleDateOrCurrencyChange('add')"></div></div>
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="itemName" placeholder="項目名稱 (例如：晚餐)" maxlength="50" required style="flex-grow: 1;">
-                <label class="inline-checkbox-label">
-                    <input type="checkbox" id="enableDetailsBtn" onchange="toggleDetailsInput(this.checked)"> ➕ 細項
-                </label>
+                <label class="inline-checkbox-label"><input type="checkbox" id="enableDetailsBtn" onchange="toggleDetailsInput(this.checked)"> ➕ 細項</label>
             </div>
-            <input type="text" id="itemDetails" placeholder="細項說明 (例如：牛肉麵x2, 小菜x1)" maxlength="100" style="display: none; background-color: #020C1B;">
-            
+            <input type="text" id="itemDetails" placeholder="細項說明" maxlength="100" style="display: none; background-color: var(--theme-bg);">
             <div class="form-group">
                 <div style="flex: 1.5;"><input type="number" id="itemAmount" placeholder="金額" required min="0" max="99999999" step="any" oninput="updateTWDPreview('add')"></div>
-                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
-                    <select id="itemCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('add')"></select>
-                </div>
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;"><select id="itemCurrency" style="margin-top: 0; flex-grow: 1;" onchange="handleDateOrCurrencyChange('add')"></select></div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
-            
             <div class="form-group">
-                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;">
-                    <select id="itemCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('add')"></select>
-                </div>
+                <div style="flex: 1; display: flex; gap: 4px; margin-top: 8px;"><select id="itemCategory" style="margin-top: 0; flex-grow: 1;" onchange="handleCategoryChange('add')"></select></div>
                 <div id="payerInputContainer" style="flex: 1.5;"><input type="text" id="itemPayer" placeholder="付款人 (例: 我, 小明)" value="我" maxlength="20"></div>
             </div>
-            
             <button class="primary-btn" style="width: 100%; padding: 14px; border-radius: 12px; margin-top: 20px;" onclick="addExpense()">🚀 記上一筆</button>
         </div>
     </div>
@@ -381,31 +417,22 @@
         <div class="modal-content">
             <h3 style="margin-top:0;">✏️ 編輯消費紀錄</h3>
             <input type="hidden" id="editExpId">
-            <div class="form-group" style="margin-bottom:8px;">
-                <div><input type="date" id="editExpDate" onchange="handleDateOrCurrencyChange('edit')"></div>
-            </div>
+            <div class="form-group" style="margin-bottom:8px;"><div><input type="date" id="editExpDate" onchange="handleDateOrCurrencyChange('edit')"></div></div>
             <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
-            <input type="text" id="editExpDetails" placeholder="細項說明 (可留空)" maxlength="100" style="background-color: #020C1B;">
-            
+            <input type="text" id="editExpDetails" placeholder="細項說明 (可留空)" maxlength="100" style="background-color: var(--theme-bg);">
             <div class="form-group" style="margin-top:10px;">
                 <div style="flex: 1.5;"><input type="number" id="editExpAmount" placeholder="金額" min="0" max="99999999" step="any" oninput="updateTWDPreview('edit')"></div>
-                <div style="flex: 1; margin-top: 8px;">
-                    <select id="editExpCurrency" style="margin-top: 0;" onchange="handleDateOrCurrencyChange('edit')"></select>
-                </div>
+                <div style="flex: 1; margin-top: 8px;"><select id="editExpCurrency" style="margin-top: 0;" onchange="handleDateOrCurrencyChange('edit')"></select></div>
             </div>
             <div id="editTwdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
-            
             <div class="form-group" style="margin-top:10px;">
-                <div style="flex: 1; margin-top: 8px;">
-                    <select id="editExpCategory" style="margin-top: 0;" onchange="handleCategoryChange('edit')"></select>
-                </div>
+                <div style="flex: 1; margin-top: 8px;"><select id="editExpCategory" style="margin-top: 0;" onchange="handleCategoryChange('edit')"></select></div>
                 <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
-            
             <div class="form-group" style="margin-top:20px; display: flex; gap: 8px;">
-                <button onclick="deleteExpenseFromEdit()" style="background:#E63946; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px; font-family: inherit;">🗑️ 刪除</button>
+                <button onclick="deleteExpenseFromEdit()" style="background:var(--theme-danger); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; flex: 1; padding: 12px;">🗑️ 刪除</button>
                 <button onclick="closeModal('editExpenseModal')" class="manage-btn" style="flex: 1; border:none; padding: 12px; margin-top: 0;">取消</button>
-                <button class="primary-btn" style="margin-top:0; flex: 1.5; padding: 12px; border-radius:12px;" onclick="saveExpenseEdit()">儲存修改</button>
+                <button class="primary-btn" style="margin-top:0; flex: 1.5; padding: 12px; border-radius:12px;" onclick="saveExpenseEdit()">儲存</button>
             </div>
         </div>
     </div>
@@ -414,32 +441,29 @@
     <div class="modal" id="tripSettingsModal" style="z-index: 220;">
         <div class="modal-content" style="max-width: 340px;">
             <h3 style="margin-top:0; margin-bottom: 15px;">⚙ 帳本設定</h3>
-            
-            <!-- 旅伴邀請碼區塊 -->
-            <div id="modalTripInviteContainer" style="margin-bottom: 15px; background: #112240; padding: 12px; border-radius: 12px; border: 1px dashed #FFB703; text-align: center;">
-                <label style="font-size:14px; display:block; color: #8892B0; font-weight:bold; margin-bottom: 5px;">🤝 旅伴邀請碼</label>
-                <div id="modalTripInviteCode" style="font-size: 24px; font-weight: bold; color: #FFB703; letter-spacing: 4px;">------</div>
-                <div style="font-size: 12px; color: #8892B0; margin-top: 5px;">將此代碼分享給旅伴即可共用此帳本</div>
+            <div id="modalTripInviteContainer" style="margin-bottom: 15px; background: var(--theme-primary-light); padding: 12px; border-radius: 12px; border: 1px dashed var(--theme-primary); text-align: center;">
+                <label style="font-size:14px; display:block; color: var(--theme-text-main); font-weight:bold; margin-bottom: 5px;">🤝 旅伴邀請碼</label>
+                <div id="modalTripInviteCode" style="font-size: 24px; font-weight: bold; color: var(--theme-primary); letter-spacing: 4px;">------</div>
+                <div style="font-size: 12px; color: var(--theme-text-muted); margin-top: 5px;">分享代碼給旅伴即可共用此帳本</div>
             </div>
-
             <input type="text" id="modalTripNameInput" placeholder="帳本名稱" maxlength="50" style="margin-bottom: 10px; font-weight: bold;">
             <div class="form-group" style="margin-bottom: 15px;">
-                <div><label style="font-size:14px; color:#8892B0; font-weight: bold;">開始：</label><input type="date" id="modalTripStartInput"></div>
-                <div><label style="font-size:14px; color:#8892B0; font-weight: bold;">結束：</label><input type="date" id="modalTripEndInput"></div>
+                <div><label style="font-size:14px; color:var(--theme-text-muted); font-weight: bold;">開始：</label><input type="date" id="modalTripStartInput"></div>
+                <div><label style="font-size:14px; color:var(--theme-text-muted); font-weight: bold;">結束：</label><input type="date" id="modalTripEndInput"></div>
             </div>
             <div id="folderSelectContainer" style="display: none; margin-bottom: 15px;">
-                <label style="font-size: 14px; font-weight: bold; color: #8892B0;">📁 所屬資料夾：</label>
+                <label style="font-size: 14px; font-weight: bold; color: var(--theme-text-muted);">📁 所屬資料夾：</label>
                 <select id="modalFolderSelect" style="margin-top: 5px; font-weight: bold;"></select>
             </div>
-            <div style="margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #8892B0;">📊 模組顯示開關：</div>
+            <div style="margin-bottom: 8px; font-size: 14px; font-weight: bold; color: var(--theme-text-muted);">📊 模組顯示開關：</div>
             <div style="display: flex; gap: 6px; margin-bottom: 10px;">
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalToggleBudget" onchange="document.getElementById('modalTripBudgetContainer').style.display = this.checked ? 'block' : 'none';">預算</label>
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalToggleChart">圓餅圖</label>
                 <label class="inline-checkbox-label" style="flex:1; justify-content:center; padding:8px 4px; font-size:13px;"><input type="checkbox" id="modalTogglePayerSummary">成員付款</label>
             </div>
-            <div id="modalTripBudgetContainer" style="display:none; margin-bottom: 15px; background: #020C1B; padding: 15px; border-radius: 12px; border: 1px dashed #233554;">
-                <label style="font-size:14px; display:block; color: #8892B0; font-weight:bold;">💰 總預算 (台幣 TWD)：</label>
-                <input type="number" id="modalTripBudgetInput" min="0" max="999999999" placeholder="請輸入預算金額" style="margin-top: 8px; font-weight: bold; color: #FFB703;">
+            <div id="modalTripBudgetContainer" style="display:none; margin-bottom: 15px; background: var(--theme-bg); padding: 15px; border-radius: 12px; border: 1px dashed var(--theme-border);">
+                <label style="font-size:14px; display:block; color: var(--theme-text-muted); font-weight:bold;">💰 總預算 (台幣 TWD)：</label>
+                <input type="number" id="modalTripBudgetInput" min="0" max="999999999" placeholder="請輸入預算" style="margin-top: 8px; font-weight: bold; color: var(--theme-primary);">
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button onclick="closeModal('tripSettingsModal')" class="manage-btn" style="flex:1;">取消</button>
@@ -448,13 +472,13 @@
         </div>
     </div>
 
-    <!-- 各類管理 Modals -->
+    <!-- 管理幣別與分類 Modals -->
     <div class="modal" id="manageCurrencyModal" style="z-index: 250;">
         <div class="modal-content">
             <h3 style="margin-top:0;">💱 管理幣別與匯率</h3>
-            <p style="font-size:14px; color:#8892B0;">台幣 (TWD) 為預設幣別。刪除幣別不會影響歷史紀錄。</p>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #112240; padding: 12px; border-radius: 12px; align-items: center;">
-                <input type="text" id="newManageCurrCode" placeholder="代碼(如:GBP)" maxlength="5" style="margin: 0; flex: 1; text-transform: uppercase;">
+            <p style="font-size:14px; color:var(--theme-text-muted);">台幣 (TWD) 為預設。刪除不會影響歷史紀錄。</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: var(--theme-primary-light); padding: 12px; border-radius: 12px; align-items: center;">
+                <input type="text" id="newManageCurrCode" placeholder="代碼" maxlength="5" style="margin: 0; flex: 1; text-transform: uppercase;">
                 <input type="number" id="newManageCurrRate" placeholder="對台幣匯率" step="any" min="0" style="margin: 0; flex: 1.2;">
                 <button class="primary-btn" style="margin: 0; width: auto; padding: 12px 15px; border-radius:12px;" onclick="addManageCurrency()">➕</button>
             </div>
@@ -466,8 +490,7 @@
     <div class="modal" id="manageCategoryModal" style="z-index: 250;">
         <div class="modal-content">
             <h3 style="margin-top:0;">🏷️ 管理消費分類</h3>
-            <p style="font-size:14px; color:#8892B0;">重新命名分類將會同步更新所有歷史紀錄中的名稱。</p>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #112240; padding: 12px; border-radius: 12px; align-items: center;">
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; background: var(--theme-primary-light); padding: 12px; border-radius: 12px; align-items: center;">
                 <input type="text" id="newManageCatInput" placeholder="輸入新分類名稱" style="margin: 0; flex: 1;" maxlength="20">
                 <button class="primary-btn" style="margin: 0; width: auto; padding: 12px 18px; border-radius:12px;" onclick="addManageCategory()">新增</button>
             </div>
@@ -480,15 +503,14 @@
     <div class="modal" id="customCurrencyModal" style="z-index: 260;">
         <div class="modal-content">
             <h3 style="margin-top:0;">🌐 查詢線上匯率</h3>
-            <label style="font-size:14px; font-weight:bold; color:#8892B0;">幣別代碼：</label>
             <div class="form-group">
                 <div><input type="text" id="customCodeInput" placeholder="GBP" maxlength="5" style="text-transform:uppercase;"></div>
                 <div style="flex:0 0 100px;"><button class="primary-btn" style="margin-top:8px; border-radius:12px;" onclick="fetchCurrencyRate()">🔍 查詢</button></div>
             </div>
-            <div id="apiStatusContainer" style="display:none; margin-top:10px; background:#112240; padding:12px; border-radius:12px; border:1px solid #233554;">
-                <div id="apiStatusMessage" style="font-size:15px; font-weight:bold; color:#FFB703;">查詢中...</div>
+            <div id="apiStatusContainer" style="display:none; margin-top:10px; background:var(--theme-primary-light); padding:12px; border-radius:12px; border:1px solid var(--theme-border);">
+                <div id="apiStatusMessage" style="font-size:15px; font-weight:bold; color:var(--theme-primary);">查詢中...</div>
                 <div style="margin-top:10px;">
-                    <label style="font-size:14px; font-weight:bold; color:#8892B0;">匯率 (對換 TWD)：</label>
+                    <label style="font-size:14px; font-weight:bold; color:var(--theme-text-muted);">匯率 (對換 TWD)：</label>
                     <input type="number" id="customRateInput" step="any" min="0" style="margin-top:4px;">
                 </div>
             </div>
@@ -504,7 +526,7 @@
         <div class="modal-content" style="max-width: 95%; width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin:0;">📊 報表總覽</h3>
-                <span style="font-size: 24px; color: #FFB703; cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('summaryModal')">✕</span>
+                <span style="font-size: 24px; color: var(--theme-primary); cursor: pointer; font-weight: bold; padding: 0 5px;" onclick="closeModal('summaryModal')">✕</span>
             </div>
             <div class="summary-table-container" id="summaryTableContainer"></div>
             <button class="primary-btn" style="width: 100%; margin-top: 15px; padding: 12px; border-radius:12px;" onclick="exportToCSV()">📥 下載 CSV</button>
@@ -515,63 +537,73 @@
     <div class="modal" id="addTripModal" style="z-index: 220;">
         <div class="modal-content">
             <h3 style="margin-top:0;">➕ 新增帳本紀錄</h3>
-            <input type="text" id="newTripNameInput" placeholder="例如：日常開銷 / 京都旅遊" maxlength="50">
+            <input type="text" id="newTripNameInput" placeholder="帳本名稱" maxlength="50">
             <div class="form-group" style="margin-top:10px;">
-                <div><label style="font-size:14px; font-weight:bold; color:#8892B0;">開始：</label><input type="date" id="newTripStartInput"></div>
-                <div><label style="font-size:14px; font-weight:bold; color:#8892B0;">結束：</label><input type="date" id="newTripEndInput"></div>
+                <div><label style="font-size:14px; font-weight:bold; color:var(--theme-text-muted);">開始：</label><input type="date" id="newTripStartInput"></div>
+                <div><label style="font-size:14px; font-weight:bold; color:var(--theme-text-muted);">結束：</label><input type="date" id="newTripEndInput"></div>
             </div>
             <div id="newTripBudgetContainer" style="margin-top: 10px;">
-                <label style="font-size:14px; font-weight:bold; color:#8892B0;">總預算 (台幣 TWD)：</label>
+                <label style="font-size:14px; font-weight:bold; color:var(--theme-text-muted);">總預算 (台幣 TWD)：</label>
                 <input type="number" id="newTripBudgetInput" placeholder="40000" min="0" max="999999999">
             </div>
             <div class="form-group" style="margin-top:20px;">
                 <button onclick="closeModal('addTripModal')" class="manage-btn">取消</button>
-                <button class="primary-btn" style="margin-top:0; border-radius:12px;" onclick="createNewTrip()">🚀 建立帳本</button>
+                <button class="primary-btn" style="margin-top:0; border-radius:12px;" onclick="createNewTrip()">🚀 建立</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ====== PWA Service Worker 註冊 ======
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch((err) => {
-                    console.log('PWA Service Worker 尚未建立，若要支援離線安裝請在專案根目錄新增 sw.js 與 manifest.json。');
-                });
-            });
-        }
+        // PWA 註冊
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.log('SW setup required')); }); }
 
-        // ====== Toast 提示功能 ======
+        // ====== 外觀主題切換邏輯 ======
+        function applyTheme(theme) {
+            if (theme === 'light') { document.documentElement.setAttribute('data-theme', 'light'); }
+            else if (theme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
+            else { document.documentElement.removeAttribute('data-theme'); }
+        }
+        function changeTheme(theme) {
+            appData.theme = theme;
+            saveData();
+            applyTheme(theme);
+            if(appData) updateUI();
+            showToast('外觀設定已更新');
+        }
+        function isDarkModeActive() {
+            const theme = appData ? (appData.theme || 'system') : 'system';
+            if (theme === 'dark') return true;
+            if (theme === 'light') return false;
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        // 系統深淺色變更時的偵聽器
+        const darkMediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        if(darkMediaQuery) { darkMediaQuery.addEventListener('change', e => { if (appData && (appData.theme === 'system' || !appData.theme)) { updateUI(); } }); }
+
+        // ====== Toast 提示 ======
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast-msg';
-            toast.style.background = type === 'error' ? '#E63946' : (type === 'warn' ? '#FFB703' : '#FFB703');
-            toast.style.color = '#0A192F';
+            toast.style.background = type === 'error' ? 'var(--theme-danger)' : 'var(--theme-primary)';
+            toast.style.color = '#FFF';
             toast.innerText = msg;
             container.appendChild(toast);
-            
             setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(10px)'; setTimeout(() => toast.remove(), 300); }, 2500);
         }
 
-        // ====== 分頁切換功能 ======
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('nav-' + tabId).classList.add('active');
-            
             document.getElementById('fabBtn').style.display = tabId === 'records' ? 'flex' : 'none';
         }
 
-        function escapeHTML(str) {
-            if (str === null || str === undefined) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        }
+        function escapeHTML(str) { return str == null ? '' : String(str).replace(/[&<>"']/g, m => ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#039;'}[m])); }
 
-        // ====== Firebase 設定 ======
+        // ====== Firebase ======
         const firebaseConfig = {
             apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4",
             authDomain: "bookkeeping-app-cf680.firebaseapp.com",
@@ -580,295 +612,130 @@
             messagingSenderId: "480039184522",
             appId: "1:480039184522:web:31658c3229b8fa0cef2573",
         };
-
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const auth = firebase.auth(); const db = firebase.firestore(); const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-        function getLocalDateString() {
-            const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
-            return (new Date(Date.now() - tzOffset)).toISOString().slice(0, 10);
-        }
+        function getLocalDateString() { const tz = (new Date()).getTimezoneOffset() * 60000; return (new Date(Date.now() - tz)).toISOString().slice(0, 10); }
 
-        let previousCurrency = "TWD";
-        let previousCategory = "";
-        let appData = null; 
-        let currentFilterCategory = 'ALL';
-        let currentSortOrder = 'date-desc';
-        let expenseChart = null;
-        let isFetchingRate = false;
-
-        let currentFetchedAddRate = 1; 
-        let currentFetchedEditRate = 1;
-        let isSidebarEditMode = false;
-        let sortableInstances = [];
+        let previousCurrency = "TWD"; let previousCategory = ""; let appData = null; 
+        let currentFilterCategory = 'ALL'; let currentSortOrder = 'date-desc';
+        let expenseChart = null; let isFetchingRate = false;
+        let currentFetchedAddRate = 1; let currentFetchedEditRate = 1; let isSidebarEditMode = false; let sortableInstances = [];
         
-        // 星空深色主題圓餅圖配色
-        const chartColors = ['#FFB703', '#E6F1FF', '#4A90E2', '#8ECAE6', '#219EBC', '#023E8A', '#E63946', '#FFD166'];
-
         const defaultAppData = {
-            activeTripId: "trip_1",
-            customUserName: "", 
+            activeTripId: "trip_1", customUserName: "", theme: "system",
             rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 },
             categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"],
-            folders: [],
-            trips: [{ 
-                id: "trip_1", name: "我的新帳本", 
-                startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 30000, 
-                expenses: [], folderId: null, order: 0,
-                settings: { showBudget: true, showPayerSummary: true, showChart: true },
-                members: [], inviteCode: ""
+            folders: [], trips: [{ 
+                id: "trip_1", name: "我的新帳本", startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 30000, 
+                expenses: [], folderId: null, order: 0, settings: { showBudget: true, showPayerSummary: true, showChart: true }, members: [], inviteCode: ""
             }]
         };
 
-        window.addEventListener('online', checkNetworkStatus);
-        window.addEventListener('offline', checkNetworkStatus);
-        function checkNetworkStatus() {
-            const el = document.getElementById('network-status');
-            if (navigator.onLine) { el.style.display = 'none'; saveData(); } 
-            else { el.style.display = 'block'; }
-        }
+        window.addEventListener('online', checkNetworkStatus); window.addEventListener('offline', checkNetworkStatus);
+        function checkNetworkStatus() { const el = document.getElementById('network-status'); if (navigator.onLine) { el.style.display = 'none'; saveData(); } else { el.style.display = 'block'; } }
+        function loginWithGoogle() { document.getElementById('login-overlay').style.display='none'; document.getElementById('loading-overlay').style.display='flex'; auth.signInWithPopup(googleProvider).catch(e => { showToast("登入失敗", "error"); document.getElementById('loading-overlay').style.display='none'; document.getElementById('login-overlay').style.display='flex'; }); }
+        function logoutApp() { if(confirm("確定登出嗎？")) { auth.signOut(); showToast("已登出"); } }
 
-        function loginWithGoogle() {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('loading-overlay').style.display = 'flex';
-            auth.signInWithPopup(googleProvider).catch(error => {
-                showToast("登入失敗：" + error.message, "error");
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('login-overlay').style.display = 'flex';
-            });
-        }
-
-        function logoutApp() { 
-            if(confirm("確定要登出嗎？")) { auth.signOut(); showToast("已成功登出"); }
-        }
-
-        // ==========================
-        // 初始化與雲端資料載入 (支援共用帳本)
-        // ==========================
         auth.onAuthStateChanged(async (user) => {
             checkNetworkStatus();
             if (user) {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('loading-overlay').style.display = 'flex';
-                
+                document.getElementById('login-overlay').style.display = 'none'; document.getElementById('loading-overlay').style.display = 'flex';
                 try {
-                    const docRef = db.collection("users").doc(user.uid);
-                    const docSnap = await docRef.get();
+                    const docSnap = await db.collection("users").doc(user.uid).get();
                     let userData = docSnap.exists ? docSnap.data() : JSON.parse(JSON.stringify(defaultAppData));
-                    
-                    // 獲取該使用者有權限的帳本 (共用與個人)
                     const tripsSnap = await db.collection("trips").where("members", "array-contains", user.uid).get();
                     let fetchedTrips = tripsSnap.docs.map(d => d.data());
                     
-                    // 資料遷移：將舊版包裹在 user doc 內的 trips 搬移到獨立 collection
                     if (userData.trips && userData.trips.length > 0) {
-                        for (let t of userData.trips) {
-                            t.members = [user.uid];
-                            if (!t.inviteCode) t.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                            await db.collection("trips").doc(t.id).set(t);
-                            fetchedTrips.push(t);
-                        }
-                        delete userData.trips;
-                        await docRef.set(userData); // 清理舊位置
+                        for (let t of userData.trips) { t.members = [user.uid]; if (!t.inviteCode) t.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase(); await db.collection("trips").doc(t.id).set(t); fetchedTrips.push(t); }
+                        delete userData.trips; await db.collection("users").doc(user.uid).set(userData);
                     }
-                    
-                    // 如果使用者是全新註冊，建立預設帳本
                     if (fetchedTrips.length === 0) {
-                        let newTrip = JSON.parse(JSON.stringify(defaultAppData.trips[0]));
-                        newTrip.members = [user.uid];
-                        newTrip.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                        await db.collection("trips").doc(newTrip.id).set(newTrip);
-                        fetchedTrips = [newTrip];
+                        let newTrip = JSON.parse(JSON.stringify(defaultAppData.trips[0])); newTrip.members = [user.uid]; newTrip.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                        await db.collection("trips").doc(newTrip.id).set(newTrip); fetchedTrips = [newTrip];
                     }
-                    
                     appData = { ...userData, trips: fetchedTrips };
-                    if (!appData.activeTripId || !appData.trips.find(t => t.id === appData.activeTripId)) {
-                        appData.activeTripId = appData.trips[0].id;
-                    }
-
-                    migrateDataStructure();
+                    if (!appData.activeTripId || !appData.trips.find(t => t.id === appData.activeTripId)) appData.activeTripId = appData.trips[0].id;
+                    migrateDataStructure(); 
+                    applyTheme(appData.theme);
                     localStorage.setItem('local_trip_data', JSON.stringify(appData));
-                } catch (error) {
-                    console.warn("無法存取雲端，切換至本機備份模式");
-                    try {
-                        const local = localStorage.getItem('local_trip_data');
-                        if (local) { appData = JSON.parse(local); migrateDataStructure(); } 
-                        else { appData = JSON.parse(JSON.stringify(defaultAppData)); }
-                    } catch(e) { appData = JSON.parse(JSON.stringify(defaultAppData)); }
-                    showToast("目前處於離線備份模式", "warn");
+                } catch (e) {
+                    try { const local = localStorage.getItem('local_trip_data'); if (local) { appData = JSON.parse(local); migrateDataStructure(); applyTheme(appData.theme); } else appData = JSON.parse(JSON.stringify(defaultAppData)); } catch(e) { appData = JSON.parse(JSON.stringify(defaultAppData)); }
+                    showToast("目前為離線備份模式", "warn");
                 }
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-                renderUserName();
-                updateUI();
+                document.getElementById('loading-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'block';
+                renderUserName(); updateUI();
             } else {
-                appData = null;
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('main-app').style.display = 'none';
-                document.getElementById('login-overlay').style.display = 'flex';
-                toggleSidebar(false);
+                appData = null; document.getElementById('loading-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'none'; document.getElementById('login-overlay').style.display = 'flex'; toggleSidebar(false); applyTheme('system');
             }
         });
 
         function renderUserName() {
-            if (!auth.currentUser) return;
-            const name = appData.customUserName || auth.currentUser.displayName || (auth.currentUser.email ? auth.currentUser.email.split('@')[0] : "使用者");
-            document.getElementById('user-info').innerHTML = `<span style="cursor:pointer; display:inline-block; padding:8px 15px; background:#112240; border-radius:12px; border:1px solid #FFB703; color:#E6F1FF; transition: 0.2s;" onclick="editUserName()">👤 ${escapeHTML(name)} ✏️</span>`;
+            if (!auth.currentUser) return; const name = appData.customUserName || auth.currentUser.displayName || (auth.currentUser.email ? auth.currentUser.email.split('@')[0] : "使用者");
+            document.getElementById('user-info').innerHTML = `<span style="cursor:pointer; display:inline-block; padding:8px 15px; background:var(--theme-primary-light); border-radius:12px; border:1px solid var(--theme-primary); color:var(--theme-text-main); transition: 0.2s;" onclick="editUserName()">👤 ${escapeHTML(name)} ✏️</span>`;
         }
-
-        function editUserName() {
-            const currentName = appData.customUserName || auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
-            const newName = prompt("請輸入您的個人稱呼：", currentName);
-            if (newName !== null && newName.trim() !== "") {
-                appData.customUserName = newName.trim();
-                saveData();
-                renderUserName();
-                showToast("名稱已更新");
-            }
-        }
-
+        function editUserName() { const currentName = appData.customUserName || auth.currentUser.displayName || auth.currentUser.email.split('@')[0]; const newName = prompt("請輸入您的稱呼：", currentName); if (newName && newName.trim()) { appData.customUserName = newName.trim(); saveData(); renderUserName(); showToast("名稱已更新"); } }
         function migrateDataStructure() {
-            if (!appData.categories || !Array.isArray(appData.categories)) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"];
-            if (!appData.folders || !Array.isArray(appData.folders)) appData.folders = [];
-            if (appData.customUserName === undefined) appData.customUserName = "";
-            appData.trips.forEach((t, i) => {
-                if (!t.settings) t.settings = { showBudget: true, showPayerSummary: true, showChart: true };
-                if (t.folderId === undefined) t.folderId = null;
-                if (t.order === undefined) t.order = i * 10;
-                if (!t.members) t.members = auth.currentUser ? [auth.currentUser.uid] : [];
-                if (!t.inviteCode) t.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            });
+            if (!appData.categories) appData.categories = ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"]; if (!appData.folders) appData.folders = []; if (appData.customUserName === undefined) appData.customUserName = ""; if (!appData.theme) appData.theme = "system";
+            appData.trips.forEach((t, i) => { if (!t.settings) t.settings = { showBudget: true, showPayerSummary: true, showChart: true }; if (t.folderId === undefined) t.folderId = null; if (t.order === undefined) t.order = i * 10; if (!t.members) t.members = auth.currentUser ? [auth.currentUser.uid] : []; if (!t.inviteCode) t.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase(); });
             appData.folders.forEach((f, i) => { if (f.order === undefined) f.order = i * 10; });
         }
-
-        // ==========================
-        // 儲存機制
-        // ==========================
         async function saveData() {
             if (appData) {
-                localStorage.setItem('local_trip_data', JSON.stringify(appData));
-                const user = auth.currentUser;
+                localStorage.setItem('local_trip_data', JSON.stringify(appData)); const user = auth.currentUser;
                 if (user && navigator.onLine) {
-                    const userData = {
-                        customUserName: appData.customUserName || "",
-                        rates: appData.rates || {},
-                        categories: appData.categories || [],
-                        folders: appData.folders || [],
-                        activeTripId: appData.activeTripId || ""
-                    };
-                    // 寫入使用者全域設定
-                    db.collection("users").doc(user.uid).set(userData).catch(err => console.error(err));
-                    
-                    // 寫入有修改的各個帳本 (含共用)
-                    appData.trips.forEach(trip => {
-                        if (!trip.members) trip.members = [user.uid];
-                        if (!trip.inviteCode) trip.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                        db.collection("trips").doc(trip.id).set(trip).catch(err => console.error(err));
-                    });
+                    db.collection("users").doc(user.uid).set({ customUserName: appData.customUserName, theme: appData.theme || 'system', rates: appData.rates, categories: appData.categories, folders: appData.folders, activeTripId: appData.activeTripId }).catch(err => console.error(err));
+                    appData.trips.forEach(trip => { if (!trip.members) trip.members = [user.uid]; if (!trip.inviteCode) trip.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase(); db.collection("trips").doc(trip.id).set(trip).catch(err => console.error(err)); });
                 }
             }
         }
 
-        // ==========================
-        // 操作與拖曳排序
-        // ==========================
+        // ====== 側邊欄與拖曳 ======
         let pressTimer = null; let isPressing = false;
-        function handlePointerDown(id, e) {
-            if (e && e.button === 2) return; 
-            handlePointerUp(); 
-            isPressing = true;
-            pressTimer = setTimeout(() => { if (isPressing) { openEditExpenseModal(id); isPressing = false; } }, 600); 
-        }
+        function handlePointerDown(id, e) { if (e && e.button === 2) return; handlePointerUp(); isPressing = true; pressTimer = setTimeout(() => { if (isPressing) { openEditExpenseModal(id); isPressing = false; } }, 600); }
         function handlePointerUp() { isPressing = false; if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
         function handleContextMenu(id, e) { if (e && e.preventDefault) e.preventDefault(); handlePointerUp(); openEditExpenseModal(id); }
 
-        function toggleSidebar(open) {
-            const sidebar = document.getElementById('sidebar'); const overlay = document.getElementById('sidebarOverlay');
-            if (open) { isSidebarEditMode = false; renderSidebarContent(); sidebar.classList.add('open'); overlay.classList.add('open'); } 
-            else { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
-        }
-        function toggleSidebarEditMode() {
-            isSidebarEditMode = !isSidebarEditMode;
-            document.getElementById('sidebar-normal-actions').style.display = isSidebarEditMode ? 'none' : 'block';
-            document.getElementById('sidebar-edit-actions').style.display = isSidebarEditMode ? 'block' : 'none';
-            renderSidebarContent();
-        }
-        function createFolder() {
-            const name = prompt("請輸入資料夾名稱：");
-            if(name && name.trim()) { 
-                appData.folders.push({ id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() }); 
-                saveData(); renderSidebarContent(); 
-                showToast("資料夾已建立");
-            }
-        }
+        function toggleSidebar(open) { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebarOverlay'); if (open) { isSidebarEditMode = false; renderSidebarContent(); sb.classList.add('open'); ov.classList.add('open'); } else { sb.classList.remove('open'); ov.classList.remove('open'); } }
+        function toggleSidebarEditMode() { isSidebarEditMode = !isSidebarEditMode; document.getElementById('sidebar-normal-actions').style.display = isSidebarEditMode ? 'none' : 'block'; document.getElementById('sidebar-edit-actions').style.display = isSidebarEditMode ? 'block' : 'none'; renderSidebarContent(); }
+        function createFolder() { const name = prompt("資料夾名稱："); if(name && name.trim()) { appData.folders.push({ id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() }); saveData(); renderSidebarContent(); showToast("資料夾已建立"); } }
         function toggleFolder(id) { let f = appData.folders.find(x => x.id === id); if(f) { f.expanded = !f.expanded; saveData(); renderSidebarContent(); } }
         function toggleCb(id) { let cb = document.querySelector(`.sidebar-cb[data-id="${id}"]`); if (cb) cb.checked = !cb.checked; }
         
         async function deleteSelectedItems() {
-            const cbs = document.querySelectorAll('.sidebar-cb:checked'); 
-            if(cbs.length === 0) return showToast('請先勾選要刪除的項目', 'error');
-            if(!confirm('確定要刪除選取的項目嗎？\n(警告：刪除資料夾會連同裡面的帳本一併移除，共用帳本將退出權限群組)')) return;
-            
+            const cbs = document.querySelectorAll('.sidebar-cb:checked'); if(cbs.length === 0) return showToast('請先勾選項目', 'error');
+            if(!confirm('確定要刪除/退出選取的項目嗎？')) return;
             let tripsToDelete = new Set(); let foldersToDelete = new Set();
             cbs.forEach(cb => { if(cb.dataset.type === 'trip') tripsToDelete.add(cb.dataset.id); if(cb.dataset.type === 'folder') foldersToDelete.add(cb.dataset.id); });
             appData.trips.forEach(t => { if(foldersToDelete.has(t.folderId)) tripsToDelete.add(t.id); });
+            if(appData.trips.length - tripsToDelete.size <= 0) return showToast('請至少保留一個帳本', 'error');
             
-            if(appData.trips.length - tripsToDelete.size <= 0) return showToast('無法刪除，請至少保留一個帳本！', 'error');
-            
-            // 處理帳本刪除與退群邏輯
             for (let tripId of tripsToDelete) {
                 const trip = appData.trips.find(t => t.id === tripId);
                 if (trip) {
                     trip.members = trip.members.filter(uid => uid !== auth.currentUser.uid);
-                    if (trip.members.length === 0) {
-                        await db.collection("trips").doc(tripId).delete(); // 無人則完全刪除
-                    } else {
-                        await db.collection("trips").doc(tripId).update({ members: trip.members }); // 僅退群
-                    }
+                    if (trip.members.length === 0) await db.collection("trips").doc(tripId).delete(); else await db.collection("trips").doc(tripId).update({ members: trip.members });
                 }
             }
-
-            appData.trips = appData.trips.filter(t => !tripsToDelete.has(t.id)); 
-            appData.folders = appData.folders.filter(f => !foldersToDelete.has(f.id));
+            appData.trips = appData.trips.filter(t => !tripsToDelete.has(t.id)); appData.folders = appData.folders.filter(f => !foldersToDelete.has(f.id));
             if(tripsToDelete.has(appData.activeTripId)) appData.activeTripId = appData.trips[0].id;
-            
-            saveData(); updateUI(); toggleSidebarEditMode();
-            showToast("項目已刪除/退出");
+            saveData(); updateUI(); toggleSidebarEditMode(); showToast("項目已刪除/退出");
         }
 
-        // ==========================
-        // 共用帳本：加入與邀請邏輯
-        // ==========================
         async function joinSharedTrip() {
-            const code = prompt("請輸入共用帳本的 6 碼邀請碼：");
-            if (!code || !code.trim()) return;
-            document.getElementById('loading-overlay').style.display = 'flex';
+            const code = prompt("輸入 6 碼邀請碼："); if (!code || !code.trim()) return; document.getElementById('loading-overlay').style.display = 'flex';
             try {
                 const snap = await db.collection("trips").where("inviteCode", "==", code.trim().toUpperCase()).get();
-                if (snap.empty) {
-                    showToast("找不到此邀請碼對應的帳本", "error");
-                } else {
-                    const tripDoc = snap.docs[0];
-                    const tripData = tripDoc.data();
+                if (snap.empty) showToast("找不到對應帳本", "error");
+                else {
+                    const tripData = snap.docs[0].data();
                     if (!tripData.members.includes(auth.currentUser.uid)) {
-                        tripData.members.push(auth.currentUser.uid);
-                        await db.collection("trips").doc(tripData.id).update({ members: tripData.members });
-                        appData.trips.push(tripData);
-                        appData.activeTripId = tripData.id;
-                        saveData();
-                        updateUI();
-                        renderSidebarContent();
-                        toggleSidebar(false);
-                        showToast("成功加入共用帳本！");
-                    } else {
-                        showToast("您已在此帳本中", "warn");
-                    }
+                        tripData.members.push(auth.currentUser.uid); await db.collection("trips").doc(tripData.id).update({ members: tripData.members }); appData.trips.push(tripData); appData.activeTripId = tripData.id;
+                        saveData(); updateUI(); renderSidebarContent(); toggleSidebar(false); showToast("成功加入共用帳本！");
+                    } else showToast("您已在此帳本中", "warn");
                 }
-            } catch(e) {
-                showToast("加入失敗：" + e.message, "error");
-            }
+            } catch(e) { showToast("加入失敗", "error"); }
             document.getElementById('loading-overlay').style.display = 'none';
         }
 
@@ -878,514 +745,239 @@
             let html = `<div id="root-sortable" class="sortable-list" style="min-height: 50px; padding-bottom: 20px;">`;
             rootItems.forEach(item => {
                 if (item.itemType === 'folder') {
-                    let children = appData.trips.filter(t => t.folderId === item.id).sort((a, b) => a.order - b.order);
-                    let expanded = item.expanded !== false;
+                    let children = appData.trips.filter(t => t.folderId === item.id).sort((a, b) => a.order - b.order); let expanded = item.expanded !== false;
                     let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${item.id}" data-type="folder" onclick="event.stopPropagation()">` : '';
-                    html += `<div class="folder-item" data-id="${item.id}" data-type="folder"><div class="folder-header" onclick="toggleFolder('${item.id}')"><div style="display:flex; align-items:center; gap:8px;">${cb} <span>${escapeHTML(item.name)}</span></div></div><div class="folder-content sortable-list" data-folder-id="${item.id}" style="display: ${expanded ? 'block' : 'none'}; padding-left:12px; margin-left:12px; border-left:2px dashed #233554; margin-top:8px; min-height:40px;">`;
+                    html += `<div class="folder-item" data-id="${item.id}" data-type="folder"><div class="folder-header" onclick="toggleFolder('${item.id}')"><div style="display:flex; align-items:center; gap:8px;">${cb} <span>${escapeHTML(item.name)}</span></div></div><div class="folder-content sortable-list" data-folder-id="${item.id}" style="display: ${expanded ? 'block' : 'none'}; padding-left:12px; margin-left:12px; border-left:2px dashed var(--theme-border); margin-top:8px; min-height:40px;">`;
                     children.forEach(t => { html += renderTripItem(t); }); html += `</div></div>`;
-                } else { html += renderTripItem(item); }
-            });
-            html += `</div>`; container.innerHTML = html;
-            if (!isSidebarEditMode) initSortable();
+                } else html += renderTripItem(item);
+            }); html += `</div>`; container.innerHTML = html; if (!isSidebarEditMode) initSortable();
         }
-
         function renderTripItem(trip) {
-            const isActive = trip.id === appData.activeTripId;
-            const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)), 0);
-            const isShared = trip.members && trip.members.length > 1;
+            const isActive = trip.id === appData.activeTripId; const spent = trip.expenses.reduce((sum, e) => sum + Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)), 0); const isShared = trip.members && trip.members.length > 1;
             let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${trip.id}" data-type="trip" onclick="event.stopPropagation()">` : '';
-            return `<div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">${cb}<div style="flex-grow:1; display: flex; flex-direction: column; width: 100%;"><div style="font-size:16px; color:#E6F1FF; font-weight:${isActive ? 'bold' : 'normal'}; line-height: 1.3; margin-bottom: 2px;">${isShared ? '🤝 ' : ''}${escapeHTML(trip.name)}</div><small style="color:#8892B0; line-height: 1.3; font-size:13px;">${escapeHTML(trip.startDate)}</small><small style="color:#FFB703; font-weight:bold; line-height: 1.3; margin-top: 4px; font-size:13px;">花費: $${spent.toLocaleString()}</small></div></div>`;
+            return `<div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">${cb}<div style="flex-grow:1; display: flex; flex-direction: column; width: 100%;"><div style="font-size:16px; color:var(--theme-text-main); font-weight:${isActive ? 'bold' : 'normal'}; line-height: 1.3; margin-bottom: 2px;">${isShared ? '🤝 ' : ''}${escapeHTML(trip.name)}</div><small style="color:var(--theme-text-muted); line-height: 1.3; font-size:13px;">${escapeHTML(trip.startDate)}</small><small style="color:var(--theme-primary); font-weight:bold; line-height: 1.3; margin-top: 4px; font-size:13px;">花費: $${spent.toLocaleString()}</small></div></div>`;
         }
 
         function initSortable() {
-            if (typeof Sortable === 'undefined') return; 
-            sortableInstances.forEach(s => s.destroy()); sortableInstances = [];
-            const opts = {
-                group: 'nested-sortable', animation: 150, delay: 150, delayOnTouchOnly: true, fallbackOnBody: true, swapThreshold: 0.65, emptyInsertThreshold: 40,     
-                onMove: function (evt) {
-                    const related = evt.related;
-                    if (related && evt.dragged.dataset.type === 'trip') {
-                        const folderItem = related.closest('.folder-item');
-                        if (folderItem) { const folderContent = folderItem.querySelector('.folder-content'); if (folderContent && folderContent.style.display === 'none') { folderContent.style.display = 'block'; const folderId = folderItem.dataset.id; const f = appData.folders.find(x => x.id === folderId); if (f) f.expanded = true; } }
-                    }
-                    if (evt.dragged.dataset.type === 'folder' && evt.to.classList.contains('folder-content')) return false; 
-                }, onEnd: function () { updateDataFromDOM(); renderSidebarContent(); }
-            };
+            if (typeof Sortable === 'undefined') return; sortableInstances.forEach(s => s.destroy()); sortableInstances = [];
+            const opts = { group: 'nested-sortable', animation: 150, delay: 150, delayOnTouchOnly: true, fallbackOnBody: true, swapThreshold: 0.65, emptyInsertThreshold: 40, onMove: function (evt) { const related = evt.related; if (related && evt.dragged.dataset.type === 'trip') { const folderItem = related.closest('.folder-item'); if (folderItem) { const folderContent = folderItem.querySelector('.folder-content'); if (folderContent && folderContent.style.display === 'none') { folderContent.style.display = 'block'; const f = appData.folders.find(x => x.id === folderItem.dataset.id); if (f) f.expanded = true; } } } if (evt.dragged.dataset.type === 'folder' && evt.to.classList.contains('folder-content')) return false; }, onEnd: function () { updateDataFromDOM(); renderSidebarContent(); } };
             const rootEl = document.getElementById('root-sortable'); if (rootEl) sortableInstances.push(new Sortable(rootEl, opts));
-            document.querySelectorAll('.folder-content').forEach(el => { sortableInstances.push(new Sortable(el, opts)); });
+            document.querySelectorAll('.folder-content').forEach(el => sortableInstances.push(new Sortable(el, opts)));
         }
         function updateDataFromDOM() {
-            const root = document.getElementById('root-sortable'); let globalOrder = 0;
-            Array.from(root.children).forEach(el => {
-                const type = el.dataset.type; const id = el.dataset.id;
-                if (type === 'folder') {
-                    let f = appData.folders.find(x => x.id === id); if (f) f.order = globalOrder++;
-                    const content = el.querySelector('.folder-content');
-                    Array.from(content.children).forEach(childEl => { if(childEl.dataset.type === 'trip') { let t = appData.trips.find(x => x.id === childEl.dataset.id); if (t) { t.folderId = id; t.order = globalOrder++; } } });
-                } else if (type === 'trip') { let t = appData.trips.find(x => x.id === id); if (t) { t.folderId = null; t.order = globalOrder++; } }
-            });
-            saveData();
+            let globalOrder = 0; Array.from(document.getElementById('root-sortable').children).forEach(el => {
+                if (el.dataset.type === 'folder') { let f = appData.folders.find(x => x.id === el.dataset.id); if (f) f.order = globalOrder++; Array.from(el.querySelector('.folder-content').children).forEach(childEl => { if(childEl.dataset.type === 'trip') { let t = appData.trips.find(x => x.id === childEl.dataset.id); if (t) { t.folderId = el.dataset.id; t.order = globalOrder++; } } }); }
+                else if (el.dataset.type === 'trip') { let t = appData.trips.find(x => x.id === el.dataset.id); if (t) { t.folderId = null; t.order = globalOrder++; } }
+            }); saveData();
         }
 
-        // ==========================
-        // UI與設定操作
-        // ==========================
+        // ====== 設定與 UI ======
         function getActiveTrip() { return appData ? (appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0]) : null; }
         function switchTrip(id) { appData.activeTripId = id; saveData(); updateUI(); toggleSidebar(false); }
-        
-        function openAddExpenseSheet() {
-            document.getElementById('addExpenseModal').classList.add('open');
-        }
-
+        function openAddExpenseSheet() { document.getElementById('addExpenseModal').classList.add('open'); }
         function openTripSettings(e) {
-            if(e) e.stopPropagation();
-            const trip = getActiveTrip(); if (!trip) return;
-            document.getElementById('modalTripNameInput').value = trip.name; 
-            document.getElementById('modalTripStartInput').value = trip.startDate; 
-            document.getElementById('modalTripEndInput').value = trip.endDate; 
-            document.getElementById('modalTripBudgetInput').value = trip.budget || 0;
-            
-            // 顯示邀請碼
+            if(e) e.stopPropagation(); const trip = getActiveTrip(); if (!trip) return;
+            document.getElementById('modalTripNameInput').value = trip.name; document.getElementById('modalTripStartInput').value = trip.startDate; document.getElementById('modalTripEndInput').value = trip.endDate; document.getElementById('modalTripBudgetInput').value = trip.budget || 0;
             document.getElementById('modalTripInviteCode').innerText = trip.inviteCode || "無代碼";
-
-            const folderContainer = document.getElementById('folderSelectContainer'); const folderSelect = document.getElementById('modalFolderSelect');
-            if (appData.folders && appData.folders.length > 0) {
-                folderContainer.style.display = 'block'; folderSelect.innerHTML = '<option value="">(無 / 最外層)</option>';
-                appData.folders.forEach(f => { const opt = document.createElement('option'); opt.value = f.id; opt.innerText = f.name; folderSelect.appendChild(opt); });
-                folderSelect.value = trip.folderId || "";
-            } else { folderContainer.style.display = 'none'; }
-
+            const fContainer = document.getElementById('folderSelectContainer'); const fSelect = document.getElementById('modalFolderSelect');
+            if (appData.folders.length > 0) { fContainer.style.display = 'block'; fSelect.innerHTML = '<option value="">(無 / 最外層)</option>'; appData.folders.forEach(f => { const opt = document.createElement('option'); opt.value = f.id; opt.innerText = f.name; fSelect.appendChild(opt); }); fSelect.value = trip.folderId || ""; } else fContainer.style.display = 'none';
             if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
-            const showBudget = trip.settings.showBudget !== false;
-            document.getElementById('modalToggleBudget').checked = showBudget; 
-            document.getElementById('modalToggleChart').checked = trip.settings.showChart !== false; 
-            document.getElementById('modalTogglePayerSummary').checked = trip.settings.showPayerSummary !== false;
-            document.getElementById('modalTripBudgetContainer').style.display = showBudget ? 'block' : 'none';
-            
+            document.getElementById('modalToggleBudget').checked = trip.settings.showBudget !== false; document.getElementById('modalToggleChart').checked = trip.settings.showChart !== false; document.getElementById('modalTogglePayerSummary').checked = trip.settings.showPayerSummary !== false;
+            document.getElementById('modalTripBudgetContainer').style.display = (trip.settings.showBudget !== false) ? 'block' : 'none';
             document.getElementById('tripSettingsModal').classList.add('open');
         }
-
         function saveTripSettings() {
-            const trip = getActiveTrip(); if (!trip) return;
-            const name = document.getElementById('modalTripNameInput').value.trim(); 
-            const start = document.getElementById('modalTripStartInput').value; 
-            const end = document.getElementById('modalTripEndInput').value; 
-            const budget = parseFloat(document.getElementById('modalTripBudgetInput').value) || 0;
-            
-            if (!name || !start || !end) return showToast('請填寫完整的帳本名稱與日期', 'error'); 
-            if (budget < 0) return showToast('預算金額不可小於 0', 'error');
-            
-            trip.name = name; trip.startDate = start; trip.endDate = end;
-            
-            if (!trip.settings) trip.settings = {};
-            trip.settings.showBudget = document.getElementById('modalToggleBudget').checked; 
-            trip.settings.showChart = document.getElementById('modalToggleChart').checked; 
-            trip.settings.showPayerSummary = document.getElementById('modalTogglePayerSummary').checked;
-            if (trip.settings.showBudget) trip.budget = budget;
-
-            const folderContainer = document.getElementById('folderSelectContainer');
-            if (folderContainer.style.display !== 'none') trip.folderId = document.getElementById('modalFolderSelect').value || null;
-            
-            saveData(); updateUI(); renderSidebarContent(); closeModal('tripSettingsModal');
-            showToast('設定已儲存');
+            const trip = getActiveTrip(); const name = document.getElementById('modalTripNameInput').value.trim(); const start = document.getElementById('modalTripStartInput').value; const end = document.getElementById('modalTripEndInput').value; const budget = parseFloat(document.getElementById('modalTripBudgetInput').value) || 0;
+            if (!name || !start || !end) return showToast('請填寫完整名稱與日期', 'error'); if (budget < 0) return showToast('預算不可小於 0', 'error');
+            trip.name = name; trip.startDate = start; trip.endDate = end; trip.settings.showBudget = document.getElementById('modalToggleBudget').checked; trip.settings.showChart = document.getElementById('modalToggleChart').checked; trip.settings.showPayerSummary = document.getElementById('modalTogglePayerSummary').checked; if (trip.settings.showBudget) trip.budget = budget;
+            if (document.getElementById('folderSelectContainer').style.display !== 'none') trip.folderId = document.getElementById('modalFolderSelect').value || null;
+            saveData(); updateUI(); renderSidebarContent(); closeModal('tripSettingsModal'); showToast('設定已儲存');
         }
-        
         function toggleDetailsInput(show) { document.getElementById('itemDetails').style.display = show ? 'block' : 'none'; if (!show) document.getElementById('itemDetails').value = ''; }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function changeSortOrder(val) { currentSortOrder = val; updateUI(); }
 
-        // ==========================
-        // 核心資料與渲染 (更新UI)
-        // ==========================
+        // ====== 核心渲染與圖表 ======
         function updateUI() {
-            const trip = getActiveTrip(); if (!trip) return; 
-            if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+            const trip = getActiveTrip(); if (!trip) return; if (!trip.settings) trip.settings = { showBudget: true, showPayerSummary: true, showChart: true };
+            const showPayer = trip.settings.showPayerSummary !== false; const showBudget = trip.settings.showBudget !== false; const showChart = trip.settings.showChart !== false;
             
-            const showPayer = trip.settings.showPayerSummary !== false; 
-            const showBudget = trip.settings.showBudget !== false; 
-            const showChart = trip.settings.showChart !== false;
-            
-            document.getElementById('budgetCard').style.display = showBudget ? 'block' : 'none';
-            document.getElementById('chartCard').style.display = showChart ? 'block' : 'none';
-            document.getElementById('payerSummaryCard').style.display = showPayer ? 'block' : 'none';
-            document.getElementById('payerInputContainer').style.display = showPayer ? 'block' : 'none';
-            
-            document.getElementById('header-trip-name').innerText = trip.name;
-            document.getElementById('settings-trip-name').innerText = trip.name;
-            document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`;
-            document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
-            document.getElementById('sortSelect').value = currentSortOrder;
+            // 同步外觀設定下拉選單
+            document.getElementById('themeSelect').value = appData.theme || 'system';
 
-            // 日期限制與預設值
-            const dateInput = document.getElementById('itemDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate;
-            if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) {
-                let today = getLocalDateString(); dateInput.value = (today > trip.endDate) ? trip.endDate : ((today < trip.startDate) ? trip.startDate : today);
-            }
+            document.getElementById('budgetCard').style.display = showBudget ? 'block' : 'none'; document.getElementById('chartCard').style.display = showChart ? 'block' : 'none'; document.getElementById('payerSummaryCard').style.display = showPayer ? 'block' : 'none'; document.getElementById('payerInputContainer').style.display = showPayer ? 'block' : 'none';
+            document.getElementById('header-trip-name').innerText = trip.name; document.getElementById('settings-trip-name').innerText = trip.name; document.getElementById('header-trip-period').innerText = `${escapeHTML(trip.startDate)} ~ ${escapeHTML(trip.endDate)}`; document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString(); document.getElementById('sortSelect').value = currentSortOrder;
+            const dateInput = document.getElementById('itemDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate; if (!dateInput.value || dateInput.value < trip.startDate || dateInput.value > trip.endDate) { let today = getLocalDateString(); dateInput.value = (today > trip.endDate) ? trip.endDate : ((today < trip.startDate) ? trip.startDate : today); }
 
-            // 選單選項渲染
             const selectEl = document.getElementById('itemCurrency'); const editSelectEl = document.getElementById('editExpCurrency'); const currentVal = selectEl.value || 'TWD';
             [selectEl, editSelectEl].forEach(el => {
-                el.innerHTML = '<option value="TWD">台幣 (TWD)</option>';
-                Object.keys(appData.rates).forEach(code => {
-                    if (code === 'TWD') return; const opt = document.createElement('option'); opt.value = code; opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`; el.appendChild(opt);
-                });
-                const triggerOpt = document.createElement('option'); triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...'; triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = '#E63946'; el.appendChild(triggerOpt);
+                el.innerHTML = '<option value="TWD">台幣 (TWD)</option>'; Object.keys(appData.rates).forEach(code => { if (code === 'TWD') return; const opt = document.createElement('option'); opt.value = code; opt.innerText = code === 'JPY' ? '日圓 (JPY)' : `${code} (${appData.rates[code]})`; el.appendChild(opt); });
+                const triggerOpt = document.createElement('option'); triggerOpt.value = 'CUSTOM_TRIGGER'; triggerOpt.innerText = '➕ 查詢線上匯率...'; triggerOpt.style.fontWeight = 'bold'; triggerOpt.style.color = 'var(--theme-danger)'; el.appendChild(triggerOpt);
             });
             if (appData.rates[currentVal]) selectEl.value = currentVal; else if (appData.rates[previousCurrency]) selectEl.value = previousCurrency; else selectEl.value = 'TWD';
 
             const catSelectEl = document.getElementById('itemCategory'); const editCatSelectEl = document.getElementById('editExpCategory'); const currentCatVal = catSelectEl.value || previousCategory || appData.categories[0];
             [catSelectEl, editCatSelectEl].forEach(el => {
                 el.innerHTML = ''; appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; el.appendChild(opt); });
-                const catTrigger = document.createElement('option'); catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...'; catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = '#E63946'; el.appendChild(catTrigger);
+                const catTrigger = document.createElement('option'); catTrigger.value = 'CUSTOM_CAT_TRIGGER'; catTrigger.innerText = '➕ 管理分類...'; catTrigger.style.fontWeight = 'bold'; catTrigger.style.color = 'var(--theme-danger)'; el.appendChild(catTrigger);
             });
             if (appData.categories.includes(currentCatVal)) catSelectEl.value = currentCatVal; else if (appData.categories.length > 0) catSelectEl.value = appData.categories[0];
 
-            // 標籤過濾器
             const listEl = document.getElementById('expense-list'); const usedCategories = new Set(trip.expenses.map(e => e.category)); const filterContainer = document.getElementById('filterContainer');
             filterContainer.innerHTML = `<div class="filter-chip ${currentFilterCategory === 'ALL' ? 'active' : ''}" onclick="setFilter('ALL', this)">全部</div>`;
             usedCategories.forEach(cat => { filterContainer.innerHTML += `<div class="filter-chip ${currentFilterCategory === cat ? 'active' : ''}" onclick="setFilter('${escapeHTML(cat)}', this)">${escapeHTML(cat)}</div>`; });
 
-            // 計算與渲染列表
-            const spentEl = document.getElementById('total-spent'); const fillEl = document.getElementById('budget-fill'); listEl.innerHTML = ''; 
-            let totalTWD = 0; const payerTotals = {};
-            const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
-            
-            let sortedExpenses = [...trip.expenses];
-            sortedExpenses.sort((a, b) => {
-                if (currentSortOrder === 'date-desc') { return new Date(b.date) - new Date(a.date) || b.id - a.id; } 
-                else if (currentSortOrder === 'date-asc') { return new Date(a.date) - new Date(b.date) || a.id - b.id; } 
-                else if (currentSortOrder === 'amount-desc') { return getTwd(b) - getTwd(a) || b.id - a.id; } 
-                else if (currentSortOrder === 'amount-asc') { return getTwd(a) - getTwd(b) || a.id - b.id; }
+            const spentEl = document.getElementById('total-spent'); const fillEl = document.getElementById('budget-fill'); listEl.innerHTML = ''; let totalTWD = 0; const payerTotals = {}; const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
+            let sortedExpenses = [...trip.expenses].sort((a, b) => {
+                if (currentSortOrder === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id; else if (currentSortOrder === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id; else if (currentSortOrder === 'amount-desc') return getTwd(b) - getTwd(a) || b.id - a.id; else return getTwd(a) - getTwd(b) || a.id - b.id;
             });
-
             const itemsToDisplay = currentFilterCategory === 'ALL' ? sortedExpenses : sortedExpenses.filter(e => e.category === currentFilterCategory);
-
             trip.expenses.forEach(exp => { const twd = getTwd(exp); totalTWD += twd; const payer = exp.payer || '我'; payerTotals[payer] = (payerTotals[payer] || 0) + twd; });
             
-            // 付款統計
-            document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).length === 0 ? '<p style="color:#8892B0; font-size:14px;">無資料</p>' : Object.keys(payerTotals).map(p => `<div style="display:flex; justify-content:space-between; border-bottom: 1px dashed #233554; padding: 6px 0;"><span>👤 <strong>${escapeHTML(p)}</strong></span> <span style="color:#E6F1FF;">NT$ ${payerTotals[p].toLocaleString()}</span></div>`).join('');
+            document.getElementById('payerSummaryList').innerHTML = Object.keys(payerTotals).length === 0 ? '<p style="color:var(--theme-text-muted); font-size:14px;">無資料</p>' : Object.keys(payerTotals).map(p => `<div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--theme-border); padding: 6px 0;"><span>👤 <strong>${escapeHTML(p)}</strong></span> <span style="color:var(--theme-text-main);">NT$ ${payerTotals[p].toLocaleString()}</span></div>`).join('');
 
             let lastDate = ""; let filteredTotalTWD = 0; 
-            
-            // 空狀態設計
-            if (itemsToDisplay.length === 0) { 
-                listEl.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">☄️</div>
-                    <div class="empty-state-title">目前沒有任何紀錄</div>
-                    <div class="empty-state-desc">點擊右下角新增第一筆星詠紀錄吧！</div>
-                </div>`; 
-            } 
+            if (itemsToDisplay.length === 0) { listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">☄️</div><div class="empty-state-title">目前沒有任何紀錄</div><div class="empty-state-desc">點擊右下角新增第一筆星詠紀錄吧！</div></div>`; } 
             else {
                 itemsToDisplay.forEach(exp => {
                     const twdAmount = getTwd(exp); filteredTotalTWD += twdAmount; 
-                    if (currentSortOrder.startsWith('date-') && exp.date !== lastDate) { 
-                        lastDate = exp.date; 
-                        const dHeader = document.createElement('div'); 
-                        dHeader.className = 'date-header'; 
-                        dHeader.innerText = `${escapeHTML(exp.date)}`; 
-                        listEl.appendChild(dHeader); 
-                    }
-                    
-                    const detailsHtml = exp.details ? `<br><small style="color:#8892B0;">📝 ${escapeHTML(exp.details)}</small>` : '';
-                    const payerTagStyle = showPayer ? 'inline-block' : 'none';
-                    const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">${escapeHTML(exp.date)}</span>` : '';
+                    if (currentSortOrder.startsWith('date-') && exp.date !== lastDate) { lastDate = exp.date; const dHeader = document.createElement('div'); dHeader.className = 'date-header'; dHeader.innerText = `${escapeHTML(exp.date)}`; listEl.appendChild(dHeader); }
+                    const detailsHtml = exp.details ? `<br><small style="color:var(--theme-text-muted);">📝 ${escapeHTML(exp.details)}</small>` : ''; const payerTagStyle = showPayer ? 'inline-block' : 'none'; const dateTagHtml = currentSortOrder.startsWith('amount-') ? `<span class="date-tag">${escapeHTML(exp.date)}</span>` : '';
                     const isTWD = (!exp.currency || exp.currency === 'TWD');
-                    const rightAmountHtml = isTWD ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` : `<strong style="color:#FFB703;">${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:#8892B0;">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
+                    const rightAmountHtml = isTWD ? `<strong>TWD ${Number(exp.amount).toLocaleString()}</strong>` : `<strong style="color:var(--theme-accent);">${escapeHTML(exp.currency)} ${Number(exp.amount).toLocaleString()}</strong><br><small style="color:var(--theme-text-muted);">≈ NT$ ${twdAmount.toLocaleString()}</small>`;
 
-                    const div = document.createElement('div');
-                    div.className = 'expense-item';
-                    
-                    div.onmousedown = (e) => handlePointerDown(exp.id, e);
-                    div.onmouseup = () => handlePointerUp();
-                    div.onmouseleave = () => handlePointerUp();
-                    div.ontouchstart = (e) => handlePointerDown(exp.id, e);
-                    div.ontouchend = () => handlePointerUp();
-                    div.ontouchmove = () => handlePointerUp();
-                    div.oncontextmenu = (e) => handleContextMenu(exp.id, e);
-
-                    div.innerHTML = `
-                        <div style="flex-grow: 1;">
-                            <strong style="color: #E6F1FF; font-size:16px;">${escapeHTML(exp.name)}</strong> <span class="payer-tag" style="display:${payerTagStyle};">${escapeHTML(exp.payer || '我')}</span>${detailsHtml}<br>
-                            <small style="color:#FFB703; font-weight:bold; display:inline-block; margin-top:4px; font-size:13px;">${escapeHTML(exp.category)}</small>${dateTagHtml}
-                        </div>
-                        <div style="text-align: right; flex-shrink: 0; padding-left: 10px; font-size:15px; color:#E6F1FF;">${rightAmountHtml}</div>`;
-                    
+                    const div = document.createElement('div'); div.className = 'expense-item'; div.onmousedown = (e) => handlePointerDown(exp.id, e); div.onmouseup = () => handlePointerUp(); div.onmouseleave = () => handlePointerUp(); div.ontouchstart = (e) => handlePointerDown(exp.id, e); div.ontouchend = () => handlePointerUp(); div.ontouchmove = () => handlePointerUp(); div.oncontextmenu = (e) => handleContextMenu(exp.id, e);
+                    div.innerHTML = `<div style="flex-grow: 1;"><strong style="color: var(--theme-text-main); font-size:16px;">${escapeHTML(exp.name)}</strong> <span class="payer-tag" style="display:${payerTagStyle};">${escapeHTML(exp.payer || '我')}</span>${detailsHtml}<br><small style="color:var(--theme-primary); font-weight:bold; display:inline-block; margin-top:4px; font-size:13px;">${escapeHTML(exp.category)}</small>${dateTagHtml}</div><div style="text-align: right; flex-shrink: 0; padding-left: 10px; font-size:15px; color:var(--theme-text-main);">${rightAmountHtml}</div>`;
                     listEl.appendChild(div);
                 });
             }
-
-            const recordTotalEl = document.getElementById('record-total'); if (recordTotalEl) { recordTotalEl.innerText = `NT$ ${filteredTotalTWD.toLocaleString()}`; }
+            if (document.getElementById('record-total')) document.getElementById('record-total').innerText = `NT$ ${filteredTotalTWD.toLocaleString()}`;
             spentEl.innerText = totalTWD.toLocaleString();
             
-            // 預算進度文字更新
-            const percentage = trip.budget > 0 ? Math.min((totalTWD / trip.budget) * 100, 100) : 0; 
-            fillEl.style.width = percentage + '%'; 
-            fillEl.style.backgroundColor = percentage >= 100 ? '#E63946' : (percentage >= 80 ? '#FFD166' : '#FFB703');
+            const percentage = trip.budget > 0 ? Math.min((totalTWD / trip.budget) * 100, 100) : 0; fillEl.style.width = percentage + '%'; 
+            fillEl.style.backgroundColor = percentage >= 100 ? 'var(--theme-danger)' : 'var(--theme-primary)';
             document.getElementById('budget-text').innerText = `${Math.round(percentage)}%`;
-            document.getElementById('budget-text').style.color = percentage > 55 ? '#0A192F' : '#E6F1FF';
+            document.getElementById('budget-text').style.color = percentage > 55 ? 'var(--theme-primary-text)' : 'var(--theme-text-main)';
 
-            renderChart(trip, totalTWD);
-            if(document.getElementById('sidebar').classList.contains('open') && !isSidebarEditMode) renderSidebarContent();
+            renderChart(trip, totalTWD); if(document.getElementById('sidebar').classList.contains('open') && !isSidebarEditMode) renderSidebarContent();
         }
 
         function renderChart(trip, grandTotal) {
-            if (typeof Chart === 'undefined') return; 
-            const ctx = document.getElementById('expenseChart').getContext('2d');
-            const categories = {};
+            if (typeof Chart === 'undefined') return; const ctx = document.getElementById('expenseChart').getContext('2d'); const categories = {};
             trip.expenses.forEach(exp => { const twd = Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1)); categories[exp.category] = (categories[exp.category] || 0) + twd; });
-            const labels = Object.keys(categories); const data = Object.values(categories);
-            if (expenseChart) expenseChart.destroy();
-            
+            const labels = Object.keys(categories); const data = Object.values(categories); if (expenseChart) expenseChart.destroy();
             if (labels.length === 0 || !trip.settings || trip.settings.showChart === false) { document.getElementById('chartCard').style.display = 'none'; return; }
             document.getElementById('chartCard').style.display = 'block';
             
-            expenseChart = new Chart(ctx, {
-                type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: chartColors, borderWidth: 3, borderColor: '#0A192F' }] },
-                options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' } 
-            });
+            const isDark = isDarkModeActive();
+            const currentColors = isDark ? ['#FFB703', '#E6F1FF', '#4A90E2', '#8ECAE6', '#219EBC', '#023E8A', '#E63946', '#FFD166'] : ['#4A90E2', '#FFB703', '#8ECAE6', '#0A192F', '#BDE0FE', '#E63946', '#219EBC', '#FFD166'];
+            const borderColor = isDark ? '#0A192F' : '#FFF';
 
+            expenseChart = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: currentColors, borderWidth: 3, borderColor: borderColor }] }, options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' } });
             let legendHtml = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; justify-content:center;">';
             labels.forEach((label, i) => {
                 const val = data[i]; const pct = grandTotal > 0 ? Math.round((val / grandTotal) * 100) : 0;
-                legendHtml += `
-                    <div style="text-align:center; font-size:13px; border:1px solid #233554; padding:8px 12px; border-radius:12px; background:#112240; flex: 1; min-width: 90px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                        <div style="color:${chartColors[i % chartColors.length]}; font-weight:bold; margin-bottom: 4px;">${escapeHTML(label)} ${pct}%</div>
-                        <div style="color:#E6F1FF; font-weight:bold;">NT$ ${val.toLocaleString()}</div>
-                    </div>`;
-            });
-            legendHtml += '</div>';
-            document.getElementById('customChartLegend').innerHTML = legendHtml;
+                legendHtml += `<div style="text-align:center; font-size:13px; border:1px solid var(--theme-border); padding:8px 12px; border-radius:12px; background:var(--theme-primary-light); flex: 1; min-width: 90px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"><div style="color:${currentColors[i % currentColors.length]}; font-weight:bold; margin-bottom: 4px;">${escapeHTML(label)} ${pct}%</div><div style="color:var(--theme-text-main); font-weight:bold;">NT$ ${val.toLocaleString()}</div></div>`;
+            }); legendHtml += '</div>'; document.getElementById('customChartLegend').innerHTML = legendHtml;
         }
 
-        // ==========================
-        // 匯率、分類與消費新增編輯
-        // ==========================
         function openManageCurrency() { renderManageCurrency(); document.getElementById('manageCurrencyModal').classList.add('open'); }
-        function renderManageCurrency() {
-            const list = document.getElementById('manageCurrencyList'); list.innerHTML = '';
-            Object.keys(appData.rates).forEach(code => {
-                if(code === 'TWD') return; 
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #233554';
-                div.innerHTML = `<div><strong style="color: #E6F1FF;">${escapeHTML(code)}</strong> <small style="color: #FFB703;">(匯率: ${appData.rates[code]})</small></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#FFB703; color:#0A192F; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#E63946; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑</button></div>`;
-                list.appendChild(div);
-            });
-            if(list.innerHTML === '') list.innerHTML = '<p style="color:#8892B0; font-size:14px; text-align:center;">目前沒有自訂幣別</p>';
-        }
-        function addManageCurrency() { const codeInput = document.getElementById('newManageCurrCode'); const rateInput = document.getElementById('newManageCurrRate'); const code = codeInput.value.trim().toUpperCase(); const rate = parseFloat(rateInput.value); if (!code || isNaN(rate) || rate <= 0) return showToast('請完整填寫幣別代碼與正確匯率', 'error'); appData.rates[code] = rate; saveData(); updateUI(); renderManageCurrency(); codeInput.value = ''; rateInput.value = ''; showToast('幣別已新增'); }
-        function editManageCurrency(code) { const newRate = prompt(`請輸入 ${code} 的新匯率 (對換 TWD):`, appData.rates[code]); const parsedRate = parseFloat(newRate); if(newRate && !isNaN(parsedRate) && parsedRate > 0) { appData.rates[code] = parsedRate; saveData(); updateUI(); renderManageCurrency(); showToast('匯率已更新');} }
-        function deleteManageCurrency(code) { if(confirm(`確定刪除 ${code} 幣別？`)) { delete appData.rates[code]; if(previousCurrency === code) previousCurrency = 'TWD'; saveData(); updateUI(); renderManageCurrency(); showToast('幣別已刪除');} }
+        function renderManageCurrency() { const list = document.getElementById('manageCurrencyList'); list.innerHTML = ''; Object.keys(appData.rates).forEach(code => { if(code === 'TWD') return; const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed var(--theme-border)'; div.innerHTML = `<div><strong style="color: var(--theme-text-main);">${escapeHTML(code)}</strong> <small style="color: var(--theme-primary);">(匯率: ${appData.rates[code]})</small></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:var(--theme-primary); color:var(--theme-primary-text); border:none; border-radius:8px; cursor:pointer;" onclick="editManageCurrency('${escapeHTML(code)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:var(--theme-danger); color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCurrency('${escapeHTML(code)}')">🗑</button></div>`; list.appendChild(div); }); if(list.innerHTML === '') list.innerHTML = '<p style="color:var(--theme-text-muted); font-size:14px; text-align:center;">目前沒有自訂幣別</p>'; }
+        function addManageCurrency() { const code = document.getElementById('newManageCurrCode').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('newManageCurrRate').value); if (!code || isNaN(rate) || rate <= 0) return showToast('請填寫完整代碼與匯率', 'error'); appData.rates[code] = rate; saveData(); updateUI(); renderManageCurrency(); document.getElementById('newManageCurrCode').value = ''; document.getElementById('newManageCurrRate').value = ''; showToast('幣別新增成功'); }
+        function editManageCurrency(code) { const newRate = prompt(`輸入 ${code} 新匯率 (對換 TWD):`, appData.rates[code]); const parsedRate = parseFloat(newRate); if(newRate && !isNaN(parsedRate) && parsedRate > 0) { appData.rates[code] = parsedRate; saveData(); updateUI(); renderManageCurrency(); showToast('匯率更新成功');} }
+        function deleteManageCurrency(code) { if(confirm(`確定刪除 ${code}？`)) { delete appData.rates[code]; if(previousCurrency === code) previousCurrency = 'TWD'; saveData(); updateUI(); renderManageCurrency(); showToast('已刪除');} }
 
         function openManageCategory() { renderManageCategory(); document.getElementById('manageCategoryModal').classList.add('open'); }
-        function renderManageCategory() {
-            const list = document.getElementById('manageCategoryList'); list.innerHTML = '';
-            appData.categories.forEach(cat => {
-                const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed #233554';
-                div.innerHTML = `<div><strong style="color: #E6F1FF;">${escapeHTML(cat)}</strong></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#FFB703; color:#0A192F; border:none; border-radius:8px; cursor:pointer;" onclick="editManageCategory('${escapeHTML(cat)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:#E63946; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCategory('${escapeHTML(cat)}')">🗑️</button></div>`;
-                list.appendChild(div);
-            });
-        }
-        function addManageCategory() { const input = document.getElementById('newManageCatInput'); const val = input.value.trim(); if (val && !appData.categories.includes(val)) { appData.categories.push(val); saveData(); updateUI(); renderManageCategory(); input.value = ''; showToast('分類已新增'); } else if (appData.categories.includes(val)) showToast('此分類已存在', 'warn'); }
-        function editManageCategory(oldName) {
-            const newName = prompt(`請輸入「${oldName}」的新名稱:`, oldName);
-            if(newName && newName.trim() !== '' && newName.trim() !== oldName) { const trimmed = newName.trim(); const idx = appData.categories.indexOf(oldName); if(idx > -1) { appData.categories[idx] = trimmed; appData.trips.forEach(t => t.expenses.forEach(exp => { if(exp.category === oldName) exp.category = trimmed; })); if (currentFilterCategory === oldName) currentFilterCategory = trimmed; if (previousCategory === oldName) previousCategory = trimmed; saveData(); updateUI(); renderManageCategory(); showToast('分類已更新'); } }
-        }
-        function deleteManageCategory(name) { if(confirm(`確定刪除「${name}」分類？\n(注意：不會刪除已使用此分類的歷史紀錄)`)) { appData.categories = appData.categories.filter(c => c !== name); if (currentFilterCategory === name) currentFilterCategory = 'ALL'; saveData(); updateUI(); renderManageCategory(); showToast('分類已刪除');} }
-        
+        function renderManageCategory() { const list = document.getElementById('manageCategoryList'); list.innerHTML = ''; appData.categories.forEach(cat => { const div = document.createElement('div'); div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.padding = '10px 0'; div.style.borderBottom = '1px dashed var(--theme-border)'; div.innerHTML = `<div><strong style="color: var(--theme-text-main);">${escapeHTML(cat)}</strong></div><div style="display: flex; gap: 4px;"><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:var(--theme-primary); color:var(--theme-primary-text); border:none; border-radius:8px; cursor:pointer;" onclick="editManageCategory('${escapeHTML(cat)}')">✏️</button><button style="width:auto; padding:8px 12px; margin:0; font-size:13px; background:var(--theme-danger); color:white; border:none; border-radius:8px; cursor:pointer;" onclick="deleteManageCategory('${escapeHTML(cat)}')">🗑️</button></div>`; list.appendChild(div); }); }
+        function addManageCategory() { const input = document.getElementById('newManageCatInput'); const val = input.value.trim(); if (val && !appData.categories.includes(val)) { appData.categories.push(val); saveData(); updateUI(); renderManageCategory(); input.value = ''; showToast('分類新增成功'); } else if (appData.categories.includes(val)) showToast('此分類已存在', 'warn'); }
+        function editManageCategory(oldName) { const newName = prompt(`輸入「${oldName}」新名稱:`, oldName); if(newName && newName.trim() !== '' && newName.trim() !== oldName) { const trimmed = newName.trim(); const idx = appData.categories.indexOf(oldName); if(idx > -1) { appData.categories[idx] = trimmed; appData.trips.forEach(t => t.expenses.forEach(exp => { if(exp.category === oldName) exp.category = trimmed; })); if (currentFilterCategory === oldName) currentFilterCategory = trimmed; if (previousCategory === oldName) previousCategory = trimmed; saveData(); updateUI(); renderManageCategory(); showToast('更新成功'); } } }
+        function deleteManageCategory(name) { if(confirm(`確定刪除「${name}」？(不影響歷史紀錄)`)) { appData.categories = appData.categories.filter(c => c !== name); if (currentFilterCategory === name) currentFilterCategory = 'ALL'; saveData(); updateUI(); renderManageCategory(); showToast('已刪除');} }
+
         function handleCategoryChange(mode) { const selectId = mode === 'add' ? 'itemCategory' : 'editExpCategory'; const val = document.getElementById(selectId).value; if (val === 'CUSTOM_CAT_TRIGGER') { document.getElementById(selectId).value = mode === 'add' && previousCategory ? previousCategory : appData.categories[0]; openManageCategory(); } else if(mode === 'add') { previousCategory = val; } }
 
         async function handleDateOrCurrencyChange(mode) {
-            const dateInputId = mode === 'add' ? 'itemDate' : 'editExpDate'; const currInputId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency';
-            const date = document.getElementById(dateInputId).value; const val = document.getElementById(currInputId).value;
-            if (!date || !val) return;
-            if (val === 'CUSTOM_TRIGGER') { if(mode === 'add') { closeModal('addExpenseModal'); handleCurrencyChange(val); } return; }
-            if (val === 'TWD') { if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; return; }
-            
-            const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
+            const date = document.getElementById(mode === 'add' ? 'itemDate' : 'editExpDate').value; const val = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency').value;
+            if (!date || !val) return; if (val === 'CUSTOM_TRIGGER') { if(mode === 'add') { closeModal('addExpenseModal'); document.getElementById('customCurrencyModal').classList.add('open'); } return; }
+            const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
+            if (val === 'TWD') { if(mode === 'add') currentFetchedAddRate = 1; else currentFetchedEditRate = 1; document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; return; }
+            document.getElementById(previewId).innerText = `換算台幣: ⏳ 查詢歷史匯率中...`;
             try {
-                let res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${val.toLowerCase()}.json`);
-                if (!res.ok) res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${val.toLowerCase()}.json`);
-                const data = await res.json();
-                let foundRate = (data && data[val.toLowerCase()] && data[val.toLowerCase()].twd) ? data[val.toLowerCase()].twd : (appData.rates[val] || 1);
-                if(mode === 'add') currentFetchedAddRate = foundRate; else currentFetchedEditRate = foundRate;
-            } catch(e) {
-                const fallbackRate = appData.rates[val] || 1; if(mode === 'add') currentFetchedAddRate = fallbackRate; else currentFetchedEditRate = fallbackRate;
-            }
+                let res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${val.toLowerCase()}.json`); if (!res.ok) res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${val.toLowerCase()}.json`);
+                const data = await res.json(); let foundRate = (data && data[val.toLowerCase()] && data[val.toLowerCase()].twd) ? data[val.toLowerCase()].twd : (appData.rates[val] || 1); if(mode === 'add') currentFetchedAddRate = foundRate; else currentFetchedEditRate = foundRate;
+            } catch(e) { const fallbackRate = appData.rates[val] || 1; if(mode === 'add') currentFetchedAddRate = fallbackRate; else currentFetchedEditRate = fallbackRate; }
             updateTWDPreview(mode);
         }
-
-        function updateTWDPreview(mode) { 
-            const currId = mode === 'add' ? 'itemCurrency' : 'editExpCurrency'; const currency = document.getElementById(currId).value; const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview';
-            if (currency === 'TWD') { document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; return; }
-            const amtId = mode === 'add' ? 'itemAmount' : 'editExpAmount'; const activeRate = mode === 'add' ? currentFetchedAddRate : currentFetchedEditRate; const amt = parseFloat(document.getElementById(amtId).value) || 0;
-            document.getElementById(previewId).innerText = `換算台幣: NT$ ${Math.round(amt * activeRate).toLocaleString()}`; 
-        }
-
-        function handleCurrencyChange(val) {
-            document.getElementById('customCurrencyModal').classList.add('open');
-        }
+        function updateTWDPreview(mode) { const currency = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency').value; const previewId = mode === 'add' ? 'twdPreview' : 'editTwdPreview'; if (currency === 'TWD') { document.getElementById(previewId).innerText = `換算台幣: (本幣無需換算)`; return; } const activeRate = mode === 'add' ? currentFetchedAddRate : currentFetchedEditRate; const amt = parseFloat(document.getElementById(mode === 'add' ? 'itemAmount' : 'editExpAmount').value) || 0; document.getElementById(previewId).innerText = `換算台幣: NT$ ${Math.round(amt * activeRate).toLocaleString()}`; }
 
         function addExpense() {
-            const name = document.getElementById('itemName').value.trim(); const enableDetails = document.getElementById('enableDetailsBtn').checked; const details = enableDetails ? document.getElementById('itemDetails').value.trim() : "";
-            const amount = parseFloat(document.getElementById('itemAmount').value); const currency = document.getElementById('itemCurrency').value; const category = document.getElementById('itemCategory').value;
-            const payer = document.getElementById('itemPayer').value.trim() || '我'; const date = document.getElementById('itemDate').value;
-            
-            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER' || category === 'CUSTOM_CAT_TRIGGER') return showToast('請填寫正確且完整的資訊', 'error');
-
+            const name = document.getElementById('itemName').value.trim(); const enableDetails = document.getElementById('enableDetailsBtn').checked; const details = enableDetails ? document.getElementById('itemDetails').value.trim() : ""; const amount = parseFloat(document.getElementById('itemAmount').value); const currency = document.getElementById('itemCurrency').value; const category = document.getElementById('itemCategory').value; const payer = document.getElementById('itemPayer').value.trim() || '我'; const date = document.getElementById('itemDate').value;
+            if (!name || isNaN(amount) || amount <= 0 || !date || currency === 'CUSTOM_TRIGGER' || category === 'CUSTOM_CAT_TRIGGER') return showToast('請填寫完整資訊', 'error');
             getActiveTrip().expenses.unshift({ id: Date.now(), name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedAddRate) }); saveData(); 
-            
-            document.getElementById('itemName').value = ''; document.getElementById('itemAmount').value = ''; document.getElementById('itemDetails').value = ''; document.getElementById('enableDetailsBtn').checked = false; toggleDetailsInput(false); updateUI();
-            
-            closeModal('addExpenseModal');
-            showToast("紀錄已新增");
+            document.getElementById('itemName').value = ''; document.getElementById('itemAmount').value = ''; document.getElementById('itemDetails').value = ''; document.getElementById('enableDetailsBtn').checked = false; toggleDetailsInput(false); updateUI(); closeModal('addExpenseModal'); showToast("紀錄已新增");
         }
-
         function setFilter(category, el) { currentFilterCategory = category; document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); updateUI(); }
-        
-        function deleteExpenseFromEdit() {
-            const id = parseInt(document.getElementById('editExpId').value);
-            if (confirm('確定要刪除這筆紀錄嗎？')) {
-                const trip = getActiveTrip();
-                trip.expenses = trip.expenses.filter(e => e.id !== id);
-                saveData();
-                updateUI();
-                closeModal('editExpenseModal');
-                showToast("紀錄已刪除");
-            }
-        }
-
+        function deleteExpenseFromEdit() { const id = parseInt(document.getElementById('editExpId').value); if (confirm('確定要刪除這筆紀錄嗎？')) { const trip = getActiveTrip(); trip.expenses = trip.expenses.filter(e => e.id !== id); saveData(); updateUI(); closeModal('editExpenseModal'); showToast("紀錄已刪除"); } }
         function openEditExpenseModal(id) {
             const trip = getActiveTrip(); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
             document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; document.getElementById('editExpPayer').value = exp.payer || '我';
-            const dateInput = document.getElementById('editExpDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate; dateInput.value = exp.date;
-            document.getElementById('editPayerInputContainer').style.display = (trip.settings.showPayerSummary !== false) ? 'block' : 'none';
-            document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            const dateInput = document.getElementById('editExpDate'); dateInput.min = trip.startDate; dateInput.max = trip.endDate; dateInput.value = exp.date; document.getElementById('editPayerInputContainer').style.display = (trip.settings.showPayerSummary !== false) ? 'block' : 'none'; document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
             currentFetchedEditRate = exp.rate || appData.rates[exp.currency] || 1; updateTWDPreview('edit'); document.getElementById('editExpenseModal').classList.add('open');
         }
-
         function saveExpenseEdit() {
             const id = parseInt(document.getElementById('editExpId').value); const name = document.getElementById('editExpName').value.trim(); const details = document.getElementById('editExpDetails').value.trim(); const amount = parseFloat(document.getElementById('editExpAmount').value); const currency = document.getElementById('editExpCurrency').value; const category = document.getElementById('editExpCategory').value; const payer = document.getElementById('editExpPayer').value.trim() || '我'; const date = document.getElementById('editExpDate').value;
             if (!name || isNaN(amount) || amount <= 0 || !date || category === 'CUSTOM_CAT_TRIGGER') return showToast('請填寫完整資訊', 'error');
             const trip = getActiveTrip(); const index = trip.expenses.findIndex(e => e.id === id);
-            if (index > -1) { 
-                trip.expenses[index] = { ...trip.expenses[index], name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedEditRate) }; 
-                saveData(); updateUI(); closeModal('editExpenseModal'); 
-                showToast("修改已儲存");
-            }
+            if (index > -1) { trip.expenses[index] = { ...trip.expenses[index], name, details, amount, currency, category, payer, date, rate: (currency === 'TWD' ? 1 : currentFetchedEditRate) }; saveData(); updateUI(); closeModal('editExpenseModal'); showToast("修改已儲存"); }
         }
 
-        // ==========================
-        // 總覽與報表匯出
-        // ==========================
+        // ====== 總覽與匯出 ======
         function openSummaryModal() {
-            const trip = getActiveTrip(); if (!trip) return;
-            const hasForeign = trip.expenses.some(e => e.currency && e.currency !== 'TWD');
-            const showPayer = trip.settings.showPayerSummary !== false;
-            
-            let html = '<table class="summary-table"><thead><tr><th>日期</th><th>分類</th><th>項目名稱</th><th>細項</th>';
-            if (hasForeign) html += '<th>原幣</th><th>幣別</th>';
-            if (showPayer) html += '<th>付款人</th>';
-            html += '<th>金額(TWD)</th></tr></thead><tbody>';
-
-            let total = 0;
-            const sortedExpenses = [...trip.expenses].sort((a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
-            
-            if (sortedExpenses.length === 0) {
-                html += `<tr><td colspan="${hasForeign ? (showPayer ? 8 : 7) : (showPayer ? 6 : 5)}" style="text-align:center; color:#8892B0; padding: 20px;">無消費紀錄</td></tr>`;
-            } else {
-                sortedExpenses.forEach(e => {
-                    const twd = Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1));
-                    total += twd;
-                    html += `<tr><td>${e.date}</td><td>${escapeHTML(e.category)}</td><td>${escapeHTML(e.name)}</td><td style="color:#8892B0;">${escapeHTML(e.details)}</td>`;
-                    if (hasForeign) html += `<td>${e.currency !== 'TWD' ? e.amount : '-'}</td><td>${e.currency !== 'TWD' ? e.currency : '-'}</td>`;
-                    if (showPayer) html += `<td>${escapeHTML(e.payer || '我')}</td>`;
-                    html += `<td>${twd.toLocaleString()}</td></tr>`;
-                });
+            const trip = getActiveTrip(); if (!trip) return; const hasForeign = trip.expenses.some(e => e.currency && e.currency !== 'TWD'); const showPayer = trip.settings.showPayerSummary !== false;
+            let html = '<table class="summary-table"><thead><tr><th>日期</th><th>分類</th><th>項目名稱</th><th>細項</th>'; if (hasForeign) html += '<th>原幣</th><th>幣別</th>'; if (showPayer) html += '<th>付款人</th>'; html += '<th>金額(TWD)</th></tr></thead><tbody>';
+            let total = 0; const sortedExpenses = [...trip.expenses].sort((a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
+            if (sortedExpenses.length === 0) { html += `<tr><td colspan="${hasForeign ? (showPayer ? 8 : 7) : (showPayer ? 6 : 5)}" style="text-align:center; color:var(--theme-text-muted); padding: 20px;">無消費紀錄</td></tr>`; } else {
+                sortedExpenses.forEach(e => { const twd = Math.round((parseFloat(e.amount) || 0) * (e.rate || appData.rates[e.currency] || 1)); total += twd; html += `<tr><td>${e.date}</td><td>${escapeHTML(e.category)}</td><td>${escapeHTML(e.name)}</td><td style="color:var(--theme-text-muted);">${escapeHTML(e.details)}</td>`; if (hasForeign) html += `<td>${e.currency !== 'TWD' ? e.amount : '-'}</td><td>${e.currency !== 'TWD' ? e.currency : '-'}</td>`; if (showPayer) html += `<td>${escapeHTML(e.payer || '我')}</td>`; html += `<td>${twd.toLocaleString()}</td></tr>`; });
             }
-
-            const colSpan = hasForeign ? (showPayer ? 7 : 6) : (showPayer ? 5 : 4);
-            html += `</tbody><tfoot><tr><td colspan="${colSpan}" style="text-align:right;">總計</td><td>NT$ ${total.toLocaleString()}</td></tr></tfoot></table>`;
-            
-            document.getElementById('summaryTableContainer').innerHTML = html;
-            document.getElementById('summaryModal').classList.add('open');
+            const colSpan = hasForeign ? (showPayer ? 7 : 6) : (showPayer ? 5 : 4); html += `</tbody><tfoot><tr><td colspan="${colSpan}" style="text-align:right;">總計</td><td>NT$ ${total.toLocaleString()}</td></tr></tfoot></table>`;
+            document.getElementById('summaryTableContainer').innerHTML = html; document.getElementById('summaryModal').classList.add('open');
         }
-
         function exportToCSV() {
-            const trip = getActiveTrip();
-            if (!trip || trip.expenses.length === 0) return showToast('目前沒有消費紀錄可匯出', 'error');
-            
-            const hasForeign = trip.expenses.some(e => e.currency && e.currency !== 'TWD');
-            const showPayer = trip.settings.showPayerSummary !== false;
-            
-            let csv = "\uFEFF日期,分類,項目名稱,細項說明";
-            if (hasForeign) csv += ",原幣金額,幣別";
-            if (showPayer) csv += ",付款人";
-            csv += ",金額(TWD)\n";
-
-            let exportExpenses = [...trip.expenses];
-            const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
-            exportExpenses.sort((a, b) => {
-                if (currentSortOrder === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id;
-                else if (currentSortOrder === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id;
-                else if (currentSortOrder === 'amount-desc') return getTwd(b) - getTwd(a) || b.id - a.id;
-                else if (currentSortOrder === 'amount-asc') return getTwd(a) - getTwd(b) || b.id - a.id;
-            });
-
+            const trip = getActiveTrip(); if (!trip || trip.expenses.length === 0) return showToast('目前無紀錄匯出', 'error');
+            const hasForeign = trip.expenses.some(e => e.currency && e.currency !== 'TWD'); const showPayer = trip.settings.showPayerSummary !== false;
+            let csv = "\uFEFF日期,分類,項目名稱,細項說明"; if (hasForeign) csv += ",原幣金額,幣別"; if (showPayer) csv += ",付款人"; csv += ",金額(TWD)\n";
+            let exportExpenses = [...trip.expenses]; const getTwd = (exp) => Math.round((parseFloat(exp.amount) || 0) * (exp.rate || appData.rates[exp.currency] || 1));
+            exportExpenses.sort((a, b) => { if (currentSortOrder === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id; else if (currentSortOrder === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id; else if (currentSortOrder === 'amount-desc') return getTwd(b) - getTwd(a) || b.id - a.id; else return getTwd(a) - getTwd(b) || b.id - a.id; });
             let totalTWD = 0;
-            exportExpenses.forEach(e => {
-                const twd = getTwd(e); totalTWD += twd;
-                const cleanName = String(e.name).replace(/"/g, '""'); const cleanDetails = String(e.details || '').replace(/"/g, '""');
-                let row = `"${e.date}","${e.category}","${cleanName}","${cleanDetails}"`;
-                if (hasForeign) row += `,${e.amount},"${e.currency}"`;
-                if (showPayer) row += `,"${String(e.payer || '我').replace(/"/g, '""')}"`;
-                row += `,${twd}\n`; csv += row;
-            });
-            
-            const emptyCols = hasForeign ? (showPayer ? 6 : 5) : (showPayer ? 4 : 3);
-            csv += `${",".repeat(emptyCols)},"總計",${totalTWD}\n`;
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob); link.download = `${trip.name.replace(/[\\/:*?"<>|]/g, '_')}_消費明細.csv`;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            showToast("CSV 已下載完成");
+            exportExpenses.forEach(e => { const twd = getTwd(e); totalTWD += twd; let row = `"${e.date}","${e.category}","${String(e.name).replace(/"/g, '""')}","${String(e.details || '').replace(/"/g, '""')}"`; if (hasForeign) row += `,${e.amount},"${e.currency}"`; if (showPayer) row += `,"${String(e.payer || '我').replace(/"/g, '""')}"`; row += `,${twd}\n`; csv += row; });
+            const emptyCols = hasForeign ? (showPayer ? 6 : 5) : (showPayer ? 4 : 3); csv += `${",".repeat(emptyCols)},"總計",${totalTWD}\n`;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${trip.name.replace(/[\\/:*?"<>|]/g, '_')}_消費明細.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); showToast("CSV 匯出完成");
         }
 
-        // ==========================
-        // 其他
-        // ==========================
+        // ====== 雜項 ======
         function openAddTripModal() { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=getLocalDateString(); document.getElementById('newTripEndInput').value=getLocalDateString(); document.getElementById('addTripModal').classList.add('open'); }
         function createNewTrip() { 
             const name = document.getElementById('newTripNameInput').value.trim(); const start = document.getElementById('newTripStartInput').value; const end = document.getElementById('newTripEndInput').value; const budget = parseFloat(document.getElementById('newTripBudgetInput').value) || 0; 
             if (!name) return showToast('請輸入名稱！', 'error'); 
             const t = { id: 'trip_'+Date.now(), name, startDate: start, endDate: end, budget, expenses: [], folderId: null, order: Date.now(), settings: { showBudget: true, showPayerSummary: true, showChart: true }, members: [auth.currentUser.uid], inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase() }; 
-            appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false); 
-            showToast('新帳本已建立');
+            appData.trips.push(t); appData.activeTripId = t.id; saveData(); updateUI(); closeModal('addTripModal'); toggleSidebar(false); showToast('新帳本已建立');
         }
-        
         function cancelCustomCurrency() { closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = previousCurrency || 'TWD'; handleDateOrCurrencyChange('add'); }
         async function fetchCurrencyRate() { 
-            if (isFetchingRate) return; 
-            const rawCode = document.getElementById('customCodeInput').value.trim().toUpperCase(); if (!rawCode || !/^[A-Z]{3,5}$/.test(rawCode)) return showToast('請輸入 3-5 位有效代碼', 'error'); 
+            if (isFetchingRate) return; const rawCode = document.getElementById('customCodeInput').value.trim().toUpperCase(); if (!rawCode || !/^[A-Z]{3,5}$/.test(rawCode)) return showToast('代碼錯誤', 'error'); 
             isFetchingRate = true; document.getElementById('apiStatusContainer').style.display = 'block'; document.getElementById('apiStatusMessage').innerHTML = '⏳ 查詢中...'; 
             try { 
                 const res = await fetch(`https://open.er-api.com/v6/latest/${encodeURIComponent(rawCode)}`); const data = await res.json(); 
-                if (data.result === 'success' && data.rates && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('apiStatusMessage').style.color = '#FFB703'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; } 
-                else { document.getElementById('apiStatusMessage').innerHTML = '⚠ 找不到匯率，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E63946'; document.getElementById('applyCustomBtn').disabled = false; } 
-            } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠ 連線失敗，請手動輸入'; document.getElementById('apiStatusMessage').style.color = '#E63946'; document.getElementById('applyCustomBtn').disabled = false; } 
+                if (data.result === 'success' && data.rates && data.rates.TWD) { document.getElementById('apiStatusMessage').innerHTML = '✅ 取得成功'; document.getElementById('apiStatusMessage').style.color = 'var(--theme-primary)'; document.getElementById('customRateInput').value = data.rates.TWD; document.getElementById('applyCustomBtn').disabled = false; } 
+                else { document.getElementById('apiStatusMessage').innerHTML = '⚠ 找不到匯率'; document.getElementById('apiStatusMessage').style.color = 'var(--theme-danger)'; document.getElementById('applyCustomBtn').disabled = false; } 
+            } catch(e) { document.getElementById('apiStatusMessage').innerHTML = '⚠ 連線失敗'; document.getElementById('apiStatusMessage').style.color = 'var(--theme-danger)'; document.getElementById('applyCustomBtn').disabled = false; } 
             finally { setTimeout(() => { isFetchingRate = false; }, 2000); } 
             document.getElementById('customRateInput').oninput = () => document.getElementById('applyCustomBtn').disabled = !(parseFloat(document.getElementById('customRateInput').value) > 0); 
         }
         function applyCustomCurrency() { 
             const code = document.getElementById('customCodeInput').value.trim().toUpperCase(); const rate = parseFloat(document.getElementById('customRateInput').value); 
-            if (!code || isNaN(rate) || rate <= 0) return showToast('請輸入正確的幣別與匯率', 'error'); 
+            if (!code || isNaN(rate) || rate <= 0) return showToast('請填寫完整資訊', 'error'); 
             appData.rates[code] = rate; saveData(); previousCurrency = code; updateUI(); 
-            
-            closeModal('customCurrencyModal'); 
-            document.getElementById('itemCurrency').value = code; 
-            if (!document.getElementById('addExpenseModal').classList.contains('open')) {
-                document.getElementById('addExpenseModal').classList.add('open');
-            }
-            handleDateOrCurrencyChange('add'); 
+            closeModal('customCurrencyModal'); document.getElementById('itemCurrency').value = code; if (!document.getElementById('addExpenseModal').classList.contains('open')) document.getElementById('addExpenseModal').classList.add('open'); handleDateOrCurrencyChange('add'); 
         }
     </script>
 </body>
