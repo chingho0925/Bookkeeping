@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- PWA 支援與系統主題自動適應 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F0F5FA">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050B14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="彗星帳簿">
+    <title>彗星帳簿</title>
+    
+    <!-- 引入模組化樣式表 -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase 官方套件 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js 圖表套件 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SortableJS 拖曳套件 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+    <div id="network-status">📡 離線模式 (資料將於連線後自動同步)</div>
+    <div id="loading-overlay"><div class="spinner"></div></div>
+
+    <!-- 登入畫面 -->
+    <div id="login-overlay">
+        <div class="login-card glass-panel">
+            <div class="comet-logo">☄️</div>
+            <h2>彗星帳簿</h2>
+            <p>即時同步，與旅伴共筆每一刻</p>
+            <button class="btn-google" id="btn-login">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                </svg>
+                <span>使用 Google 帳號登入</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 側邊欄 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar glass-panel" id="sidebar">
+        <div class="sidebar-header">
+            <span>☄️ 帳本與資料夾</span>
+            <span class="close-btn" id="btn-close-sidebar">✕</span>
+        </div>
+        <div class="sidebar-content">
+            <div id="user-info"></div>
+            <div id="sidebar-items-container"></div>
+            
+            <div id="sidebar-normal-actions">
+                <div class="action-row">
+                    <button class="primary-btn" id="btn-open-add-trip">➕ 新帳本</button>
+                    <button class="manage-btn" id="btn-create-folder">📁 新資料夾</button>
+                </div>
+                <div class="action-row">
+                    <button class="secondary-btn w-100" id="btn-join-shared">🤝 加入共用帳本</button>
+                </div>
+                <button class="accent-btn w-100" id="btn-toggle-edit-mode">📝 批次管理 / 刪除帳本</button>
+                <button class="btn-logout w-100" id="btn-logout">🚪 登出帳號</button>
+            </div>
+
+            <div id="sidebar-edit-actions" style="display: none;">
+                <button class="danger-btn w-100" id="btn-delete-selected">🗑️ 刪除選取項目</button>
+                <button class="primary-btn w-100 mt-10" id="btn-finish-edit-mode">✅ 完成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主介面 -->
+    <div class="app-container" id="main-app">
+        <!-- 頂端 Header -->
+        <div class="header glass-panel">
+            <button class="icon-btn" id="btn-open-sidebar">☰</button>
+            <div class="header-title-container">
+                <h1 id="header-trip-name">載入中...</h1>
+                <div id="header-trip-period" class="trip-period-text">--</div>
+            </div>
+            <div></div> 
+        </div>
+
+        <!-- 分頁 1：明細 -->
+        <div id="tab-records" class="tab-view active">
+            <div class="card glass-panel" id="budgetCard">
+                <div class="card-header">
+                    <h3>💰 預算進度 (TWD)</h3>
+                    <span class="link-btn" id="btn-edit-budget">修改 ⚙️</span>
+                </div>
+                <div class="budget-stats">
+                    <span class="muted-text">已花費: <span id="total-spent" class="highlight-text">0</span></span>
+                    <span class="muted-text">總預算: <span id="total-budget" class="main-text">0</span></span>
+                </div>
+                <div class="budget-bar">
+                    <div class="budget-fill" id="budget-fill"></div>
+                    <div class="budget-text" id="budget-text">0%</div>
+                </div>
+            </div>
+
+            <div class="card glass-panel no-pad-bottom">
+                <div class="list-header flex-wrap">
+                    <h3>🧾 帳目明細</h3>
+                    <div class="list-controls">
+                        <span id="record-total" class="tag-total">NT$ 0</span>
+                        <select id="sortSelect" class="select-sm">
+                            <option value="date-desc">📅 近到遠</option>
+                            <option value="date-asc">📅 遠到近</option>
+                            <option value="amount-desc">💰 高到低</option>
+                            <option value="amount-asc">💰 低到高</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-container" id="filterContainer"></div>
+                <div id="expense-list"></div>
+            </div>
+        </div>
+
+        <!-- 分頁 2：統計 -->
+        <div id="tab-stats" class="tab-view">
+            <div class="card glass-panel" id="chartCard">
+                <h3>📊 消費分類佔比</h3>
+                <div class="chart-container"><canvas id="expenseChart"></canvas></div>
+                <div id="customChartLegend"></div>
+            </div>
+            
+            <div class="card glass-panel" id="payerSummaryCard">
+                <h3>👫 成員付款統計</h3>
+                <div id="payerSummaryList"></div>
+            </div>
+            
+            <div class="card glass-panel">
+                <h3>📈 詳細報表</h3>
+                <button class="manage-btn w-100 mb-10" id="btn-open-summary">📋 檢視表格總覽</button>
+                <button class="primary-btn w-100" id="btn-export-csv">📥 下載 CSV 報表</button>
+            </div>
+        </div>
+
+        <!-- 分頁 3：設定 -->
+        <div id="tab-settings" class="tab-view">
+            <div class="card glass-panel">
+                <h3>🎨 介面外觀設定</h3>
+                <p class="desc-text">切換您喜歡的主題風格</p>
+                <select id="themeSelect" class="select-lg">
+                    <option value="system">📱 跟隨系統預設</option>
+                    <option value="light">🌞 淺色模式</option>
+                    <option value="dark">🌙 星空深色</option>
+                </select>
+            </div>
+            
+            <div class="card glass-panel">
+                <h3>⚙️ 目前帳本設定</h3>
+                <p class="desc-text">修改名稱、預算，分享邀請碼給旅伴。</p>
+                <button class="manage-btn w-100 text-left" id="btn-open-trip-settings">✏️ 編輯「<span id="settings-trip-name"></span>」設定</button>
+            </div>
+            
+            <div class="card glass-panel">
+                <h3>🛠️ 全域設定 (共用)</h3>
+                <p class="desc-text">自訂您的分類名稱與專屬幣別</p>
+                <button class="manage-btn w-100 text-left mb-10" id="btn-manage-categories">🏷️ 管理消費分類</button>
+                <button class="manage-btn w-100 text-left" id="btn-manage-currencies">💱 管理自訂幣別與匯率</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 懸浮按鈕 (FAB) - SVG加號圖示 -->
+    <div class="fab" id="fabBtn">
+        <svg viewBox="0 0 24 24" style="width: 32px; height: 32px; stroke: #050B14; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </div>
+
+    <!-- 底部導覽列 (純碼 SVG 向量圖示) -->
+    <div class="bottom-nav glass-panel">
+        <div class="nav-item active" data-tab="records">
+            <svg class="nav-icon-svg" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+        </div>
+        <div class="nav-item" data-tab="stats">
+            <svg class="nav-icon-svg" viewBox="0 0 24 24">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+            </svg>
+        </div>
+        <div class="nav-item" data-tab="settings">
+            <svg class="nav-icon-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ================= 彈跳視窗區 (Modals) ================= -->
+    <div class="modal bottom-sheet" id="addExpenseModal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>📝 新增一筆消費</h3>
+                <span class="close-btn" data-target="addExpenseModal">✕</span>
+            </div>
+            <div class="form-group"><div><input type="date" id="itemDate" required></div></div>
+            <div class="form-group">
+                <input type="text" id="itemName" placeholder="項目名稱 (例如：晚餐)" maxlength="50" required style="flex-grow: 1;">
+                <label class="inline-checkbox-label"><input type="checkbox" id="enableDetailsBtn"> ➕ 細項</label>
+            </div>
+            <input type="text" id="itemDetails" placeholder="細項說明" maxlength="100" style="display: none;">
+            
+            <div class="form-group">
+                <div style="flex: 1.5;">
+                    <input type="text" inputmode="text" id="itemAmount" placeholder="金額 (可輸入算式如: 150*2)" required>
+                </div>
+                <div style="flex: 1;"><select id="itemCurrency"></select></div>
+            </div>
+            <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
+            
+            <div class="form-group">
+                <div style="flex: 1;"><select id="itemCategory"></select></div>
+                <div id="payerInputContainer" style="flex: 1.5;"><input type="text" id="itemPayer" placeholder="付款人" value="我" maxlength="20"></div>
+            </div>
+            <button class="primary-btn w-100 mt-20" id="btn-submit-expense">🚀 記上一筆</button>
+        </div>
+    </div>
+
+    <!-- 編輯消費 Modal -->
+    <div class="modal" id="editExpenseModal">
+        <div class="modal-content glass-panel">
+            <h3>✏️ 編輯消費紀錄</h3>
+            <input type="hidden" id="editExpId">
+            <div class="form-group"><div><input type="date" id="editExpDate"></div></div>
+            <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
+            <input type="text" id="editExpDetails" placeholder="細項說明" maxlength="100">
+            <div class="form-group mt-10">
+                <div style="flex: 1.5;"><input type="text" inputmode="text" id="editExpAmount" placeholder="金額 (支援算式)"></div>
+                <div style="flex: 1;"><select id="editExpCurrency"></select></div>
+            </div>
+            <div id="editTwdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
+            <div class="form-group mt-10">
+                <div style="flex: 1;"><select id="editExpCategory"></select></div>
+                <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
+            </div>
+            <div class="form-group mt-20">
+                <button class="danger-btn flex-1" id="btn-delete-expense">🗑️ 刪除</button>
+                <button class="manage-btn flex-1 close-btn" data-target="editExpenseModal">取消</button>
+                <button class="primary-btn flex-1-5" id="btn-save-edit">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dynamic-modals-container"></div>
+    <script src="app.js"></script>
+</body>
+</html>
