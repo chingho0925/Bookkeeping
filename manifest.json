@@ -1,0 +1,15 @@
+{
+  "name": "彗星帳簿",
+  "short_name": "彗星帳簿",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F1F8FC",
+  "theme_color": "#247FA6",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☄️</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

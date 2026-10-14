@@ -104,6 +104,11 @@
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
         .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
         .trip-menu-item.active { border-left-color: var(--theme-primary); background: var(--theme-secondary); }
+        .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
+        .trip-menu-item:active, .folder-header:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.35; }
+        .sortable-chosen { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .sortable-drag { opacity: 0.95; }
         .folder-header { padding: 12px 15px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid var(--theme-border); }
 
         /* SVG 底部導覽列 */
@@ -394,7 +399,9 @@
     </div>
 
     <!-- 其餘管理與設定彈窗 -->
-    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">💱 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" placeholder="代碼" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" placeholder="匯率" step="any"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-currency">➕</button></div><div id="manageCurrencyList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">💱 管理幣別與匯率</h3><p class="desc-text">匯率表示 1 單位外幣可換算的新台幣金額。</p><div class="form-group"><input type="text" id="newManageCurrCode" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-currency">➕</button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup">🌐 查詢當日匯率</button><div id="manageCurrencyList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+
+    <div class="modal" id="liveRateModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px;">🌐 查詢當日匯率</h3><p class="desc-text">輸入 3～5 碼幣別代碼，查詢 1 單位外幣可換算的新台幣金額。</p><div class="form-group"><input type="text" id="liveRateCurrencyCode" placeholder="例如 USD、JPY、GBP" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="desc-text" role="status" aria-live="polite"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
     
     <div class="modal" id="manageCategoryModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">🏷️ 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
     
@@ -402,7 +409,7 @@
     
     <div class="modal" id="tripSettingsModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">⚙ 帳本設定</h3><div style="background:var(--theme-secondary); padding:15px; border-radius:14px; text-align:center; margin-bottom:15px; border:1px dashed var(--theme-primary);"><label style="font-size:14px; font-weight:bold;">🤝 旅伴邀請碼</label><div id="modalTripInviteCode" style="font-size:24px; font-weight:bold; color:var(--theme-primary); letter-spacing:4px; margin-top:5px;">------</div></div><input type="text" id="modalTripNameInput" placeholder="帳本名稱"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="modalTripStartInput"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="modalTripEndInput"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="modalTripBudgetInput"></div><div style="margin-top:18px;"><strong style="color:var(--theme-text-heading);">顯示項目</strong><label class="settings-checkbox-label"><input type="checkbox" id="tripShowBudget"> 預算進度</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowPayerSummary"> 成員付款統計</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowCategoryChart"> 消費分類佔比圓餅圖</label><p class="desc-text" style="margin:10px 0 0;">取消勾選的項目會隱藏；詳細報表仍會保留。</p></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="tripSettingsModal">取消</button><button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-trip-settings">儲存設定</button></div></div></div>
 
-    <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px;">📋 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:14px;">關閉</button></div></div>
+    <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px;">📋 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv">📥 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <!-- 腳本整合 -->
     <script>
@@ -411,8 +418,11 @@
         
         db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
 
-        let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let sortableInstances = [];
+        let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let isSidebarDragging = false; let sortableInstances = [];
         let expenseChartInstance = null;
+        let currentFetchedAddRate = 1; let currentFetchedEditRate = 1; let currentLookupRate = null; let currentLookupTarget = 'manage';
+        let rateRequestIds = { add: 0, edit: 0 }; let rateLoading = { add: false, edit: false }; let liveRateRequestId = 0;
+        let previousCurrency = { add: 'TWD', edit: 'TWD' };
         let unsubUser = null; let unsubTrips = null;
         const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trips: [] };
 
@@ -670,7 +680,10 @@
                 });
             }
 
-            renderSelectOptions('itemCurrency', appData.rates, 'TWD');
+            const addCurrency = document.getElementById('itemCurrency').value;
+            const editCurrency = document.getElementById('editExpCurrency').value;
+            renderSelectOptions('itemCurrency', appData.rates, appData.rates[addCurrency] ? addCurrency : (appData.rates[previousCurrency.add] ? previousCurrency.add : 'TWD'), false, true);
+            renderSelectOptions('editExpCurrency', appData.rates, appData.rates[editCurrency] ? editCurrency : (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
             renderSelectOptions('itemCategory', appData.categories, appData.categories[0], true);
             renderChart(trip, totalTWD);
         }
@@ -730,6 +743,9 @@
         document.getElementById('btn-open-sidebar').onclick = () => toggleSidebar(true); 
         document.getElementById('btn-close-sidebar').onclick = () => toggleSidebar(false); 
         document.getElementById('sidebarOverlay').onclick = () => toggleSidebar(false);
+        document.getElementById('btn-create-folder').onclick = createFolder;
+        document.getElementById('btn-delete-selected').onclick = deleteSelectedItems;
+        document.getElementById('btn-join-shared').onclick = joinSharedTrip;
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
         
@@ -746,7 +762,7 @@
                     const children = appData.trips.filter(trip => trip.folderId === item.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                     const expanded = item.expanded !== false;
                     const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="folder">' : '';
-                    html += '<div data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span>' + escapeHtml(item.name) + '</span></div></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
+                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span>' + escapeHtml(item.name) + '</span></div></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
                     children.forEach(trip => { html += renderTripItem(trip); });
                     html += '</div></div>';
                 } else {
@@ -755,6 +771,7 @@
             });
             container.innerHTML = html;
             container.onclick = event => {
+                if (isSidebarDragging) return;
                 if (event.target.closest('.sidebar-cb')) return;
                 const folderHeader = event.target.closest('.folder-header[data-folder-id]');
                 if (folderHeader) {
@@ -767,6 +784,7 @@
                     else switchTrip(tripItem.dataset.id);
                 }
             };
+            initSortable();
         }
         function renderTripItem(trip) {
             const safeId = escapeHtml(trip.id);
@@ -783,7 +801,10 @@
             const folder = appData.folders.find(item => item.id === id);
             if (folder) {
                 folder.expanded = !folder.expanded;
-                db.collection("users").doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true });
+                db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true }).catch(error => {
+                    console.error('儲存資料夾狀態失敗:', error);
+                    showToast('資料夾狀態同步失敗', 'error');
+                });
                 renderSidebarContent();
             }
         }
@@ -797,6 +818,167 @@
             toggleSidebar(false);
             updateUI();
         }
+
+        function initSortable() {
+            sortableInstances.forEach(instance => instance.destroy());
+            sortableInstances = [];
+            if (isSidebarEditMode || typeof Sortable === 'undefined') return;
+            const options = {
+                group: { name: 'ledger-folders', pull: true, put: true },
+                animation: 160,
+                delay: 180,
+                delayOnTouchOnly: true,
+                fallbackOnBody: true,
+                swapThreshold: 0.65,
+                emptyInsertThreshold: 32,
+                draggable: '[data-type="trip"], [data-type="folder"]',
+                onStart: () => { isSidebarDragging = true; },
+                onMove: event => {
+                    if (event.dragged.dataset.type === 'folder' && event.to.classList.contains('folder-content')) return false;
+                    if (event.dragged.dataset.type === 'trip') {
+                        const folderItem = event.related?.closest('[data-type="folder"]') || event.to.closest('.folder-item');
+                        const folderId = folderItem?.dataset.id || event.to.dataset.folderId;
+                        const content = folderId ? Array.from(document.querySelectorAll('#sidebar-items-container .folder-content')).find(element => element.dataset.folderId === folderId) : null;
+                        if (content && content.style.display === 'none') {
+                            content.style.display = 'block';
+                            const folder = appData.folders.find(item => item.id === folderId);
+                            if (folder) folder.expanded = true;
+                        }
+                    }
+                },
+                onEnd: async () => {
+                    try {
+                        await updateDataFromDOM();
+                        renderSidebarContent();
+                    } finally {
+                        setTimeout(() => { isSidebarDragging = false; }, 80);
+                    }
+                }
+            };
+            const root = document.getElementById('root-sortable');
+            if (root) sortableInstances.push(new Sortable(root, options));
+            document.querySelectorAll('#sidebar-items-container .folder-content').forEach(element => {
+                sortableInstances.push(new Sortable(element, options));
+            });
+        }
+
+        async function updateDataFromDOM() {
+            const root = document.getElementById('root-sortable');
+            if (!root || !auth.currentUser) return;
+            const before = new Map(appData.trips.map(trip => [trip.id, { folderId: trip.folderId || null, order: Number(trip.order || 0) }]));
+            const beforeFolderOrder = new Map(appData.folders.map(folder => [folder.id, Number(folder.order || 0)]));
+            let rootOrder = 0;
+            Array.from(root.children).forEach(element => {
+                if (element.dataset.type === 'folder') {
+                    const folder = appData.folders.find(item => item.id === element.dataset.id);
+                    if (!folder) return;
+                    folder.order = rootOrder++ * 100;
+                    const children = element.querySelector('.folder-content');
+                    Array.from(children?.children || []).forEach((child, index) => {
+                        const trip = appData.trips.find(item => item.id === child.dataset.id && child.dataset.type === 'trip');
+                        if (trip) { trip.folderId = folder.id; trip.order = index * 100; }
+                    });
+                } else if (element.dataset.type === 'trip') {
+                    const trip = appData.trips.find(item => item.id === element.dataset.id);
+                    if (trip) { trip.folderId = null; trip.order = rootOrder++ * 100; }
+                }
+            });
+            const batch = db.batch();
+            appData.trips.forEach(trip => {
+                const prior = before.get(trip.id);
+                if (!prior || prior.folderId !== (trip.folderId || null) || prior.order !== Number(trip.order || 0)) {
+                    batch.set(db.collection('trips').doc(trip.id), { folderId: trip.folderId || null, order: Number(trip.order || 0) }, { merge: true });
+                }
+            });
+            batch.set(db.collection('users').doc(auth.currentUser.uid), { folders: appData.folders }, { merge: true });
+            try {
+                await batch.commit();
+                showToast('帳本分類與排序已儲存');
+            } catch (error) {
+                appData.trips.forEach(trip => {
+                    const prior = before.get(trip.id);
+                    if (prior) { trip.folderId = prior.folderId; trip.order = prior.order; }
+                });
+                appData.folders.forEach(folder => { if (beforeFolderOrder.has(folder.id)) folder.order = beforeFolderOrder.get(folder.id); });
+                console.error('儲存帳本排序失敗:', error);
+                showToast('排序同步失敗，已還原原本順序', 'error');
+            }
+        }
+
+        async function createFolder() {
+            const name = prompt('請輸入資料夾名稱：');
+            if (!name || !name.trim()) return;
+            const folder = { id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() };
+            appData.folders = [...(appData.folders || []), folder];
+            try {
+                await db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true });
+                renderSidebarContent();
+                showToast('資料夾已建立，可拖曳帳本分類');
+            } catch (error) {
+                appData.folders = appData.folders.filter(item => item.id !== folder.id);
+                console.error('建立資料夾失敗:', error);
+                showToast('建立資料夾失敗，請稍後再試', 'error');
+            }
+        }
+
+        async function deleteSelectedItems() {
+            const selected = Array.from(document.querySelectorAll('.sidebar-cb:checked'));
+            if (!selected.length) return showToast('請先勾選帳本或資料夾', 'error');
+            const selectedTrips = new Set(selected.filter(item => item.dataset.type === 'trip').map(item => item.dataset.id));
+            const selectedFolders = new Set(selected.filter(item => item.dataset.type === 'folder').map(item => item.dataset.id));
+            appData.trips.filter(trip => selectedFolders.has(trip.folderId)).forEach(trip => selectedTrips.add(trip.id));
+            const remaining = appData.trips.filter(trip => !selectedTrips.has(trip.id));
+            if (!remaining.length) return showToast('至少保留一個帳本，請先建立新帳本', 'error');
+            if (!confirm('確定移除所選帳本與資料夾嗎？共用帳本只會讓目前帳號退出，其他成員的資料不會刪除。')) return;
+            const batch = db.batch();
+            const uid = auth.currentUser.uid;
+            selectedTrips.forEach(id => {
+                const trip = appData.trips.find(item => item.id === id);
+                if (trip && (trip.members || []).filter(member => member !== uid).length) {
+                    batch.update(db.collection('trips').doc(id), { members: firebase.firestore.FieldValue.arrayRemove(uid) });
+                } else if (trip) {
+                    batch.delete(db.collection('trips').doc(id));
+                }
+            });
+            const nextFolders = appData.folders.filter(folder => !selectedFolders.has(folder.id));
+            const nextActiveTripId = selectedTrips.has(appData.activeTripId) ? remaining[0].id : appData.activeTripId;
+            batch.set(db.collection('users').doc(uid), { folders: nextFolders, activeTripId: nextActiveTripId }, { merge: true });
+            try {
+                await batch.commit();
+                appData.trips = remaining;
+                appData.folders = nextFolders;
+                appData.activeTripId = nextActiveTripId;
+                isSidebarEditMode = false;
+                document.getElementById('sidebar-normal-actions').style.display = 'block';
+                document.getElementById('sidebar-edit-actions').style.display = 'none';
+                updateUI();
+                renderSidebarContent();
+                showToast('已移除選取項目');
+            } catch (error) {
+                console.error('移除帳本失敗:', error);
+                showToast('移除失敗，請確認網路與權限', 'error');
+            }
+        }
+
+        async function joinSharedTrip() {
+            const code = prompt('請輸入 6 碼帳本邀請碼：');
+            if (!code || !code.trim()) return;
+            try {
+                const snapshot = await db.collection('trips').where('inviteCode', '==', code.trim().toUpperCase()).limit(1).get();
+                if (snapshot.empty) return showToast('找不到此邀請碼', 'error');
+                const tripDoc = snapshot.docs[0];
+                const trip = tripDoc.data();
+                if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員');
+                await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid) });
+                await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: trip.id }, { merge: true });
+                appData.activeTripId = trip.id;
+                toggleSidebar(false);
+                showToast('已加入共用帳本');
+            } catch (error) {
+                console.error('加入共用帳本失敗:', error);
+                showToast('加入失敗，請確認邀請碼及權限', 'error');
+            }
+        }
         // 記帳與算式解析
         function parseAmount(input) { try { const safeStr = input.replace(/[^0-9\.\+\-\*\/]/g, ''); if(!safeStr) return NaN; return Math.round(Function(`'use strict'; return (${safeStr})`)() * 100) / 100; } catch(e) { return NaN; } }
         document.getElementById('itemAmount').addEventListener('blur', function() { let val = parseAmount(this.value); if(!isNaN(val)) this.value = val; updateTWDPreview('add');});
@@ -804,6 +986,7 @@
 
         document.getElementById('btn-submit-expense').onclick = async function() {
             if (isSubmitting) return;
+            if (rateLoading.add) return showToast('正在更新匯率，請稍候再記帳', 'error');
             const name = document.getElementById('itemName').value.trim();
             const amount = parseAmount(document.getElementById('itemAmount').value);
             const date = document.getElementById('itemDate').value;
@@ -820,7 +1003,7 @@
                 category: document.getElementById('itemCategory').value,
                 payer: document.getElementById('itemPayer').value.trim() || '我',
                 details: document.getElementById('enableDetailsBtn').checked ? document.getElementById('itemDetails').value.trim() : '',
-                rate: currency === 'TWD' ? 1 : (appData.rates[currency] || 1)
+                rate: currency === 'TWD' ? 1 : (currentFetchedAddRate || appData.rates[currency] || 1)
             };
             const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : [];
             isSubmitting = true;
@@ -847,9 +1030,14 @@
         function openEditExpenseModal(id) {
             const trip = appData.trips.find(t => t.id === appData.activeTripId); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
             document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; document.getElementById('editExpPayer').value = exp.payer || '我'; document.getElementById('editExpDate').value = exp.date; document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            currentFetchedEditRate = Number(exp.rate) || Number(appData.rates[exp.currency]) || 1;
+            previousCurrency.edit = exp.currency || 'TWD';
+            rateMeta.edit = exp.currency === 'TWD' ? '' : '記帳時匯率';
             updateTWDPreview('edit'); openModal('editExpenseModal');
+            handleCurrencyDateChange('edit');
         }
         document.getElementById('btn-save-edit').onclick = async () => {
+            if (rateLoading.edit) return showToast('正在更新匯率，請稍候再儲存', 'error');
             const id = parseInt(document.getElementById('editExpId').value, 10);
             const name = document.getElementById('editExpName').value.trim();
             const amount = parseAmount(document.getElementById('editExpAmount').value);
@@ -867,7 +1055,7 @@
                 category: document.getElementById('editExpCategory').value,
                 payer: document.getElementById('editExpPayer').value.trim() || '我',
                 details: document.getElementById('editExpDetails').value.trim(),
-                rate: currency === 'TWD' ? 1 : (appData.rates[currency] || 1)
+                rate: currency === 'TWD' ? 1 : (currentFetchedEditRate || appData.rates[currency] || 1)
             };
             const offlineExpenses = currentExpenses.map(expense => String(expense.id) === String(id) ? { ...expense, ...fields } : expense);
             try {
@@ -896,12 +1084,371 @@
             }
         };
         // 預覽與輔助
-        function updateTWDPreview(mode) { const amt = parseAmount(document.getElementById(mode === 'add' ? 'itemAmount' : 'editExpAmount').value) || 0; const curr = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency').value; const el = document.getElementById(mode === 'add' ? 'twdPreview' : 'editTwdPreview'); if (curr === 'TWD') { el.innerText = `換算台幣: (本幣無需換算)`; } else { el.innerText = `換算台幣: NT$ ${Math.round(amt * (appData.rates[curr]||1)).toLocaleString()}`; } }
+        const rateMeta = { add: '', edit: '' };
+        const dailyRateCache = new Map();
+        function currentRateFor(mode) { return mode === 'add' ? currentFetchedAddRate : currentFetchedEditRate; }
+        function setCurrentRateFor(mode, rate) { if (mode === 'add') currentFetchedAddRate = rate; else currentFetchedEditRate = rate; }
+        function updateTWDPreview(mode) {
+            const currencySelect = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
+            const amountInput = document.getElementById(mode === 'add' ? 'itemAmount' : 'editExpAmount');
+            const preview = document.getElementById(mode === 'add' ? 'twdPreview' : 'editTwdPreview');
+            const currency = currencySelect.value;
+            if (currency === 'TWD') { preview.textContent = '換算台幣: (本幣無需換算)'; return; }
+            const amount = parseAmount(amountInput.value) || 0;
+            const rate = Number(currentRateFor(mode)) || Number(appData?.rates?.[currency]) || 1;
+            preview.textContent = '換算台幣: NT$ ' + Math.round(amount * rate).toLocaleString() + (rateMeta[mode] ? ' · ' + rateMeta[mode] : '');
+        }
+
+        async function getDailyTwdRate(currency, date = 'latest') {
+            const code = String(currency || '').trim().toLowerCase();
+            if (!/^[a-z]{3,5}$/.test(code)) throw new Error('幣別代碼格式不正確');
+            if (code === 'twd') return { rate: 1, date: date === 'latest' ? getLocalDateString() : date };
+            const cacheKey = code + '|' + date;
+            if (dailyRateCache.has(cacheKey)) return dailyRateCache.get(cacheKey);
+            const base = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@';
+            const urls = date === 'latest'
+                ? [base + 'latest/v1/currencies/' + code + '.min.json', 'https://latest.currency-api.pages.dev/v1/currencies/' + code + '.min.json']
+                : [base + encodeURIComponent(date) + '/v1/currencies/' + code + '.min.json', base + 'latest/v1/currencies/' + code + '.min.json', 'https://latest.currency-api.pages.dev/v1/currencies/' + code + '.min.json'];
+            let lastError;
+            for (const url of urls) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 8000);
+                try {
+                    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+                    if (!response.ok) throw new Error('匯率服務回應 ' + response.status);
+                    const data = await response.json();
+                    const rate = Number(data?.[code]?.twd);
+                    if (!Number.isFinite(rate) || rate <= 0) throw new Error('查無此幣別的台幣匯率');
+                    const result = { rate, date: data.date || date };
+                    dailyRateCache.set(cacheKey, result);
+                    return result;
+                } catch (error) {
+                    lastError = error;
+                } finally {
+                    clearTimeout(timeout);
+                }
+            }
+            throw lastError || new Error('匯率服務暫時無法使用');
+        }
+
+        async function handleCurrencyDateChange(mode) {
+            const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
+            const date = document.getElementById(mode === 'add' ? 'itemDate' : 'editExpDate').value || getLocalDateString();
+            const currency = select.value;
+            if (currency === 'ONLINE_LOOKUP') {
+                select.value = previousCurrency[mode] || 'TWD';
+                openLiveRateLookup(mode);
+                return;
+            }
+            previousCurrency[mode] = currency;
+            const requestId = ++rateRequestIds[mode];
+            if (currency === 'TWD') {
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, 1);
+                rateMeta[mode] = '';
+                updateTWDPreview(mode);
+                return;
+            }
+            const savedRate = Number(appData?.rates?.[currency]) || 1;
+            rateLoading[mode] = true;
+            setCurrentRateFor(mode, savedRate);
+            rateMeta[mode] = '更新當日匯率中…';
+            updateTWDPreview(mode);
+            try {
+                const result = await getDailyTwdRate(currency, date);
+                if (requestId !== rateRequestIds[mode] || select.value !== currency) return;
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, result.rate);
+                rateMeta[mode] = '匯率日期 ' + result.date;
+            } catch (error) {
+                if (requestId !== rateRequestIds[mode] || select.value !== currency) return;
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, savedRate);
+                rateMeta[mode] = appData?.rates?.[currency] ? '使用已儲存匯率（線上查詢失敗）' : '無可用匯率';
+                console.warn('線上匯率查詢失敗:', error);
+            }
+            updateTWDPreview(mode);
+        }
+
+        function openLiveRateLookup(target = 'manage') {
+            currentLookupTarget = target;
+            currentLookupRate = null;
+            const codeInput = document.getElementById('liveRateCurrencyCode');
+            codeInput.value = '';
+            document.getElementById('liveRateStatus').textContent = '匯率資料每日更新，新增支出時會依消費日期重新查詢。';
+            document.getElementById('btn-apply-live-rate').disabled = true;
+            openModal('liveRateModal');
+            codeInput.focus();
+        }
+
+        async function fetchLiveRateForDialog() {
+            const code = document.getElementById('liveRateCurrencyCode').value.trim().toUpperCase();
+            const status = document.getElementById('liveRateStatus');
+            const applyButton = document.getElementById('btn-apply-live-rate');
+            if (!/^[A-Z]{3,5}$/.test(code)) { status.textContent = '請輸入 3～5 碼幣別代碼。'; return; }
+            const requestId = ++liveRateRequestId;
+            const date = currentLookupTarget === 'add' ? document.getElementById('itemDate').value : currentLookupTarget === 'edit' ? document.getElementById('editExpDate').value : 'latest';
+            status.textContent = '查詢匯率中…';
+            applyButton.disabled = true;
+            try {
+                const result = await getDailyTwdRate(code, date || 'latest');
+                if (requestId !== liveRateRequestId) return;
+                currentLookupRate = { code, ...result };
+                status.textContent = '1 ' + code + ' ≈ NT$ ' + result.rate.toLocaleString(undefined, { maximumFractionDigits: 6 }) + '（資料日期：' + result.date + '）';
+                applyButton.disabled = false;
+            } catch (error) {
+                if (requestId !== liveRateRequestId) return;
+                currentLookupRate = null;
+                status.textContent = '查詢失敗：請確認代碼與網路連線。';
+                console.warn('即時匯率查詢失敗:', error);
+            }
+        }
+
+        async function saveUserRates() {
+            if (!auth.currentUser) throw new Error('請先登入');
+            await db.collection('users').doc(auth.currentUser.uid).set({ rates: appData.rates }, { merge: true });
+        }
+
+        async function applyLiveRateToApp() {
+            if (!currentLookupRate) return;
+            const { code, rate, date } = currentLookupRate;
+            const oldRates = { ...appData.rates };
+            appData.rates[code] = rate;
+            try {
+                await saveUserRates();
+                updateUI();
+                renderManageCurrencies();
+                if (currentLookupTarget === 'add' || currentLookupTarget === 'edit') {
+                    const mode = currentLookupTarget;
+                    const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
+                    select.value = code;
+                    previousCurrency[mode] = code;
+                    setCurrentRateFor(mode, rate);
+                    rateLoading[mode] = false;
+                    rateMeta[mode] = '匯率日期 ' + date;
+                    updateTWDPreview(mode);
+                }
+                closeModal('liveRateModal');
+                showToast('已套用 ' + code + ' 當日匯率');
+            } catch (error) {
+                appData.rates = oldRates;
+                console.error('儲存匯率失敗:', error);
+                showToast('匯率已查到，但儲存失敗', 'error');
+            }
+        }
+
+        function renderManageCurrencies() {
+            const list = document.getElementById('manageCurrencyList');
+            list.replaceChildren();
+            Object.entries(appData.rates || {}).filter(([code]) => code !== 'TWD').sort(([a], [b]) => a.localeCompare(b)).forEach(([code, rate]) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--theme-border);';
+                const label = document.createElement('span');
+                label.textContent = code + '　1 ' + code + ' = NT$ ' + Number(rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                const actions = document.createElement('div');
+                actions.style.cssText = 'display:flex;gap:6px;';
+                [['edit', '修改'], ['delete', '刪除']].forEach(([action, text]) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = action === 'delete' ? 'danger-btn' : 'manage-btn';
+                    button.style.cssText = 'width:auto;margin:0;padding:7px 10px;font-size:13px;';
+                    button.dataset.action = action;
+                    button.dataset.currency = code;
+                    button.textContent = text;
+                    actions.appendChild(button);
+                });
+                row.append(label, actions);
+                list.appendChild(row);
+            });
+            if (!list.children.length) list.innerHTML = '<p class="desc-text" style="text-align:center;margin:14px 0;">目前沒有自訂幣別</p>';
+        }
+
+        async function addOrUpdateCurrency() {
+            const code = document.getElementById('newManageCurrCode').value.trim().toUpperCase();
+            const rate = Number(document.getElementById('newManageCurrRate').value);
+            if (!/^[A-Z]{3,5}$/.test(code) || code === 'TWD' || !Number.isFinite(rate) || rate <= 0) return showToast('請輸入有效幣別代碼和大於 0 的匯率', 'error');
+            const prior = appData.rates[code];
+            appData.rates[code] = rate;
+            try {
+                await saveUserRates();
+                updateUI();
+                renderManageCurrencies();
+                document.getElementById('newManageCurrCode').value = '';
+                document.getElementById('newManageCurrRate').value = '';
+                showToast(prior ? '匯率已更新' : '幣別已新增');
+            } catch (error) {
+                if (prior === undefined) delete appData.rates[code]; else appData.rates[code] = prior;
+                console.error('儲存幣別失敗:', error);
+                showToast('儲存幣別失敗', 'error');
+            }
+        }
+
+        async function handleCurrencyManagerAction(event) {
+            const button = event.target.closest('button[data-action][data-currency]');
+            if (!button) return;
+            const code = button.dataset.currency;
+            const action = button.dataset.action;
+            if (action === 'edit') {
+                const raw = prompt('輸入 1 ' + code + ' 可換算的新台幣金額：', appData.rates[code]);
+                if (raw === null) return;
+                document.getElementById('newManageCurrCode').value = code;
+                document.getElementById('newManageCurrRate').value = raw;
+                return addOrUpdateCurrency();
+            }
+            if (action === 'delete' && confirm('刪除 ' + code + '？已記帳的消費仍會保留原匯率。')) {
+                const oldRates = { ...appData.rates };
+                delete appData.rates[code];
+                try { await saveUserRates(); updateUI(); renderManageCurrencies(); showToast('幣別已刪除'); }
+                catch (error) { appData.rates = oldRates; console.error(error); showToast('刪除失敗', 'error'); }
+            }
+        }
+
+        function renderManageCategories() {
+            const list = document.getElementById('manageCategoryList');
+            list.replaceChildren();
+            (appData.categories || []).forEach(category => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--theme-border);';
+                const label = document.createElement('span');
+                label.textContent = category;
+                const actions = document.createElement('div');
+                actions.style.cssText = 'display:flex;gap:6px;';
+                [['rename', '改名'], ['delete', '刪除']].forEach(([action, text]) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = action === 'delete' ? 'danger-btn' : 'manage-btn';
+                    button.style.cssText = 'width:auto;margin:0;padding:7px 10px;font-size:13px;';
+                    button.dataset.action = action;
+                    button.dataset.category = category;
+                    button.textContent = text;
+                    actions.appendChild(button);
+                });
+                row.append(label, actions);
+                list.appendChild(row);
+            });
+        }
+
+        async function addManageCategory() {
+            const input = document.getElementById('newManageCatInput');
+            const category = input.value.trim();
+            if (!category) return showToast('請輸入分類名稱', 'error');
+            if (appData.categories.includes(category)) return showToast('此分類已存在', 'error');
+            const previous = appData.categories;
+            appData.categories = [...previous, category];
+            try {
+                await db.collection('users').doc(auth.currentUser.uid).set({ categories: appData.categories }, { merge: true });
+                input.value = '';
+                renderManageCategories();
+                updateUI();
+                showToast('分類已新增');
+            } catch (error) {
+                appData.categories = previous;
+                console.error('新增分類失敗:', error);
+                showToast('新增分類失敗', 'error');
+            }
+        }
+
+        async function handleCategoryManagerAction(event) {
+            const button = event.target.closest('button[data-action][data-category]');
+            if (!button) return;
+            const oldName = button.dataset.category;
+            if (button.dataset.action === 'delete') {
+                if (!confirm('刪除「' + oldName + '」分類？已記錄的消費不會刪除。')) return;
+                const previous = appData.categories;
+                appData.categories = previous.filter(category => category !== oldName);
+                try {
+                    await db.collection('users').doc(auth.currentUser.uid).set({ categories: appData.categories }, { merge: true });
+                    if (currentFilter === oldName) currentFilter = 'ALL';
+                    renderManageCategories();
+                    updateUI();
+                    showToast('分類已刪除');
+                } catch (error) {
+                    appData.categories = previous;
+                    console.error('刪除分類失敗:', error);
+                    showToast('刪除分類失敗', 'error');
+                }
+                return;
+            }
+            const newName = prompt('輸入「' + oldName + '」的新名稱：', oldName);
+            if (newName === null || !newName.trim() || newName.trim() === oldName) return;
+            const trimmed = newName.trim();
+            if (appData.categories.includes(trimmed)) return showToast('此分類已存在', 'error');
+            const oldCategories = appData.categories;
+            const changedTrips = appData.trips.filter(trip => (trip.expenses || []).some(expense => expense.category === oldName));
+            try {
+                for (const trip of changedTrips) {
+                    const current = Array.isArray(trip.expenses) ? trip.expenses : [];
+                    const updated = current.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense);
+                    await updateTripExpenses(trip.id, expenses => expenses.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense), updated);
+                    trip.expenses = updated;
+                }
+                appData.categories = oldCategories.map(category => category === oldName ? trimmed : category);
+                await db.collection('users').doc(auth.currentUser.uid).set({ categories: appData.categories }, { merge: true });
+                if (currentFilter === oldName) currentFilter = trimmed;
+                renderManageCategories();
+                updateUI();
+                showToast('分類與既有紀錄已更新');
+            } catch (error) {
+                console.error('重新命名分類失敗:', error);
+                showToast('部分資料可能尚未同步，請重新整理確認', 'error');
+            }
+        }
+
+        function exportToCSV() {
+            const trip = appData?.trips?.find(item => item.id === appData.activeTripId);
+            if (!trip) return showToast('找不到目前帳本', 'error');
+            const csvCell = value => {
+                let text = String(value ?? '');
+                if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;
+                return '"' + text.replace(/"/g, '""') + '"';
+            };
+            const rows = [['日期', '分類', '項目名稱', '細項說明', '原幣金額', '幣別', '付款人', '記帳匯率 (TWD)', '金額 (TWD)']];
+            const expenses = [...(trip.expenses || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            let total = 0;
+            expenses.forEach(expense => {
+                const currency = expense.currency || 'TWD';
+                const amount = Number(expense.amount || 0);
+                const rate = currency === 'TWD' ? 1 : Number(expense.rate || appData.rates[currency] || 1);
+                const twd = Math.round(amount * rate);
+                total += twd;
+                rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', amount, currency, expense.payer || '我', rate, twd]);
+            });
+            rows.push(['', '', '', '', '', '', '總計', '', total]);
+            const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = (String(trip.name || '帳本').replace(/[\\/:*?"<>|]/g, '_')) + '_消費明細.csv';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('CSV 報表已下載');
+        }
+
+        document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add'));
+        document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit'));
+        document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add'));
+        document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit'));
+        document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add'));
+        document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
+        document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); });
+        document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency);
+        document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction);
+        document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage'));
+        document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog);
+        document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
+        document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); });
+        document.getElementById('btn-add-category').addEventListener('click', addManageCategory);
+        document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction);
+        document.getElementById('btn-export-csv').addEventListener('click', exportToCSV);
+        document.getElementById('btn-export-summary-csv').addEventListener('click', exportToCSV);
         document.getElementById('itemCurrency').onchange = () => updateTWDPreview('add'); document.getElementById('editExpCurrency').onchange = () => updateTWDPreview('edit');
         function getTwd(exp) { return Math.round(exp.amount * (exp.rate || appData.rates[exp.currency] || 1)); }
         function showToast(msg, type='success') { const box = document.getElementById('toast-container'); const t = document.createElement('div'); t.className='toast-msg'; t.style.background = type==='error'?'var(--theme-danger)':'var(--theme-primary)'; t.style.color = '#FFF'; t.innerText = msg; box.appendChild(t); setTimeout(()=>t.style.opacity='1', 10); setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 2500); }
         function setFilter(cat) { currentFilter = cat; updateUI(); }
-        function openModal(id) { document.getElementById(id).classList.add('open'); if(id === 'addExpenseModal') document.getElementById('itemDate').value = getLocalDateString(); }
+        function openModal(id) { document.getElementById(id).classList.add('open'); if(id === 'addExpenseModal') { document.getElementById('itemDate').value = getLocalDateString(); handleCurrencyDateChange('add'); } }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         document.querySelectorAll('.close-btn').forEach(btn => { btn.onclick = function() { const target = this.getAttribute('data-target'); if(target) closeModal(target); } });
 
@@ -980,13 +1527,43 @@
         }
         document.getElementById('btn-open-summary').addEventListener('click', renderSummaryTable);
         
-        document.getElementById('btn-open-add-trip').onclick = () => { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=getLocalDateString(); document.getElementById('newTripEndInput').value=getLocalDateString(); openModal('addTripModal'); };
-        document.getElementById('btn-create-trip').onclick = async () => { const name = document.getElementById('newTripNameInput').value.trim(); if(!name) return showToast('輸入名稱', 'error'); await createNewTripDirectly(name, auth.currentUser.uid); closeModal('addTripModal'); toggleSidebar(false); showToast('新帳本已建立'); };
-        async function createNewTripDirectly(name, uid) { const t = { id: 'trip_'+Date.now(), name, startDate: getLocalDateString(), endDate: getLocalDateString(), budget: 0, showBudget: true, showPayerSummary: true, showCategoryChart: true, expenses: [], folderId: null, order: Date.now(), members: [uid], inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase() }; await db.collection("trips").doc(t.id).set(t); await db.collection("users").doc(uid).set({ activeTripId: t.id }, { merge: true }); }
+        document.getElementById('btn-open-add-trip').onclick = () => {
+            document.getElementById('newTripNameInput').value = '';
+            document.getElementById('newTripStartInput').value = getLocalDateString();
+            document.getElementById('newTripEndInput').value = getLocalDateString();
+            document.getElementById('newTripBudgetInput').value = '';
+            openModal('addTripModal');
+        };
+        document.getElementById('btn-create-trip').onclick = async () => {
+            const name = document.getElementById('newTripNameInput').value.trim();
+            const startDate = document.getElementById('newTripStartInput').value;
+            const endDate = document.getElementById('newTripEndInput').value;
+            const budget = Number(document.getElementById('newTripBudgetInput').value) || 0;
+            if (!name || !startDate || !endDate || startDate > endDate || budget < 0) return showToast('請確認帳本名稱、日期範圍與預算', 'error');
+            const button = document.getElementById('btn-create-trip');
+            button.disabled = true;
+            try {
+                await createNewTripDirectly(name, auth.currentUser.uid, startDate, endDate, budget);
+                closeModal('addTripModal');
+                toggleSidebar(false);
+                showToast('新帳本已建立');
+            } catch (error) {
+                console.error('建立帳本失敗:', error);
+                showToast('建立帳本失敗，請確認網路與權限', 'error');
+            } finally {
+                button.disabled = false;
+            }
+        };
+        async function createNewTripDirectly(name, uid, startDate = getLocalDateString(), endDate = startDate, budget = 0) {
+            const trip = { id: 'trip_' + Date.now(), name, startDate, endDate, budget, showBudget: true, showPayerSummary: true, showCategoryChart: true, expenses: [], folderId: null, order: Date.now(), members: [uid], inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase() };
+            await db.collection('trips').doc(trip.id).set(trip);
+            await db.collection('users').doc(uid).set({ activeTripId: trip.id }, { merge: true });
+            return trip;
+        }
         
         document.getElementById('sortSelect').onchange = function() { currentSort = this.value; updateUI(); };
         
-        function renderSelectOptions(selectId, dataObj, defaultVal, isArray = false) {
+        function renderSelectOptions(selectId, dataObj, defaultVal, isArray = false, includeOnlineLookup = false) {
             const select = document.getElementById(selectId);
             if (!select) return;
             select.replaceChildren();
@@ -1003,8 +1580,10 @@
                 Object.entries(dataObj || {}).forEach(([currency, rate]) => {
                     if (currency !== 'TWD') appendOption(currency, currency + ' (' + rate + ')');
                 });
+                if (includeOnlineLookup) appendOption('ONLINE_LOOKUP', '🌐 查詢當日匯率／新增幣別…');
             }
             select.value = defaultVal;
+            if (select.value !== String(defaultVal)) select.value = 'TWD';
         }
     </script>
 </body>
