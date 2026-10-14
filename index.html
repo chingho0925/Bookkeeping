@@ -21,6 +21,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SortableJS 拖曳套件 -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function' || typeof firebase.firestore !== 'function') {
+                const overlay = document.getElementById('loading-overlay');
+                if (!overlay) return;
+                overlay.innerHTML = '<div style="max-width:320px;padding:24px;text-align:center;"><h2>Firebase 套件無法載入</h2><p>請確認網路可連線至 Firebase CDN，然後重新載入。</p><button class="primary-btn" onclick="location.reload()">重新載入</button></div>';
+                overlay.style.display = 'flex';
+            }
+        });
+    </script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
@@ -430,23 +440,38 @@
 
             const finishStartup = () => {
                 if (startupFailed || !userDataLoaded || !tripsLoaded || !appData || latestTrips.length === 0) return;
-                appData.trips = latestTrips;
-                if (!appData.activeTripId || !latestTrips.find(t => t.id === appData.activeTripId)) {
-                    appData.activeTripId = latestTrips[0].id;
-                    db.collection("users").doc(user.uid).set({ activeTripId: latestTrips[0].id }, { merge: true }).catch(showStartupError);
+                try {
+                    appData.trips = latestTrips;
+                    if (!appData.activeTripId || !latestTrips.find(t => t.id === appData.activeTripId)) {
+                        appData.activeTripId = latestTrips[0].id;
+                        db.collection("users").doc(user.uid).set({ activeTripId: latestTrips[0].id }, { merge: true }).catch(showStartupError);
+                    }
+                    updateUI();
+                    renderSidebarContent();
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'block';
+                } catch (error) {
+                    showStartupError(error);
                 }
-                updateUI();
-                renderSidebarContent();
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
             };
 
             unsubUser = db.collection("users").doc(user.uid).onSnapshot(doc => {
-                let uData = doc.exists ? doc.data() : JSON.parse(JSON.stringify(defaultAppData));
-                if (!appData) appData = { ...uData, trips: latestTrips };
-                else appData = { ...appData, ...uData, trips: latestTrips };
+                const storedData = doc.exists ? doc.data() : {};
+                const baseData = appData || {
+                    ...defaultAppData,
+                    rates: { ...defaultAppData.rates },
+                    categories: [...defaultAppData.categories],
+                    folders: [],
+                    trips: []
+                };
+                appData = { ...baseData, ...storedData, trips: latestTrips };
+                appData.rates = { ...defaultAppData.rates, ...(appData.rates || {}) };
+                appData.categories = Array.isArray(appData.categories) && appData.categories.length
+                    ? appData.categories
+                    : [...defaultAppData.categories];
+                appData.folders = Array.isArray(appData.folders) ? appData.folders : [];
                 userDataLoaded = true;
-                applyTheme(appData.theme);
+                applyTheme(appData.theme || 'system');
                 document.getElementById('user-info').innerText = `👤 ${appData.customUserName || user.displayName || '使用者'}`;
                 finishStartup();
             }, showStartupError);
