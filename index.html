@@ -415,20 +415,52 @@
         });
 
         function setupRealtimeListeners(user) {
+            let userDataLoaded = false;
+            let tripsLoaded = false;
+            let latestTrips = [];
+            let startupFailed = false;
+
+            const showStartupError = (error) => {
+                console.error("載入資料失敗:", error);
+                startupFailed = true;
+                const overlay = document.getElementById('loading-overlay');
+                overlay.innerHTML = '<div style="max-width:320px;padding:24px;text-align:center;"><h2>資料載入失敗</h2><p>請確認網路連線與 Firebase 權限設定，再重新載入。</p><button class="primary-btn" onclick="location.reload()">重新載入</button></div>';
+                overlay.style.display = 'flex';
+            };
+
+            const finishStartup = () => {
+                if (startupFailed || !userDataLoaded || !tripsLoaded || !appData || latestTrips.length === 0) return;
+                appData.trips = latestTrips;
+                if (!appData.activeTripId || !latestTrips.find(t => t.id === appData.activeTripId)) {
+                    appData.activeTripId = latestTrips[0].id;
+                    db.collection("users").doc(user.uid).set({ activeTripId: latestTrips[0].id }, { merge: true }).catch(showStartupError);
+                }
+                updateUI();
+                renderSidebarContent();
+                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+            };
+
             unsubUser = db.collection("users").doc(user.uid).onSnapshot(doc => {
                 let uData = doc.exists ? doc.data() : JSON.parse(JSON.stringify(defaultAppData));
-                if(!appData) appData = { ...uData, trips: [] }; else appData = { ...appData, ...uData };
-                applyTheme(appData.theme); document.getElementById('user-info').innerText = `👤 ${appData.customUserName || user.displayName || '使用者'}`; updateUI(); renderSidebarContent();
-            });
+                if (!appData) appData = { ...uData, trips: latestTrips };
+                else appData = { ...appData, ...uData, trips: latestTrips };
+                userDataLoaded = true;
+                applyTheme(appData.theme);
+                document.getElementById('user-info').innerText = `👤 ${appData.customUserName || user.displayName || '使用者'}`;
+                finishStartup();
+            }, showStartupError);
 
             unsubTrips = db.collection("trips").where("members", "array-contains", user.uid).onSnapshot(snap => {
-                let trips = []; snap.forEach(d => trips.push(d.data()));
-                if (trips.length === 0) { createNewTripDirectly("我的新帳本", user.uid); return; }
-                if (appData) { appData.trips = trips;
-                    if (!appData.activeTripId || !trips.find(t => t.id === appData.activeTripId)) { appData.activeTripId = trips[0].id; db.collection("users").doc(user.uid).set({ activeTripId: trips[0].id }, { merge: true }); }
-                    updateUI(); renderSidebarContent(); document.getElementById('loading-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'block';
+                latestTrips = [];
+                snap.forEach(d => latestTrips.push(d.data()));
+                tripsLoaded = true;
+                if (latestTrips.length === 0) {
+                    createNewTripDirectly("我的新帳本", user.uid).catch(showStartupError);
+                    return;
                 }
-            });
+                finishStartup();
+            }, showStartupError);
         }
 
         function updateUI() {
