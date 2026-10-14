@@ -402,6 +402,7 @@
         db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
 
         let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let sortableInstances = [];
+        let expenseChartInstance = null;
         let unsubUser = null; let unsubTrips = null;
         const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trips: [] };
 
@@ -673,13 +674,17 @@
             });
             const categoryNames = Object.keys(categories);
             if (categoryNames.length === 0) {
+                if (expenseChartInstance) {
+                    expenseChartInstance.destroy();
+                    expenseChartInstance = null;
+                }
                 document.getElementById('chartCard').style.display = 'none';
                 return;
             }
             document.getElementById('chartCard').style.display = 'block';
-            if (expenseChart) expenseChart.destroy();
+            if (expenseChartInstance) expenseChartInstance.destroy();
             const colors = ['#4A90E2', '#FFB703', '#8ECAE6', '#0A192F', '#BDE0FE', '#E63946', '#219EBC', '#FFD166'];
-            expenseChart = new Chart(ctx, {
+            expenseChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: { labels: categoryNames, datasets: [{ data: Object.values(categories), backgroundColor: colors, borderWidth: 0 }] },
                 options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
