@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA 支援與系統主題自動適應 -->
     <link rel="manifest" href="manifest.json">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F0F5FA">
@@ -13,38 +12,147 @@
     <meta name="apple-mobile-web-app-title" content="彗星帳簿">
     <title>彗星帳簿</title>
     
-    <!-- 引入模組化樣式表 -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-    <!-- Chart.js 圖表套件 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SortableJS 拖曳套件 -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
+        
+        :root {
+            --theme-bg: #F0F5FA; --theme-bg-dot: #C8D7E8; --theme-text-main: #1C2E4A; --theme-text-heading: #0A192F; --theme-text-muted: #6B7A90;
+            --theme-primary: #4A90E2; --theme-primary-hover: #357ABD; --theme-primary-text: #FFFFFF; --theme-secondary: #E1EDF8; 
+            --theme-accent: #FFB703; --theme-accent-hover: #E5A400; --theme-card-bg: rgba(255, 255, 255, 0.85); --theme-header-bg: rgba(10, 25, 47, 0.95);
+            --theme-header-text: #FFFFFF; --theme-border: rgba(200, 215, 232, 0.6); --theme-input-bg: rgba(255, 255, 255, 0.9); 
+            --theme-nav-bg: rgba(255, 255, 255, 0.95); --theme-modal-overlay: rgba(10, 25, 47, 0.6); --theme-danger: #E63946; --theme-sidebar-item: #FFFFFF;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --theme-bg: #050B14; --theme-bg-dot: #1A2744; --theme-text-main: #E6F1FF; --theme-text-heading: #FFB703; --theme-text-muted: #8892B0;
+                --theme-primary: #FFB703; --theme-primary-hover: #E5A400; --theme-primary-text: #050B14; --theme-secondary: #112240; 
+                --theme-accent: #FFB703; --theme-accent-hover: #E5A400; --theme-card-bg: rgba(17, 34, 64, 0.75); --theme-header-bg: rgba(2, 12, 27, 0.95);
+                --theme-header-text: #FFB703; --theme-border: rgba(35, 53, 84, 0.6); --theme-input-bg: rgba(2, 12, 27, 0.8); 
+                --theme-nav-bg: rgba(2, 12, 27, 0.95); --theme-modal-overlay: rgba(2, 12, 27, 0.8); --theme-sidebar-item: rgba(255,255,255,0.05);
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --theme-bg: #050B14; --theme-bg-dot: #1A2744; --theme-text-main: #E6F1FF; --theme-text-heading: #FFB703; --theme-text-muted: #8892B0;
+            --theme-primary: #FFB703; --theme-primary-hover: #E5A400; --theme-primary-text: #050B14; --theme-secondary: #112240; 
+            --theme-accent: #FFB703; --theme-card-bg: rgba(17, 34, 64, 0.75); --theme-header-bg: rgba(2, 12, 27, 0.95);
+            --theme-header-text: #FFB703; --theme-border: rgba(35, 53, 84, 0.6); --theme-input-bg: rgba(2, 12, 27, 0.8); 
+            --theme-nav-bg: rgba(2, 12, 27, 0.95); --theme-modal-overlay: rgba(2, 12, 27, 0.8); --theme-sidebar-item: rgba(255,255,255,0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Klee One', 'LXGW WenKai TC', cursive; background-color: var(--theme-bg); background-image: radial-gradient(var(--theme-bg-dot) 1px, transparent 1px); background-size: 20px 20px; color: var(--theme-text-main); margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
+        h1, h2, h3 { color: var(--theme-text-heading) !important; margin: 0; }
+
+        .glass-panel { background: var(--theme-card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--theme-border); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); }
+        .app-container { max-width: 600px; margin: 0 auto; padding: 15px 15px 90px 15px; display: none; }
+        .card { padding: 20px; border-radius: 20px; margin-top: 15px; border-left: 6px solid var(--theme-primary); transition: transform 0.2s, background 0.4s; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; }
+        .header { color: var(--theme-header-text); padding: 15px 20px; border-radius: 20px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: 10px; }
+        .header-title-container { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .header h1 { font-size: 20px; font-weight: 700; color: var(--theme-header-text) !important; }
+        .trip-period-text { font-size: 13px; opacity: 0.85; margin-top: 4px; color: var(--theme-text-muted); }
+
+        input, select, button { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 14px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); transition: all 0.2s; outline: none; }
+        input:focus, select:focus { border-color: var(--theme-primary); box-shadow: 0 0 0 4px rgba(255, 183, 3, 0.15); transform: translateY(-1px); }
+        .primary-btn { background-color: var(--theme-primary); color: var(--theme-primary-text); border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; }
+        .primary-btn:hover { background-color: var(--theme-primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,183,3,0.3); }
+        .primary-btn:active { transform: scale(0.97); }
+        .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .secondary-btn { background-color: var(--theme-border); color: var(--theme-text-heading); border: none; font-weight: bold; padding: 14px; border-radius: 14px; }
+        .danger-btn { background-color: var(--theme-danger); color: #FFF; font-weight: bold; border: none; border-radius: 14px; }
+        .manage-btn { background: var(--theme-secondary); color: var(--theme-text-main); border: 1px solid var(--theme-primary); font-weight: bold; }
+        .icon-btn, .close-btn { background: none; border: none; padding: 0; margin: 0; font-size: 24px; cursor: pointer; color: inherit; box-shadow: none; width: auto; font-weight: bold;}
+        .fab { position: fixed; bottom: 80px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: var(--theme-accent); display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px rgba(255, 183, 3, 0.4); cursor: pointer; z-index: 90; transition: transform 0.2s; }
+        .fab:active { transform: scale(0.85); }
+
+        .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; } .desc-text { font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px; } .form-group { display: flex; gap: 10px; margin-bottom: 6px;} .form-group > div { flex: 1; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;}
+        .real-time-preview { font-size: 14px; color: var(--theme-primary); margin-top: 4px; text-align: right; font-weight: bold; }
+
+        /* Sidebar 修復 */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--theme-modal-overlay); display: none; z-index: 190; backdrop-filter: blur(4px); }
+        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; max-width: 85vw; height: 100%; z-index: 195; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; border-radius: 0 20px 20px 0; border: 1px solid var(--theme-border); border-left: none; }
+        .sidebar.open { left: 0; }
+        .sidebar-overlay.open { display: block; }
+        .sidebar-header { padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
+        .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
+        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .trip-menu-item.active { border-left-color: var(--theme-primary); background: var(--theme-secondary); }
+        .folder-header { padding: 12px 15px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid var(--theme-border); }
+
+        /* SVG 圖示 */
+        .nav-icon-svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; }
+        .nav-item.active .nav-icon-svg { transform: translateY(-4px) scale(1.2); filter: drop-shadow(0 4px 12px rgba(255, 183, 3, 0.6)); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; border-top: 1px solid var(--theme-border); display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; height: 65px; }
+        .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0.5; color: var(--theme-text-muted); transition: all 0.3s;}
+        .nav-item.active { opacity: 1; color: var(--theme-primary); }
+
+        /* 列表與其他 */
+        .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--theme-border); padding: 14px 8px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
+        .expense-item:active { background-color: var(--theme-secondary); border-radius: 12px; }
+        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(8px); font-size: 15px; font-weight: bold; color: var(--theme-text-heading); padding: 12px 5px 8px 5px; border-bottom: 2px solid var(--theme-primary); z-index: 10; margin-top: 10px; border-radius: 0 0 10px 10px; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-modal-overlay); z-index: 200; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.3s; }
+        .modal.open { display: flex; opacity: 1; }
+        .modal-content { padding: 25px; border-radius: 24px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; transform: translateY(20px) scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal.open .modal-content { transform: translateY(0) scale(1); }
+        .modal.bottom-sheet { align-items: flex-end; padding: 0; }
+        .modal.bottom-sheet .modal-content { max-width: 100%; border-radius: 30px 30px 0 0; padding: 30px 20px calc(30px + env(safe-area-inset-bottom)); transform: translateY(100%); }
+        .modal.bottom-sheet.open .modal-content { transform: translateY(0); }
+
+        .filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 5px; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-chip { padding: 8px 18px; background: var(--theme-secondary); border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: bold; border: 1px solid var(--theme-border); transition: all 0.3s; }
+        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-accent); box-shadow: 0 4px 12px rgba(255,183,3,0.3); transform: scale(1.05); }
+
+        .tab-view { display: none; animation: slideInFade 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-view.active { display: block; }
+        @keyframes slideInFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-bg); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--theme-secondary); border-top: 4px solid var(--theme-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #network-status { background-color: var(--theme-danger); color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: bold; display: none; position: fixed; top: 0; width: 100%; z-index: 3000; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--theme-bg); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .login-card { padding: 35px 25px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border-top: 8px solid var(--theme-primary); }
+        
+        .toast-msg { padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: bold; box-shadow: 0 8px 24px rgba(0,0,0,0.4); text-align: center; letter-spacing: 0.5px;}
+        #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        
+        /* 預算進度條 */
+        .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--theme-border); }
+        .budget-fill { background-color: var(--theme-primary); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: var(--theme-text-main); z-index: 2;}
+
+        .inline-checkbox-label { font-size: 15px; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 12px 10px; border-radius: 12px; background: var(--theme-secondary); border: 1px solid var(--theme-primary); font-weight: bold; color: var(--theme-text-main);}
+        .inline-checkbox-label input { margin: 0; width: auto; }
+        .tag-total { font-size: 14px; color: var(--theme-primary-text); font-weight: bold; background: var(--theme-primary); padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
+        .select-sm { width: auto; margin: 0; padding: 6px 10px; font-size: 14px; border-radius: 10px; font-weight:bold; cursor: pointer; }
+    </style>
 </head>
 <body>
 
     <div id="toast-container"></div>
-    <div id="network-status">📡 離線模式 (資料將於連線後自動同步)</div>
+    <div id="network-status">📡 目前為離線狀態，資料將於連線後自動同步雲端</div>
     <div id="loading-overlay"><div class="spinner"></div></div>
 
     <!-- 登入畫面 -->
     <div id="login-overlay">
         <div class="login-card glass-panel">
-            <div class="comet-logo">☄️</div>
+            <div style="font-size: 48px; margin-bottom: 10px;">☄️</div>
             <h2>彗星帳簿</h2>
-            <p>即時同步，與旅伴共筆每一刻</p>
-            <button class="btn-google" id="btn-login">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                </svg>
-                <span>使用 Google 帳號登入</span>
+            <p style="color: var(--theme-text-muted); margin-bottom: 20px;">即時同步，與旅伴共筆每一刻</p>
+            <button class="primary-btn w-100" id="btn-login" style="background: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); padding: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
+                使用 Google 帳號登入
             </button>
         </div>
     </div>
@@ -57,24 +165,22 @@
             <span class="close-btn" id="btn-close-sidebar">✕</span>
         </div>
         <div class="sidebar-content">
-            <div id="user-info"></div>
+            <div id="user-info" style="font-size:15px; margin-bottom:15px; text-align:center; font-weight:bold;"></div>
             <div id="sidebar-items-container"></div>
             
-            <div id="sidebar-normal-actions">
-                <div class="action-row">
-                    <button class="primary-btn" id="btn-open-add-trip">➕ 新帳本</button>
-                    <button class="manage-btn" id="btn-create-folder">📁 新資料夾</button>
+            <div id="sidebar-normal-actions" style="margin-top: 20px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <button class="primary-btn flex-1" style="margin-top:0;" id="btn-open-add-trip">➕ 新帳本</button>
+                    <button class="manage-btn flex-1" style="margin-top:0;" id="btn-create-folder">📁 新資料夾</button>
                 </div>
-                <div class="action-row">
-                    <button class="secondary-btn w-100" id="btn-join-shared">🤝 加入共用帳本</button>
-                </div>
-                <button class="accent-btn w-100" id="btn-toggle-edit-mode">📝 批次管理 / 刪除帳本</button>
-                <button class="btn-logout w-100" id="btn-logout">🚪 登出帳號</button>
+                <button class="secondary-btn w-100 mb-10" id="btn-join-shared">🤝 加入共用帳本</button>
+                <button class="primary-btn w-100 mb-10" style="background:var(--theme-accent); color:#050B14;" id="btn-toggle-edit-mode">📝 批次管理 / 刪除帳本</button>
+                <button class="danger-btn w-100" style="padding:14px;" id="btn-logout">🚪 登出帳號</button>
             </div>
 
-            <div id="sidebar-edit-actions" style="display: none;">
-                <button class="danger-btn w-100" id="btn-delete-selected">🗑️ 刪除選取項目</button>
-                <button class="primary-btn w-100 mt-10" id="btn-finish-edit-mode">✅ 完成</button>
+            <div id="sidebar-edit-actions" style="display: none; margin-top: 20px;">
+                <button class="danger-btn w-100 mb-10" style="padding:14px;" id="btn-delete-selected">🗑️ 刪除選取項目</button>
+                <button class="primary-btn w-100" id="btn-finish-edit-mode">✅ 完成</button>
             </div>
         </div>
     </div>
@@ -95,12 +201,12 @@
         <div id="tab-records" class="tab-view active">
             <div class="card glass-panel" id="budgetCard">
                 <div class="card-header">
-                    <h3>💰 預算進度 (TWD)</h3>
-                    <span class="link-btn" id="btn-edit-budget">修改 ⚙️</span>
+                    <h3 style="font-size: 18px;">💰 預算進度 (TWD)</h3>
+                    <span style="font-size:14px; color:var(--theme-primary); cursor:pointer; font-weight:bold;" id="btn-edit-budget">修改 ⚙️</span>
                 </div>
-                <div class="budget-stats">
-                    <span class="muted-text">已花費: <span id="total-spent" class="highlight-text">0</span></span>
-                    <span class="muted-text">總預算: <span id="total-budget" class="main-text">0</span></span>
+                <div style="display: flex; justify-content: space-between; font-size: 15px; margin-top: 12px; font-weight: bold;">
+                    <span style="color: var(--theme-text-muted);">已花費: <span id="total-spent" style="font-size: 18px; color:var(--theme-primary);">0</span></span>
+                    <span style="color: var(--theme-text-muted);">總預算: <span id="total-budget" style="font-size: 18px; color:var(--theme-text-main);">0</span></span>
                 </div>
                 <div class="budget-bar">
                     <div class="budget-fill" id="budget-fill"></div>
@@ -108,10 +214,10 @@
                 </div>
             </div>
 
-            <div class="card glass-panel no-pad-bottom">
-                <div class="list-header flex-wrap">
-                    <h3>🧾 帳目明細</h3>
-                    <div class="list-controls">
+            <div class="card glass-panel" style="padding-bottom: 10px;">
+                <div class="flex-wrap" style="margin-bottom: 12px;">
+                    <h3 style="font-size: 18px;">🧾 帳目明細</h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <span id="record-total" class="tag-total">NT$ 0</span>
                         <select id="sortSelect" class="select-sm">
                             <option value="date-desc">📅 近到遠</option>
@@ -122,36 +228,36 @@
                     </div>
                 </div>
                 <div class="filter-container" id="filterContainer"></div>
-                <div id="expense-list"></div>
+                <div id="expense-list" style="max-height: 60vh; overflow-y: auto; padding-right: 4px;"></div>
             </div>
         </div>
 
         <!-- 分頁 2：統計 -->
         <div id="tab-stats" class="tab-view">
             <div class="card glass-panel" id="chartCard">
-                <h3>📊 消費分類佔比</h3>
-                <div class="chart-container"><canvas id="expenseChart"></canvas></div>
+                <h3 style="font-size: 18px;">📊 消費分類佔比</h3>
+                <div style="max-width: 260px; margin: 10px auto;"><canvas id="expenseChart"></canvas></div>
                 <div id="customChartLegend"></div>
             </div>
             
             <div class="card glass-panel" id="payerSummaryCard">
-                <h3>👫 成員付款統計</h3>
-                <div id="payerSummaryList"></div>
+                <h3 style="font-size: 18px;">👫 成員付款統計</h3>
+                <div id="payerSummaryList" style="margin-top:10px; line-height: 2; font-size: 16px;"></div>
             </div>
             
             <div class="card glass-panel">
-                <h3>📈 詳細報表</h3>
-                <button class="manage-btn w-100 mb-10" id="btn-open-summary">📋 檢視表格總覽</button>
-                <button class="primary-btn w-100" id="btn-export-csv">📥 下載 CSV 報表</button>
+                <h3 style="font-size: 18px; margin-bottom: 10px;">📈 詳細報表</h3>
+                <button class="secondary-btn w-100 mb-10" id="btn-open-summary">📋 檢視表格總覽</button>
+                <button class="primary-btn w-100" style="margin-top:0;" id="btn-export-csv">📥 下載 CSV 報表</button>
             </div>
         </div>
 
         <!-- 分頁 3：設定 -->
         <div id="tab-settings" class="tab-view">
             <div class="card glass-panel">
-                <h3>🎨 介面外觀設定</h3>
+                <h3 style="font-size: 18px;">🎨 介面外觀設定</h3>
                 <p class="desc-text">切換您喜歡的主題風格</p>
-                <select id="themeSelect" class="select-lg">
+                <select id="themeSelect" style="font-weight: bold; text-align: center;">
                     <option value="system">📱 跟隨系統預設</option>
                     <option value="light">🌞 淺色模式</option>
                     <option value="dark">🌙 星空深色</option>
@@ -159,21 +265,21 @@
             </div>
             
             <div class="card glass-panel">
-                <h3>⚙️ 目前帳本設定</h3>
+                <h3 style="font-size: 18px;">⚙️ 目前帳本設定</h3>
                 <p class="desc-text">修改名稱、預算，分享邀請碼給旅伴。</p>
-                <button class="manage-btn w-100 text-left" id="btn-open-trip-settings">✏️ 編輯「<span id="settings-trip-name"></span>」設定</button>
+                <button class="manage-btn w-100 text-left" style="padding: 15px;" id="btn-open-trip-settings">✏️ 編輯「<span id="settings-trip-name"></span>」設定</button>
             </div>
             
             <div class="card glass-panel">
-                <h3>🛠️ 全域設定 (共用)</h3>
+                <h3 style="font-size: 18px;">🛠️ 全域設定 (共用)</h3>
                 <p class="desc-text">自訂您的分類名稱與專屬幣別</p>
-                <button class="manage-btn w-100 text-left mb-10" id="btn-manage-categories">🏷️ 管理消費分類</button>
-                <button class="manage-btn w-100 text-left" id="btn-manage-currencies">💱 管理自訂幣別與匯率</button>
+                <button class="manage-btn w-100 text-left mb-10" style="padding: 15px;" id="btn-manage-categories">🏷️ 管理消費分類</button>
+                <button class="manage-btn w-100 text-left" style="padding: 15px;" id="btn-manage-currencies">💱 管理自訂幣別與匯率</button>
             </div>
         </div>
     </div>
 
-    <!-- 懸浮按鈕 (FAB) - SVG加號圖示 -->
+    <!-- 懸浮按鈕 (FAB) - 高質感SVG加號 -->
     <div class="fab" id="fabBtn">
         <svg viewBox="0 0 24 24" style="width: 32px; height: 32px; stroke: #050B14; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none;">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -186,16 +292,12 @@
         <div class="nav-item active" data-tab="records">
             <svg class="nav-icon-svg" viewBox="0 0 24 24">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
+                <polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
             </svg>
         </div>
         <div class="nav-item" data-tab="stats">
             <svg class="nav-icon-svg" viewBox="0 0 24 24">
-                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
-                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>
             </svg>
         </div>
         <div class="nav-item" data-tab="settings">
@@ -209,8 +311,8 @@
     <!-- ================= 彈跳視窗區 (Modals) ================= -->
     <div class="modal bottom-sheet" id="addExpenseModal">
         <div class="modal-content glass-panel">
-            <div class="modal-header">
-                <h3>📝 新增一筆消費</h3>
+            <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h3 style="font-size: 20px;">📝 新增一筆消費</h3>
                 <span class="close-btn" data-target="addExpenseModal">✕</span>
             </div>
             <div class="form-group"><div><input type="date" id="itemDate" required></div></div>
@@ -221,9 +323,7 @@
             <input type="text" id="itemDetails" placeholder="細項說明" maxlength="100" style="display: none;">
             
             <div class="form-group">
-                <div style="flex: 1.5;">
-                    <input type="text" inputmode="text" id="itemAmount" placeholder="金額 (可輸入算式如: 150*2)" required>
-                </div>
+                <div style="flex: 1.5;"><input type="text" inputmode="text" id="itemAmount" placeholder="金額 (支援算式如: 150*2)" required></div>
                 <div style="flex: 1;"><select id="itemCurrency"></select></div>
             </div>
             <div id="twdPreview" class="real-time-preview">換算台幣: NT$ 0</div>
@@ -232,14 +332,13 @@
                 <div style="flex: 1;"><select id="itemCategory"></select></div>
                 <div id="payerInputContainer" style="flex: 1.5;"><input type="text" id="itemPayer" placeholder="付款人" value="我" maxlength="20"></div>
             </div>
-            <button class="primary-btn w-100 mt-20" id="btn-submit-expense">🚀 記上一筆</button>
+            <button class="primary-btn w-100 mt-20" id="btn-submit-expense" style="padding:16px; border-radius:16px;">🚀 記上一筆</button>
         </div>
     </div>
 
-    <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content glass-panel">
-            <h3>✏️ 編輯消費紀錄</h3>
+            <h3 style="margin-bottom:15px;">✏️ 編輯消費紀錄</h3>
             <input type="hidden" id="editExpId">
             <div class="form-group"><div><input type="date" id="editExpDate"></div></div>
             <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
@@ -254,14 +353,214 @@
                 <div id="editPayerInputContainer" style="flex: 1.5;"><input type="text" id="editExpPayer" placeholder="付款人" maxlength="20"></div>
             </div>
             <div class="form-group mt-20">
-                <button class="danger-btn flex-1" id="btn-delete-expense">🗑️ 刪除</button>
+                <button class="danger-btn flex-1" style="padding:14px;" id="btn-delete-expense">🗑️ 刪除</button>
                 <button class="manage-btn flex-1 close-btn" data-target="editExpenseModal">取消</button>
-                <button class="primary-btn flex-1-5" id="btn-save-edit">儲存</button>
+                <button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-edit">儲存</button>
             </div>
         </div>
     </div>
 
-    <div id="dynamic-modals-container"></div>
-    <script src="app.js"></script>
+    <!-- 其餘管理與設定彈窗 -->
+    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">💱 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" placeholder="代碼" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" placeholder="匯率" step="any"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-currency">➕</button></div><div id="manageCurrencyList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+    <div class="modal" id="manageCategoryModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">🏷️ 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
+    <div class="modal" id="addTripModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">➕ 新增帳本紀錄</h3><input type="text" id="newTripNameInput" placeholder="帳本名稱" maxlength="50"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="newTripStartInput"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="newTripEndInput"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="newTripBudgetInput" placeholder="40000"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="addTripModal">取消</button><button class="primary-btn flex-1" style="margin-top:0;" id="btn-create-trip">🚀 建立</button></div></div></div>
+    <div class="modal" id="tripSettingsModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">⚙ 帳本設定</h3><div style="background:var(--theme-secondary); padding:15px; border-radius:14px; text-align:center; margin-bottom:15px; border:1px dashed var(--theme-primary);"><label style="font-size:14px; font-weight:bold;">🤝 旅伴邀請碼</label><div id="modalTripInviteCode" style="font-size:24px; font-weight:bold; color:var(--theme-primary); letter-spacing:4px; margin-top:5px;">------</div></div><input type="text" id="modalTripNameInput" placeholder="帳本名稱"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="modalTripStartInput"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="modalTripEndInput"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="modalTripBudgetInput"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="tripSettingsModal">取消</button><button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-trip-settings">儲存設定</button></div></div></div>
+
+    <!-- 腳本整合 -->
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4", authDomain: "bookkeeping-app-cf680.firebaseapp.com", projectId: "bookkeeping-app-cf680", storageBucket: "bookkeeping-app-cf680.firebasestorage.app", messagingSenderId: "480039184522", appId: "1:480039184522:web:31658c3229b8fa0cef2573" };
+        firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore(); const googleProvider = new firebase.auth.GoogleAuthProvider();
+        
+        db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
+
+        let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let sortableInstances = [];
+        let unsubUser = null; let unsubTrips = null;
+        const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trips: [] };
+
+        // 監控網路狀態
+        window.addEventListener('online', () => { document.getElementById('network-status').style.display = 'none'; });
+        window.addEventListener('offline', () => { document.getElementById('network-status').style.display = 'block'; });
+        if(!navigator.onLine) document.getElementById('network-status').style.display = 'block';
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('login-overlay').style.display = 'none';
+                showLoading(true); setupRealtimeListeners(user);
+            } else {
+                if(unsubUser) unsubUser(); if(unsubTrips) unsubTrips(); appData = null;
+                document.getElementById('main-app').style.display = 'none'; document.getElementById('login-overlay').style.display = 'flex'; applyTheme('system'); toggleSidebar(false); showLoading(false);
+            }
+        });
+
+        function setupRealtimeListeners(user) {
+            unsubUser = db.collection("users").doc(user.uid).onSnapshot(doc => {
+                let uData = doc.exists ? doc.data() : JSON.parse(JSON.stringify(defaultAppData));
+                if(!appData) appData = { ...uData, trips: [] }; else appData = { ...appData, ...uData };
+                applyTheme(appData.theme); document.getElementById('user-info').innerText = `👤 ${appData.customUserName || user.displayName || '使用者'}`; updateUI(); renderSidebarContent();
+            });
+
+            unsubTrips = db.collection("trips").where("members", "array-contains", user.uid).onSnapshot(snap => {
+                let trips = []; snap.forEach(d => trips.push(d.data()));
+                if (trips.length === 0) { createNewTripDirectly("我的新帳本", user.uid); return; }
+                if (appData) { appData.trips = trips;
+                    if (!appData.activeTripId || !trips.find(t => t.id === appData.activeTripId)) { appData.activeTripId = trips[0].id; db.collection("users").doc(user.uid).set({ activeTripId: trips[0].id }, { merge: true }); }
+                    updateUI(); renderSidebarContent(); showLoading(false); document.getElementById('main-app').style.display = 'block';
+                }
+            });
+        }
+
+        function updateUI() {
+            if (!appData || appData.trips.length === 0) return;
+            const trip = appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0];
+            
+            document.getElementById('header-trip-name').innerText = trip.name; document.getElementById('header-trip-period').innerText = `${trip.startDate} ~ ${trip.endDate}`; document.getElementById('settings-trip-name').innerText = trip.name;
+            
+            const usedCats = new Set(trip.expenses.map(e => e.category)); const filterBox = document.getElementById('filterContainer');
+            filterBox.innerHTML = `<div class="filter-chip ${currentFilter === 'ALL' ? 'active' : ''}" onclick="setFilter('ALL')">全部</div>`;
+            usedCats.forEach(cat => { filterBox.innerHTML += `<div class="filter-chip ${currentFilter === cat ? 'active' : ''}" onclick="setFilter('${cat}')">${cat}</div>`; });
+
+            const listEl = document.getElementById('expense-list'); listEl.innerHTML = ''; const fragment = document.createDocumentFragment();
+            let sortedExps = [...trip.expenses].sort((a, b) => {
+                let vA = Math.round(a.amount * (a.rate || appData.rates[a.currency] || 1)); let vB = Math.round(b.amount * (b.rate || appData.rates[b.currency] || 1));
+                if (currentSort === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id; if (currentSort === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id;
+                if (currentSort === 'amount-desc') return vB - vA || b.id - a.id; return vA - vB || a.id - b.id;
+            });
+
+            const displayExps = currentFilter === 'ALL' ? sortedExps : sortedExps.filter(e => e.category === currentFilter);
+            let totalTWD = 0, filteredTWD = 0; let lastDate = ""; const payers = {};
+            trip.expenses.forEach(e => { const v = getTwd(e); totalTWD += v; payers[e.payer||'我'] = (payers[e.payer||'我']||0) + v; });
+
+            if (displayExps.length === 0) {
+                const empty = document.createElement('div'); empty.style.textAlign = 'center'; empty.style.padding = '40px 10px'; empty.style.color = 'var(--theme-text-muted)'; empty.innerHTML = `<div style="font-size: 50px; margin-bottom:12px; opacity:0.8;">☄️</div><div style="font-size:18px; font-weight:bold; color:var(--theme-text-heading);">目前沒有任何紀錄</div>`; fragment.appendChild(empty);
+            } else {
+                displayExps.forEach(exp => {
+                    const v = getTwd(exp); filteredTWD += v;
+                    if (currentSort.startsWith('date-') && exp.date !== lastDate) { lastDate = exp.date; const dHead = document.createElement('div'); dHead.className = 'date-header'; dHead.innerText = exp.date; fragment.appendChild(dHead); }
+                    const div = document.createElement('div'); div.className = 'expense-item'; div.onclick = () => openEditExpenseModal(exp.id);
+                    div.innerHTML = `<div class="flex-1"><strong style="font-size:16px; color:var(--theme-text-main);">${exp.name}</strong> <span style="background:var(--theme-secondary); color:var(--theme-text-main); padding:2px 8px; border:1px solid var(--theme-border); border-radius:8px; font-size:12px; margin-left:6px;">${exp.payer||'我'}</span>${exp.details ? `<br><small style="color:var(--theme-text-muted);">📝 ${exp.details}</small>` : ''}<br><small style="color:var(--theme-primary); font-weight:bold; margin-top:4px; display:inline-block;">${exp.category}</small></div><div style="text-align: right;">${exp.currency === 'TWD' ? `<strong style="font-size:16px;">TWD ${exp.amount.toLocaleString()}</strong>` : `<strong style="color:var(--theme-accent); font-size:15px;">${exp.currency}${exp.amount}</strong><br><small style="color:var(--theme-text-muted);">≈ NT$ ${v.toLocaleString()}</small>`}</div>`;
+                    fragment.appendChild(div);
+                });
+            }
+            listEl.appendChild(fragment);
+
+            document.getElementById('record-total').innerText = `NT$ ${filteredTWD.toLocaleString()}`; document.getElementById('total-spent').innerText = totalTWD.toLocaleString(); document.getElementById('total-budget').innerText = (trip.budget||0).toLocaleString();
+            let pct = trip.budget > 0 ? Math.min((totalTWD / trip.budget) * 100, 100) : 0;
+            document.getElementById('budget-fill').style.width = pct + '%'; document.getElementById('budget-fill').style.background = pct >= 100 ? 'var(--theme-danger)' : 'var(--theme-primary)'; document.getElementById('budget-text').innerText = `${Math.round(pct)}%`; document.getElementById('budget-text').style.color = pct > 55 ? 'var(--theme-primary-text)' : 'var(--theme-text-main)';
+            
+            document.getElementById('payerSummaryList').innerHTML = Object.keys(payers).length === 0 ? '<p style="color:var(--theme-text-muted); font-size:14px;">無資料</p>' : Object.keys(payers).map(p => `<div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--theme-border); padding: 6px 0;"><span>👤 <strong>${p}</strong></span> <span style="color:var(--theme-text-main);">NT$ ${payers[p].toLocaleString()}</span></div>`).join('');
+
+            renderSelectOptions('itemCurrency', appData.rates, 'TWD'); renderSelectOptions('itemCategory', appData.categories, appData.categories[0], true);
+            renderChart(trip, totalTWD);
+        }
+
+        function renderChart(trip, grandTotal) {
+            if (typeof Chart === 'undefined') return; const ctx = document.getElementById('expenseChart').getContext('2d'); const cats = {};
+            trip.expenses.forEach(e => { const twd = getTwd(e); cats[e.category] = (cats[e.category] || 0) + twd; });
+            if(Object.keys(cats).length === 0) { document.getElementById('chartCard').style.display='none'; return; }
+            document.getElementById('chartCard').style.display='block';
+            if(expenseChart) expenseChart.destroy();
+            const colors = ['#4A90E2', '#FFB703', '#8ECAE6', '#0A192F', '#BDE0FE', '#E63946', '#219EBC', '#FFD166'];
+            expenseChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' } });
+            document.getElementById('customChartLegend').innerHTML = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; justify-content:center;">' + Object.keys(cats).map((k, i) => `<div style="text-align:center; font-size:13px; border:1px solid var(--theme-border); padding:8px 12px; border-radius:12px; background:var(--theme-secondary); flex: 1; min-width: 90px;"><div style="color:${colors[i%colors.length]}; font-weight:bold; margin-bottom: 4px;">${k} ${Math.round(cats[k]/grandTotal*100)}%</div><div style="color:var(--theme-text-main); font-weight:bold;">NT$ ${cats[k].toLocaleString()}</div></div>`).join('') + '</div>';
+        }
+
+        // 側邊欄邏輯
+        function toggleSidebar(open) { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebarOverlay'); if (open) { isSidebarEditMode = false; renderSidebarContent(); sb.classList.add('open'); ov.classList.add('open'); } else { sb.classList.remove('open'); ov.classList.remove('open'); } }
+        document.getElementById('btn-open-sidebar').onclick = () => toggleSidebar(true); document.getElementById('btn-close-sidebar').onclick = () => toggleSidebar(false); document.getElementById('sidebarOverlay').onclick = () => toggleSidebar(false);
+        document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
+        document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
+        
+        function renderSidebarContent() {
+            const container = document.getElementById('sidebar-items-container');
+            let rootItems = [ ...appData.folders.map(f => ({...f, type: 'folder'})), ...appData.trips.filter(t => !t.folderId).map(t => ({...t, type: 'trip'})) ].sort((a, b) => (a.order||0) - (b.order||0));
+            let html = `<div id="root-sortable" style="min-height: 50px; padding-bottom: 20px;">`;
+            rootItems.forEach(item => {
+                if (item.type === 'folder') {
+                    let children = appData.trips.filter(t => t.folderId === item.id).sort((a, b) => (a.order||0) - (b.order||0)); let expanded = item.expanded !== false;
+                    let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${item.id}" data-type="folder" onclick="event.stopPropagation()">` : '';
+                    html += `<div data-id="${item.id}" data-type="folder"><div class="folder-header" onclick="toggleFolder('${item.id}')"><div style="display:flex; align-items:center; gap:8px;">${cb} <span>${item.name}</span></div></div><div class="folder-content" data-folder-id="${item.id}" style="display: ${expanded ? 'block' : 'none'}; padding-left:12px; margin-left:12px; border-left:2px dashed var(--theme-border); margin-top:8px; min-height:40px;">`;
+                    children.forEach(t => { html += renderTripItem(t); }); html += `</div></div>`;
+                } else html += renderTripItem(item);
+            }); html += `</div>`; container.innerHTML = html;
+        }
+        function renderTripItem(trip) {
+            const isActive = trip.id === appData.activeTripId; const spent = trip.expenses.reduce((sum, e) => sum + getTwd(e), 0); const isShared = trip.members && trip.members.length > 1;
+            let cb = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${trip.id}" data-type="trip" onclick="event.stopPropagation()">` : '';
+            return `<div class="trip-menu-item ${isActive && !isSidebarEditMode ? 'active' : ''}" data-id="${trip.id}" data-type="trip" onclick="${isSidebarEditMode ? `toggleCb('${trip.id}')` : `switchTrip('${trip.id}')`}">${cb}<div style="flex-grow:1; display: flex; flex-direction: column; width: 100%;"><div style="font-size:16px; color:var(--theme-text-main); font-weight:${isActive ? 'bold' : 'normal'}; line-height: 1.3; margin-bottom: 2px;">${isShared ? '🤝 ' : ''}${trip.name}</div><small style="color:var(--theme-text-muted); font-size:13px;">${trip.startDate}</small><small style="color:var(--theme-primary); font-weight:bold; margin-top: 4px; font-size:13px;">花費: $${spent.toLocaleString()}</small></div></div>`;
+        }
+        function toggleFolder(id) { let f = appData.folders.find(x => x.id === id); if(f) { f.expanded = !f.expanded; db.collection("users").doc(auth.currentUser.uid).set({folders: appData.folders}, {merge:true}); renderSidebarContent(); } }
+        function toggleCb(id) { let cb = document.querySelector(`.sidebar-cb[data-id="${id}"]`); if (cb) cb.checked = !cb.checked; }
+        function switchTrip(id) { appData.activeTripId = id; db.collection("users").doc(auth.currentUser.uid).set({ activeTripId: id }, { merge: true }); toggleSidebar(false); updateUI(); }
+
+        // 記帳與算式解析
+        function parseAmount(input) { try { const safeStr = input.replace(/[^0-9\.\+\-\*\/]/g, ''); if(!safeStr) return NaN; return Math.round(Function(`'use strict'; return (${safeStr})`)() * 100) / 100; } catch(e) { return NaN; } }
+        document.getElementById('itemAmount').addEventListener('blur', function() { let val = parseAmount(this.value); if(!isNaN(val)) this.value = val; updateTWDPreview('add');});
+        document.getElementById('editExpAmount').addEventListener('blur', function() { let val = parseAmount(this.value); if(!isNaN(val)) this.value = val; updateTWDPreview('edit');});
+
+        document.getElementById('btn-submit-expense').onclick = async function() {
+            if (isSubmitting) return; const name = document.getElementById('itemName').value.trim(); const amount = parseAmount(document.getElementById('itemAmount').value); const date = document.getElementById('itemDate').value; const curr = document.getElementById('itemCurrency').value;
+            if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請填寫完整資訊 (金額支援簡易算式)', 'error');
+            isSubmitting = true; this.innerText = '⏳ 儲存中...'; this.disabled = true;
+            try {
+                const trip = appData.trips.find(t => t.id === appData.activeTripId);
+                trip.expenses.unshift({ id: Date.now(), name, amount, date, currency: curr, category: document.getElementById('itemCategory').value, payer: document.getElementById('itemPayer').value.trim() || '我', details: document.getElementById('enableDetailsBtn').checked ? document.getElementById('itemDetails').value.trim() : "", rate: curr === 'TWD' ? 1 : (appData.rates[curr] || 1) });
+                await db.collection("trips").doc(trip.id).set({ expenses: trip.expenses }, { merge: true });
+                document.getElementById('itemName').value = ''; document.getElementById('itemAmount').value = ''; document.getElementById('itemDetails').value = ''; document.getElementById('enableDetailsBtn').checked = false; document.getElementById('itemDetails').style.display = 'none'; closeModal('addExpenseModal'); showToast("✅ 紀錄已新增");
+            } catch(e) { showToast("寫入失敗", "error"); } finally { isSubmitting = false; this.innerText = '🚀 記上一筆'; this.disabled = false; }
+        };
+
+        function openEditExpenseModal(id) {
+            const trip = appData.trips.find(t => t.id === appData.activeTripId); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
+            document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; document.getElementById('editExpPayer').value = exp.payer || '我'; document.getElementById('editExpDate').value = exp.date; document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
+            updateTWDPreview('edit'); openModal('editExpenseModal');
+        }
+        document.getElementById('btn-save-edit').onclick = async function() {
+            const id = parseInt(document.getElementById('editExpId').value); const name = document.getElementById('editExpName').value.trim(); const amount = parseAmount(document.getElementById('editExpAmount').value); const date = document.getElementById('editExpDate').value; const curr = document.getElementById('editExpCurrency').value;
+            if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請填寫完整資訊', 'error');
+            const trip = appData.trips.find(t => t.id === appData.activeTripId); const idx = trip.expenses.findIndex(e => e.id === id);
+            if (idx > -1) { trip.expenses[idx] = { ...trip.expenses[idx], name, amount, date, currency: curr, category: document.getElementById('editExpCategory').value, payer: document.getElementById('editExpPayer').value.trim() || '我', details: document.getElementById('editExpDetails').value.trim(), rate: curr === 'TWD' ? 1 : (appData.rates[curr] || 1) }; await db.collection("trips").doc(trip.id).set({ expenses: trip.expenses }, { merge: true }); closeModal('editExpenseModal'); showToast("修改已儲存"); }
+        };
+        document.getElementById('btn-delete-expense').onclick = async function() {
+            if(confirm('確定要刪除這筆紀錄嗎？')) { const id = parseInt(document.getElementById('editExpId').value); const trip = appData.trips.find(t => t.id === appData.activeTripId); trip.expenses = trip.expenses.filter(e => e.id !== id); await db.collection("trips").doc(trip.id).set({ expenses: trip.expenses }, { merge: true }); closeModal('editExpenseModal'); showToast("紀錄已刪除"); }
+        };
+
+        // 預覽與輔助
+        function updateTWDPreview(mode) { const amt = parseAmount(document.getElementById(mode === 'add' ? 'itemAmount' : 'editExpAmount').value) || 0; const curr = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency').value; const el = document.getElementById(mode === 'add' ? 'twdPreview' : 'editTwdPreview'); if (curr === 'TWD') { el.innerText = `換算台幣: (本幣無需換算)`; } else { el.innerText = `換算台幣: NT$ ${Math.round(amt * (appData.rates[curr]||1)).toLocaleString()}`; } }
+        document.getElementById('itemCurrency').onchange = () => updateTWDPreview('add'); document.getElementById('editExpCurrency').onchange = () => updateTWDPreview('edit');
+        function getTwd(exp) { return Math.round(exp.amount * (exp.rate || appData.rates[exp.currency] || 1)); }
+        function showToast(msg, type='success') { const box = document.getElementById('toast-container'); const t = document.createElement('div'); t.className='toast-msg'; t.style.background = type==='error'?'var(--theme-danger)':'var(--theme-primary)'; t.style.color = '#FFF'; t.innerText = msg; box.appendChild(t); setTimeout(()=>t.style.opacity='1', 10); setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 2500); }
+        function setFilter(cat) { currentFilter = cat; updateUI(); }
+        function showLoading(show) { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; }
+        function openModal(id) { document.getElementById(id).classList.add('open'); if(id === 'addExpenseModal') document.getElementById('itemDate').value = new Date().toISOString().slice(0,10); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        document.querySelectorAll('.close-btn').forEach(btn => { btn.onclick = function() { const target = this.getAttribute('data-target'); if(target) closeModal(target); } });
+
+        // 分頁與全域操作
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.onclick = function() {
+                document.querySelectorAll('.nav-item, .tab-view').forEach(e => e.classList.remove('active')); this.classList.add('active');
+                document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active'); document.getElementById('fabBtn').style.display = this.getAttribute('data-tab') === 'records' ? 'flex' : 'none';
+            }
+        });
+        document.getElementById('themeSelect').addEventListener('change', function() { appData.theme = this.value; db.collection("users").doc(auth.currentUser.uid).set({ theme: this.value }, { merge: true }); applyTheme(this.value); });
+        function applyTheme(theme) { if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light'); else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme'); document.getElementById('themeSelect').value = theme || 'system'; }
+
+        document.getElementById('btn-login').onclick = () => auth.signInWithPopup(googleProvider);
+        document.getElementById('btn-logout').onclick = () => { if(confirm("確定登出嗎？")) auth.signOut(); };
+        document.getElementById('fabBtn').onclick = () => openModal('addExpenseModal');
+        document.getElementById('enableDetailsBtn').onchange = (e) => document.getElementById('itemDetails').style.display = e.target.checked ? 'block' : 'none';
+
+        // 設定帳本與管理
+        document.getElementById('btn-open-trip-settings').onclick = () => { const trip = appData.trips.find(t => t.id === appData.activeTripId); document.getElementById('modalTripInviteCode').innerText = trip.inviteCode || "無代碼"; document.getElementById('modalTripNameInput').value = trip.name; document.getElementById('modalTripStartInput').value = trip.startDate; document.getElementById('modalTripEndInput').value = trip.endDate; document.getElementById('modalTripBudgetInput').value = trip.budget || 0; openModal('tripSettingsModal'); };
+        document.getElementById('btn-save-trip-settings').onclick = async () => { const trip = appData.trips.find(t => t.id === appData.activeTripId); trip.name = document.getElementById('modalTripNameInput').value.trim(); trip.startDate = document.getElementById('modalTripStartInput').value; trip.endDate = document.getElementById('modalTripEndInput').value; trip.budget = parseFloat(document.getElementById('modalTripBudgetInput').value) || 0; await db.collection("trips").doc(trip.id).set({ name: trip.name, startDate: trip.startDate, endDate: trip.endDate, budget: trip.budget }, { merge: true }); closeModal('tripSettingsModal'); showToast("設定已儲存"); };
+        
+        document.getElementById('btn-open-add-trip').onclick = () => { document.getElementById('newTripNameInput').value=''; document.getElementById('newTripStartInput').value=new Date().toISOString().slice(0,10); document.getElementById('newTripEndInput').value=new Date().toISOString().slice(0,10); openModal('addTripModal'); };
+        document.getElementById('btn-create-trip').onclick = async () => { const name = document.getElementById('newTripNameInput').value.trim(); if(!name) return showToast('輸入名稱', 'error'); await createNewTripDirectly(name, auth.currentUser.uid); closeModal('addTripModal'); toggleSidebar(false); showToast('新帳本已建立'); };
+        async function createNewTripDirectly(name, uid) { const t = { id: 'trip_'+Date.now(), name, startDate: new Date().toISOString().slice(0,10), endDate: new Date().toISOString().slice(0,10), budget: 0, expenses: [], folderId: null, order: Date.now(), members: [uid], inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase() }; await db.collection("trips").doc(t.id).set(t); await db.collection("users").doc(uid).set({ activeTripId: t.id }, { merge: true }); }
+        
+        document.getElementById('sortSelect').onchange = function() { currentSort = this.value; updateUI(); };
+        
+        function renderSelectOptions(selectId, dataObj, defaultVal, isArray=false) { const sel = document.getElementById(selectId); if(!sel) return; sel.innerHTML = ''; if(isArray) { dataObj.forEach(item => sel.innerHTML += `<option value="${item}">${item}</option>`); } else { sel.innerHTML = `<option value="TWD">台幣 (TWD)</option>`; Object.keys(dataObj).forEach(k => { if(k!=='TWD') sel.innerHTML += `<option value="${k}">${k} (${dataObj[k]})</option>`; }); } sel.value = defaultVal; }
+    </script>
 </body>
 </html>
