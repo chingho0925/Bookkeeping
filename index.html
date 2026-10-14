@@ -88,6 +88,9 @@
         .danger-btn { background-color: var(--theme-danger); color: #FFF; font-weight: bold; border: none; border-radius: 14px; }
         .manage-btn { background: var(--theme-secondary); color: var(--theme-text-main); border: 1px solid var(--theme-primary); font-weight: bold; }
         .icon-btn, .close-btn { background: none; border: none; padding: 0; margin: 0; font-size: 24px; cursor: pointer; color: inherit; box-shadow: none; width: auto; font-weight: bold;}
+        .sidebar-header .close-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s, transform 0.2s; }
+        .sidebar-header .close-btn:hover { background: var(--theme-secondary); transform: scale(1.04); }
+        .sidebar-header .close-btn:focus-visible { outline: 3px solid var(--theme-accent); outline-offset: 2px; }
         .fab { position: fixed; bottom: 80px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: var(--theme-accent); display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-accent) 40%, transparent); cursor: pointer; z-index: 90; transition: transform 0.2s; }
         .fab:active { transform: scale(0.85); }
 
@@ -103,7 +106,10 @@
         .sidebar-header { padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
         .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
-        .trip-menu-item.active { border-left-color: var(--theme-primary); background: var(--theme-secondary); }
+        .trip-menu-item.active { border-left-color: var(--theme-accent); background: var(--theme-header-bg); box-shadow: 0 5px 16px rgba(27, 32, 48, 0.18); }
+        .trip-menu-item.active .trip-menu-name, .trip-menu-item.active .trip-menu-spent { color: var(--theme-header-text) !important; }
+        .trip-menu-item.active .trip-menu-meta { color: var(--theme-header-subtext) !important; }
+        .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; padding: 0; accent-color: var(--theme-accent); }
         .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
         .trip-menu-item:active, .folder-header:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.35; }
@@ -112,6 +118,14 @@
         #root-sortable.root-drop-active { outline: 2px dashed var(--theme-primary); outline-offset: 4px; border-radius: 12px; background: color-mix(in srgb, var(--theme-primary) 8%, transparent); }
         #root-sortable::after { content: '拖曳帳本至此即可移出資料夾'; display: block; margin: 4px 2px 8px; padding: 9px 10px; border: 1px dashed var(--theme-border); border-radius: 10px; color: var(--theme-text-muted); text-align: center; font-size: 12px; }
         .folder-header { padding: 12px 15px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid var(--theme-border); }
+        .join-shared-form { display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px; }
+        .join-shared-form input { flex: 1; width: 0; min-width: 0; margin: 0; text-transform: uppercase; }
+        .join-shared-form button { width: auto; min-width: 86px; margin: 0; padding-left: 12px; padding-right: 12px; }
+        .sidebar-context-menu { display: none; position: fixed; z-index: 400; min-width: 176px; padding: 7px; border-radius: 14px; }
+        .sidebar-context-menu.open { display: block; }
+        .sidebar-context-menu button { display: block; width: 100%; margin: 0; padding: 11px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--theme-text-main); text-align: left; cursor: pointer; }
+        .sidebar-context-menu button:hover, .sidebar-context-menu button:focus-visible { background: var(--theme-secondary); outline: none; }
+        .sidebar-context-menu button[data-action="delete"] { color: var(--theme-danger); }
 
         /* SVG 底部導覽列 */
         .nav-icon-svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; }
@@ -156,6 +170,7 @@
         /* 吐司提示訊息 */
         .toast-msg { padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: bold; box-shadow: 0 8px 24px rgba(0,0,0,0.4); text-align: center; letter-spacing: 0.5px;}
         #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        #toast-container .toast-msg { pointer-events: auto; }
         
         /* 預算進度條設計 */
         .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--theme-border); }
@@ -201,7 +216,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span>☄️ 帳本與資料夾</span>
-            <span class="close-btn" id="btn-close-sidebar">✕</span>
+            <button type="button" class="close-btn" id="btn-close-sidebar" aria-label="關閉帳本與資料夾選單">✕</button>
         </div>
         <div class="sidebar-content">
             <div id="user-info" style="font-size:15px; margin-bottom:15px; text-align:center; font-weight:bold;"></div>
@@ -212,8 +227,12 @@
                     <button class="primary-btn flex-1" style="margin-top:0;" id="btn-open-add-trip">➕ 新帳本</button>
                     <button class="manage-btn flex-1" style="margin-top:0;" id="btn-create-folder">📁 新資料夾</button>
                 </div>
-                <button class="secondary-btn w-100 mb-10" id="btn-join-shared">🤝 加入共用帳本</button>
+                <div class="join-shared-form" aria-label="加入共用帳本">
+                    <input type="text" id="sharedTripCodeInput" placeholder="輸入 6 碼共用邀請碼" maxlength="6" autocomplete="off" autocapitalize="characters" aria-label="共用帳本邀請碼">
+                    <button class="secondary-btn" id="btn-join-shared" type="button">加入</button>
+                </div>
                 <button class="primary-btn w-100 mb-10" style="background:var(--theme-accent); color:var(--theme-accent-text);" id="btn-toggle-edit-mode">📝 批次管理 / 刪除帳本</button>
+                <button class="secondary-btn w-100 mb-10" id="btn-open-trash">🗑️ 垃圾桶 <span id="trash-count" style="font-size:13px;opacity:.8;"></span></button>
                 <button class="danger-btn w-100" style="padding:14px;" id="btn-logout">🚪 登出帳號</button>
             </div>
 
@@ -222,6 +241,10 @@
                 <button class="primary-btn w-100" id="btn-finish-edit-mode">✅ 完成</button>
             </div>
         </div>
+    </div>
+    <div id="sidebar-context-menu" class="sidebar-context-menu glass-panel" role="menu" aria-label="帳本或資料夾操作">
+        <button type="button" role="menuitem" data-action="rename">✏️ 重新命名</button>
+        <button type="button" role="menuitem" data-action="delete">🗑️ 刪除／退出</button>
     </div>
 
     <!-- 主介面區塊 -->
@@ -411,6 +434,7 @@
     
     <div class="modal" id="tripSettingsModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px;">⚙ 帳本設定</h3><div style="background:var(--theme-secondary); padding:15px; border-radius:14px; text-align:center; margin-bottom:15px; border:1px dashed var(--theme-primary);"><label style="font-size:14px; font-weight:bold;">🤝 旅伴邀請碼</label><div id="modalTripInviteCode" style="font-size:24px; font-weight:bold; color:var(--theme-primary); letter-spacing:4px; margin-top:5px;">------</div></div><input type="text" id="modalTripNameInput" placeholder="帳本名稱"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="modalTripStartInput"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="modalTripEndInput"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="modalTripBudgetInput"></div><div style="margin-top:18px;"><strong style="color:var(--theme-text-heading);">顯示項目</strong><label class="settings-checkbox-label"><input type="checkbox" id="tripShowBudget"> 預算進度</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowPayerSummary"> 成員付款統計</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowCategoryChart"> 消費分類佔比圓餅圖</label><p class="desc-text" style="margin:10px 0 0;">取消勾選的項目會隱藏；詳細報表仍會保留。</p></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="tripSettingsModal">取消</button><button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-trip-settings">儲存設定</button></div></div></div>
 
+    <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:8px;">🗑️ 垃圾桶</h3><p class="desc-text">刪除的帳本與資料夾會保留 30 天；超過期限後，程式下次開啟或查看垃圾桶時會永久清理。復原資料夾時會一併復原其中的帳本。</p><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 18px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px;">📋 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv">📥 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <!-- 腳本整合 -->
@@ -421,12 +445,14 @@
         db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
 
         let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let isSidebarDragging = false; let sortableInstances = [];
+        let sidebarLongPressTimer = null; let sidebarPressState = null; let suppressSidebarClickUntil = 0; let activeSidebarContextTarget = null; let sidebarContextOpenedAt = 0;
+        let trashPrunePromise = null;
         let expenseChartInstance = null;
         let currentFetchedAddRate = 1; let currentFetchedEditRate = 1; let currentLookupRate = null; let currentLookupTarget = 'manage';
         let rateRequestIds = { add: 0, edit: 0 }; let rateLoading = { add: false, edit: false }; let liveRateRequestId = 0;
         let previousCurrency = { add: 'TWD', edit: 'TWD' };
         let unsubUser = null; let unsubTrips = null;
-        const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trips: [] };
+        const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trash: [], trips: [] };
 
         // 監控網路狀態
         window.addEventListener('online', () => { document.getElementById('network-status').style.display = 'none'; });
@@ -494,6 +520,7 @@
                     renderSidebarContent();
                     document.getElementById('loading-overlay').style.display = 'none';
                     document.getElementById('main-app').style.display = 'block';
+                    pruneExpiredTrash().catch(error => console.error('清理過期垃圾桶項目失敗:', error));
                 } catch (error) {
                     showStartupError(error);
                 }
@@ -514,6 +541,7 @@
                     ? appData.categories
                     : [...defaultAppData.categories];
                 appData.folders = Array.isArray(appData.folders) ? appData.folders : [];
+                appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
                 userDataLoaded = true;
                 applyTheme(appData.theme || 'system');
                 document.getElementById('user-info').innerText = `👤 ${appData.customUserName || user.displayName || '使用者'}`;
@@ -740,21 +768,105 @@
                 isSidebarEditMode = false; renderSidebarContent(); 
                 sb.classList.add('open'); ov.classList.add('open'); 
             } else { 
+                closeSidebarContextMenu();
                 sb.classList.remove('open'); ov.classList.remove('open'); 
             } 
         }
         
         document.getElementById('btn-open-sidebar').onclick = () => toggleSidebar(true); 
-        document.getElementById('btn-close-sidebar').onclick = () => toggleSidebar(false); 
+        document.getElementById('btn-close-sidebar').addEventListener('click', () => toggleSidebar(false));
         document.getElementById('sidebarOverlay').onclick = () => toggleSidebar(false);
         document.getElementById('btn-create-folder').onclick = createFolder;
         document.getElementById('btn-delete-selected').onclick = deleteSelectedItems;
         document.getElementById('btn-join-shared').onclick = joinSharedTrip;
+        document.getElementById('btn-open-trash').onclick = () => { openModal('trashModal'); renderTrashList().catch(error => { console.error('讀取垃圾桶失敗:', error); showToast('垃圾桶載入失敗', 'error'); }); };
+        document.getElementById('trashList').addEventListener('click', event => {
+            const button = event.target.closest('button[data-restore-trash-id]');
+            if (button) restoreTrashItem(button.dataset.restoreTrashId).catch(error => { console.error('復原垃圾桶項目失敗:', error); showToast('復原失敗，請稍後再試', 'error'); });
+        });
+        document.getElementById('sharedTripCodeInput').addEventListener('keydown', event => { if (event.key === 'Enter') joinSharedTrip(); });
+        setupSidebarContextActions();
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
+
+        function getSidebarContextItem(target) {
+            const tripItem = target.closest('.trip-menu-item[data-type="trip"]');
+            if (tripItem) return { type: 'trip', id: tripItem.dataset.id };
+            const folderHeader = target.closest('.folder-header[data-folder-id]');
+            if (folderHeader) return { type: 'folder', id: folderHeader.dataset.folderId };
+            return null;
+        }
+        function setSidebarSortablesDisabled(disabled) {
+            sortableInstances.forEach(instance => instance.option('disabled', disabled));
+        }
+        function openSidebarContextMenu(item, x, y) {
+            const menu = document.getElementById('sidebar-context-menu');
+            if (!menu || isSidebarEditMode) return;
+            activeSidebarContextTarget = item;
+            sidebarContextOpenedAt = Date.now();
+            menu.classList.add('open');
+            const rect = menu.getBoundingClientRect();
+            menu.style.left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)) + 'px';
+            menu.style.top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)) + 'px';
+            setSidebarSortablesDisabled(true);
+        }
+        function closeSidebarContextMenu() {
+            const menu = document.getElementById('sidebar-context-menu');
+            if (!menu?.classList.contains('open')) return;
+            menu.classList.remove('open');
+            activeSidebarContextTarget = null;
+            setSidebarSortablesDisabled(false);
+        }
+        function setupSidebarContextActions() {
+            const container = document.getElementById('sidebar-items-container');
+            const menu = document.getElementById('sidebar-context-menu');
+            container.addEventListener('contextmenu', event => {
+                const item = getSidebarContextItem(event.target);
+                if (!item || isSidebarEditMode) return;
+                event.preventDefault();
+                openSidebarContextMenu(item, event.clientX, event.clientY);
+            });
+            container.addEventListener('pointerdown', event => {
+                const item = getSidebarContextItem(event.target);
+                if (event.pointerType !== 'touch' || !item || isSidebarEditMode) return;
+                sidebarPressState = { ...item, x: event.clientX, y: event.clientY };
+                clearTimeout(sidebarLongPressTimer);
+                sidebarLongPressTimer = setTimeout(() => {
+                    if (!sidebarPressState) return;
+                    suppressSidebarClickUntil = Date.now() + 900;
+                    openSidebarContextMenu(sidebarPressState, sidebarPressState.x, sidebarPressState.y);
+                }, 520);
+            });
+            container.addEventListener('pointermove', event => {
+                if (!sidebarPressState) return;
+                if (Math.hypot(event.clientX - sidebarPressState.x, event.clientY - sidebarPressState.y) > 10) {
+                    clearTimeout(sidebarLongPressTimer);
+                    sidebarPressState = null;
+                }
+            });
+            const cancelLongPress = () => { clearTimeout(sidebarLongPressTimer); sidebarPressState = null; };
+            container.addEventListener('pointerup', cancelLongPress);
+            container.addEventListener('pointercancel', cancelLongPress);
+            menu.addEventListener('click', async event => {
+                const button = event.target.closest('button[data-action]');
+                if (!button || !activeSidebarContextTarget || Date.now() - sidebarContextOpenedAt < 250) return;
+                event.preventDefault();
+                const item = activeSidebarContextTarget;
+                closeSidebarContextMenu();
+                if (button.dataset.action === 'rename') await renameSidebarItem(item.type, item.id);
+                if (button.dataset.action === 'delete') await deleteSidebarItems(item.type === 'trip' ? [item.id] : [], item.type === 'folder' ? [item.id] : []);
+            });
+            document.addEventListener('pointerdown', event => {
+                if (menu.classList.contains('open') && !menu.contains(event.target)) closeSidebarContextMenu();
+            });
+            document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebarContextMenu(); });
+            window.addEventListener('resize', closeSidebarContextMenu);
+            document.getElementById('sidebar').addEventListener('scroll', closeSidebarContextMenu, { passive: true });
+        }
         
         function renderSidebarContent() {
             const container = document.getElementById('sidebar-items-container');
+            updateTrashCount();
             const rootItems = [
                 ...appData.folders.map(folder => ({ ...folder, type: 'folder' })),
                 ...appData.trips.filter(trip => !trip.folderId).map(trip => ({ ...trip, type: 'trip' }))
@@ -766,7 +878,7 @@
                     const children = appData.trips.filter(trip => trip.folderId === item.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                     const expanded = item.expanded !== false;
                     const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="folder">' : '';
-                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span>' + escapeHtml(item.name) + '</span></div></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
+                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '" title="右鍵或長按以重新命名／刪除"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span>📁 ' + escapeHtml(item.name) + ' <small style="color:var(--theme-text-muted);font-weight:normal;">(' + children.length + ')</small></span></div><span aria-hidden="true">' + (expanded ? '⌄' : '›') + '</span></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
                     children.forEach(trip => { html += renderTripItem(trip); });
                     html += '</div></div>';
                 } else {
@@ -776,6 +888,7 @@
             container.innerHTML = html;
             container.onclick = event => {
                 if (isSidebarDragging) return;
+                if (Date.now() < suppressSidebarClickUntil) { event.preventDefault(); event.stopPropagation(); return; }
                 if (event.target.closest('.sidebar-cb')) return;
                 const folderHeader = event.target.closest('.folder-header[data-folder-id]');
                 if (folderHeader) {
@@ -796,10 +909,10 @@
             const spent = (trip.expenses || []).reduce((sum, expense) => sum + getTwd(expense), 0);
             const shared = trip.members && trip.members.length > 1;
             const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="trip">' : '';
-            return '<div class="trip-menu-item ' + (active && !isSidebarEditMode ? 'active' : '') + '" data-id="' + safeId + '" data-type="trip">' + checkbox +
-                '<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;"><div style="font-size:16px;color:var(--theme-text-main);font-weight:' + (active ? 'bold' : 'normal') + ';line-height:1.3;margin-bottom:2px;">' +
-                (shared ? '🤝 ' : '') + escapeHtml(trip.name) + '</div><small style="color:var(--theme-text-muted);font-size:13px;">' + escapeHtml(trip.startDate || '') +
-                '</small><small style="color:var(--theme-primary);font-weight:bold;margin-top:4px;font-size:13px;">花費: $' + spent.toLocaleString() + '</small></div></div>';
+            return '<div class="trip-menu-item ' + (active && !isSidebarEditMode ? 'active' : '') + '" data-id="' + safeId + '" data-type="trip" title="右鍵或長按以重新命名／刪除">' + checkbox + '<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;">' +
+                '<div class="trip-menu-name" style="font-size:16px;color:var(--theme-text-main);font-weight:' + (active ? 'bold' : 'normal') + ';line-height:1.3;margin-bottom:2px;">' +
+                (shared ? '🤝 ' : '') + escapeHtml(trip.name) + (active ? '　目前使用中' : '') + '</div><small class="trip-menu-meta" style="color:var(--theme-text-muted);font-size:13px;">' + escapeHtml(trip.startDate || '') +
+                '</small><small class="trip-menu-spent" style="color:var(--theme-primary);font-weight:bold;margin-top:4px;font-size:13px;">花費: $' + spent.toLocaleString() + '</small></div></div>';
         }
         function toggleFolder(id) {
             const folder = appData.folders.find(item => item.id === id);
@@ -834,8 +947,9 @@
                     put: (to, from, dragged) => dragged.dataset.type === 'trip' || (to.el.id === 'root-sortable' && dragged.dataset.type === 'folder')
                 },
                 animation: 160,
-                delay: 180,
+                delay: 650,
                 delayOnTouchOnly: true,
+                touchStartThreshold: 8,
                 fallbackOnBody: true,
                 swapThreshold: 0.65,
                 emptyInsertThreshold: 32,
@@ -940,54 +1054,245 @@
         async function deleteSelectedItems() {
             const selected = Array.from(document.querySelectorAll('.sidebar-cb:checked'));
             if (!selected.length) return showToast('請先勾選帳本或資料夾', 'error');
-            const selectedTrips = new Set(selected.filter(item => item.dataset.type === 'trip').map(item => item.dataset.id));
-            const selectedFolders = new Set(selected.filter(item => item.dataset.type === 'folder').map(item => item.dataset.id));
-            appData.trips.filter(trip => selectedFolders.has(trip.folderId)).forEach(trip => selectedTrips.add(trip.id));
+            return deleteSidebarItems(
+                selected.filter(item => item.dataset.type === 'trip').map(item => item.dataset.id),
+                selected.filter(item => item.dataset.type === 'folder').map(item => item.dataset.id)
+            );
+        }
+
+        async function deleteSidebarItems(tripIds, folderIds) {
+            if (!appData || !auth.currentUser) return;
+            const selectedTrips = new Set(tripIds);
+            const selectedFolders = new Set(folderIds);
+            const foldersToRemove = appData.folders.filter(folder => selectedFolders.has(folder.id));
+            const tripsToRemove = appData.trips.filter(trip => selectedTrips.has(trip.id) || selectedFolders.has(trip.folderId));
+            tripsToRemove.forEach(trip => selectedTrips.add(trip.id));
+            if (!tripsToRemove.length && !foldersToRemove.length) return showToast('找不到要移除的項目', 'error');
             const remaining = appData.trips.filter(trip => !selectedTrips.has(trip.id));
             if (!remaining.length) return showToast('至少保留一個帳本，請先建立新帳本', 'error');
-            if (!confirm('確定移除所選帳本與資料夾嗎？共用帳本只會讓目前帳號退出，其他成員的資料不會刪除。')) return;
-            const batch = db.batch();
             const uid = auth.currentUser.uid;
-            selectedTrips.forEach(id => {
-                const trip = appData.trips.find(item => item.id === id);
-                if (trip && (trip.members || []).filter(member => member !== uid).length) {
-                    batch.update(db.collection('trips').doc(id), { members: firebase.firestore.FieldValue.arrayRemove(uid) });
-                } else if (trip) {
-                    batch.delete(db.collection('trips').doc(id));
+            const sharedTripIds = new Set(tripsToRemove.filter(trip => (trip.members || []).some(member => member !== uid)).map(trip => trip.id));
+            const deletedAt = Date.now();
+            const expiresAt = deletedAt + 30 * 24 * 60 * 60 * 1000;
+            const affectedList = [
+                ...foldersToRemove.map(folder => '• 資料夾「' + folder.name + '」'),
+                ...tripsToRemove.map(trip => {
+                    const shared = sharedTripIds.has(trip.id);
+                    const details = shared ? '共用帳本：只會讓你退出，其他成員資料保留' : '個人帳本：將移至垃圾桶並保留 30 天';
+                    return '• 帳本「' + trip.name + '」— ' + details;
+                })
+            ];
+            const confirmText = '即將移至垃圾桶或退出以下項目：\n' + affectedList.join('\n') + '\n\n資料可在 30 天內從垃圾桶復原。確定繼續嗎？';
+            if (!confirm(confirmText)) return;
+            const previousActiveTripId = appData.activeTripId;
+            const nextFolders = appData.folders.filter(folder => !selectedFolders.has(folder.id));
+            const nextActiveTripId = selectedTrips.has(previousActiveTripId) ? remaining[0].id : previousActiveTripId;
+            const trashEntries = [
+                ...foldersToRemove.map(folder => ({ id: 'folder_' + folder.id + '_' + deletedAt, kind: 'folder', folder: { ...folder }, name: folder.name, deletedAt, expiresAt })),
+                ...tripsToRemove.map(trip => ({ id: 'trip_' + trip.id + '_' + deletedAt, kind: 'trip', tripId: trip.id, name: trip.name, folderId: trip.folderId || null, shared: sharedTripIds.has(trip.id), deletedAt, expiresAt }))
+            ];
+            const nextTrash = [...(appData.trash || []).filter(item => Number(item.expiresAt || 0) > deletedAt), ...trashEntries];
+            const batch = db.batch();
+            tripsToRemove.forEach(trip => {
+                if (sharedTripIds.has(trip.id)) {
+                    batch.update(db.collection('trips').doc(trip.id), { members: firebase.firestore.FieldValue.arrayRemove(uid) });
+                } else {
+                    batch.update(db.collection('trips').doc(trip.id), {
+                        members: firebase.firestore.FieldValue.arrayRemove(uid),
+                        trashedBy: uid,
+                        trashedAt: deletedAt,
+                        trashExpiresAt: expiresAt
+                    });
                 }
             });
-            const nextFolders = appData.folders.filter(folder => !selectedFolders.has(folder.id));
-            const nextActiveTripId = selectedTrips.has(appData.activeTripId) ? remaining[0].id : appData.activeTripId;
-            batch.set(db.collection('users').doc(uid), { folders: nextFolders, activeTripId: nextActiveTripId }, { merge: true });
+            batch.set(db.collection('users').doc(uid), { folders: nextFolders, trash: nextTrash, activeTripId: nextActiveTripId }, { merge: true });
             try {
                 await batch.commit();
                 appData.trips = remaining;
                 appData.folders = nextFolders;
+                appData.trash = nextTrash;
                 appData.activeTripId = nextActiveTripId;
                 isSidebarEditMode = false;
                 document.getElementById('sidebar-normal-actions').style.display = 'block';
                 document.getElementById('sidebar-edit-actions').style.display = 'none';
                 updateUI();
                 renderSidebarContent();
-                showToast('已移除選取項目');
+                updateTrashCount();
+                showToast('已移至垃圾桶，可在 30 天內復原');
             } catch (error) {
                 console.error('移除帳本失敗:', error);
-                showToast('移除失敗，請確認網路與權限', 'error');
+                showToast('移至垃圾桶失敗，請確認網路與權限', 'error');
+            }
+        }
+
+        function updateTrashCount() {
+            const countNode = document.getElementById('trash-count');
+            if (!countNode) return;
+            const count = (appData?.trash || []).filter(item => Number(item.expiresAt || 0) > Date.now()).length;
+            countNode.textContent = '(' + count + ')';
+        }
+
+        async function pruneExpiredTrash() {
+            if (!appData || !auth.currentUser) return;
+            if (trashPrunePromise) return trashPrunePromise;
+            trashPrunePromise = (async () => {
+                const uid = auth.currentUser.uid;
+                const now = Date.now();
+                const currentTrash = Array.isArray(appData.trash) ? appData.trash : [];
+                const expired = currentTrash.filter(item => Number(item.expiresAt || (Number(item.deletedAt || 0) + 30 * 24 * 60 * 60 * 1000)) <= now);
+                if (!expired.length) { updateTrashCount(); return; }
+                const tripIds = Array.from(new Set(expired.filter(item => item.kind === 'trip').map(item => item.tripId)));
+                const snapshots = await Promise.all(tripIds.map(id => db.collection('trips').doc(id).get()));
+                const batch = db.batch();
+                snapshots.forEach(snapshot => {
+                    if (snapshot.exists && snapshot.data().trashedBy === uid && !(snapshot.data().members || []).length) batch.delete(snapshot.ref);
+                });
+                const activeTrash = currentTrash.filter(item => !expired.includes(item));
+                batch.set(db.collection('users').doc(uid), { trash: activeTrash }, { merge: true });
+                await batch.commit();
+                appData.trash = activeTrash;
+                updateTrashCount();
+            })();
+            try { await trashPrunePromise; }
+            finally { trashPrunePromise = null; }
+        }
+
+        async function renderTrashList() {
+            await pruneExpiredTrash();
+            const list = document.getElementById('trashList');
+            const items = [...(appData?.trash || [])].filter(item => Number(item.expiresAt || 0) > Date.now()).sort((a, b) => b.deletedAt - a.deletedAt);
+            updateTrashCount();
+            list.replaceChildren();
+            if (!items.length) {
+                const empty = document.createElement('div');
+                empty.className = 'desc-text';
+                empty.style.cssText = 'text-align:center;padding:28px 12px;margin:0;';
+                empty.textContent = '垃圾桶目前是空的';
+                list.appendChild(empty);
+                return;
+            }
+            const foldersInTrash = new Set(items.filter(item => item.kind === 'folder').map(item => item.folder?.id));
+            const visibleItems = items.filter(item => item.kind !== 'trip' || !foldersInTrash.has(item.folderId));
+            visibleItems.forEach(item => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-secondary);margin-bottom:9px;';
+                const info = document.createElement('div');
+                info.style.cssText = 'flex:1;min-width:0;';
+                const title = document.createElement('strong');
+                const folderId = item.kind === 'folder' ? item.folder?.id : item.folderId;
+                const childCount = item.kind === 'folder' ? items.filter(child => child.kind === 'trip' && child.folderId === folderId).length : 0;
+                title.textContent = (item.kind === 'folder' ? '📁 資料夾：' : '📒 帳本：') + (item.name || item.folder?.name || '未命名');
+                const detail = document.createElement('div');
+                detail.className = 'desc-text';
+                detail.style.cssText = 'font-size:12px;margin:4px 0 0;';
+                const expires = new Date(Number(item.expiresAt)).toLocaleDateString('zh-TW');
+                const sharedNote = item.shared ? ' · 共用帳本將重新加入' : '';
+                detail.textContent = (item.kind === 'folder' ? '包含 ' + childCount + ' 個帳本 · ' : '') + '期限至 ' + expires + sharedNote;
+                info.append(title, detail);
+                const restoreButton = document.createElement('button');
+                restoreButton.type = 'button';
+                restoreButton.className = 'secondary-btn';
+                restoreButton.style.cssText = 'width:auto;min-width:82px;margin:0;padding:10px 12px;';
+                restoreButton.dataset.restoreTrashId = item.id;
+                restoreButton.textContent = '復原';
+                row.append(info, restoreButton);
+                list.appendChild(row);
+            });
+        }
+
+        async function restoreTrashItem(trashId) {
+            const entry = (appData?.trash || []).find(item => item.id === trashId);
+            if (!entry) return showToast('找不到垃圾桶項目', 'error');
+            if (Number(entry.expiresAt || 0) <= Date.now()) {
+                await pruneExpiredTrash();
+                await renderTrashList();
+                return showToast('此項目已超過 30 天期限', 'error');
+            }
+            const folderId = entry.kind === 'folder' ? entry.folder?.id : entry.folderId;
+            const folderEntry = entry.kind === 'folder' ? entry : (appData.trash || []).find(item => item.kind === 'folder' && item.folder?.id === folderId);
+            const tripEntries = entry.kind === 'folder' || folderEntry
+                ? (appData.trash || []).filter(item => item.kind === 'trip' && item.folderId === folderId && Number(item.expiresAt || 0) > Date.now())
+                : (entry.kind === 'trip' ? [entry] : []);
+            const uid = auth.currentUser.uid;
+            const tripSnapshots = await Promise.all(tripEntries.map(item => db.collection('trips').doc(item.tripId).get()));
+            const missing = tripSnapshots.find(snapshot => !snapshot.exists);
+            if (missing) return showToast('部分帳本已不存在，無法完整復原', 'error');
+            const restoredFolders = [...(appData.folders || [])];
+            if (folderEntry?.folder && !restoredFolders.some(folder => folder.id === folderEntry.folder.id)) restoredFolders.push(folderEntry.folder);
+            const batch = db.batch();
+            const restoredTrips = tripSnapshots.map((snapshot, index) => {
+                const data = snapshot.data();
+                const item = tripEntries[index];
+                const targetFolderId = restoredFolders.some(folder => folder.id === data.folderId) ? data.folderId : null;
+                batch.update(snapshot.ref, {
+                    members: firebase.firestore.FieldValue.arrayUnion(uid),
+                    trashedBy: firebase.firestore.FieldValue.delete(),
+                    trashedAt: firebase.firestore.FieldValue.delete(),
+                    trashExpiresAt: firebase.firestore.FieldValue.delete(),
+                    folderId: targetFolderId
+                });
+                return { ...data, id: item.tripId, folderId: targetFolderId, members: Array.from(new Set([...(data.members || []), uid])) };
+            });
+            const restoredIds = new Set([entry.id, ...(folderEntry ? [folderEntry.id] : []), ...tripEntries.map(item => item.id)]);
+            const remainingTrash = (appData.trash || []).filter(item => !restoredIds.has(item.id));
+            batch.set(db.collection('users').doc(uid), { folders: restoredFolders, trash: remainingTrash }, { merge: true });
+            try {
+                await batch.commit();
+                const tripMap = new Map((appData.trips || []).map(trip => [trip.id, trip]));
+                restoredTrips.forEach(trip => tripMap.set(trip.id, trip));
+                appData.trips = Array.from(tripMap.values());
+                appData.folders = restoredFolders;
+                appData.trash = remainingTrash;
+                updateUI();
+                renderSidebarContent();
+                await renderTrashList();
+                showToast('已從垃圾桶復原');
+            } catch (error) {
+                console.error('復原垃圾桶項目失敗:', error);
+                showToast('復原失敗，請確認網路與權限', 'error');
+            }
+        }
+
+        async function renameSidebarItem(type, id) {
+            const item = type === 'folder' ? appData.folders.find(folder => folder.id === id) : appData.trips.find(trip => trip.id === id);
+            if (!item) return showToast('找不到要重新命名的項目', 'error');
+            const input = prompt('請輸入新的名稱：', item.name || '');
+            if (input === null) return;
+            const name = input.trim();
+            if (!name || name === item.name) return;
+            const previousName = item.name;
+            item.name = name;
+            try {
+                if (type === 'folder') await db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true });
+                else await db.collection('trips').doc(id).update({ name });
+                if (type === 'trip') updateUI();
+                renderSidebarContent();
+                showToast('已重新命名');
+            } catch (error) {
+                item.name = previousName;
+                console.error('重新命名失敗:', error);
+                showToast('重新命名失敗，請確認網路與權限', 'error');
             }
         }
 
         async function joinSharedTrip() {
-            const code = prompt('請輸入 6 碼帳本邀請碼：');
-            if (!code || !code.trim()) return;
+            const codeInput = document.getElementById('sharedTripCodeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            if (!/^[A-Z0-9]{6}$/.test(code)) return showToast('請輸入完整的 6 碼邀請碼', 'error');
             try {
-                const snapshot = await db.collection('trips').where('inviteCode', '==', code.trim().toUpperCase()).limit(1).get();
+                const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get();
                 if (snapshot.empty) return showToast('找不到此邀請碼', 'error');
                 const tripDoc = snapshot.docs[0];
                 const trip = tripDoc.data();
                 if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員');
                 await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid) });
-                await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: trip.id }, { merge: true });
-                appData.activeTripId = trip.id;
+                const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), auth.currentUser.uid] };
+                await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: joinedTrip.id }, { merge: true });
+                appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), joinedTrip];
+                appData.activeTripId = joinedTrip.id;
+                codeInput.value = '';
+                updateUI();
+                renderSidebarContent();
                 toggleSidebar(false);
                 showToast('已加入共用帳本');
             } catch (error) {
@@ -1466,7 +1771,9 @@
         function setFilter(cat) { currentFilter = cat; updateUI(); }
         function openModal(id) { document.getElementById(id).classList.add('open'); if(id === 'addExpenseModal') { document.getElementById('itemDate').value = getLocalDateString(); handleCurrencyDateChange('add'); } }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-        document.querySelectorAll('.close-btn').forEach(btn => { btn.onclick = function() { const target = this.getAttribute('data-target'); if(target) closeModal(target); } });
+        document.querySelectorAll('.close-btn[data-target]').forEach(btn => {
+            btn.addEventListener('click', () => closeModal(btn.dataset.target));
+        });
 
         // 分頁與全域操作
         document.querySelectorAll('.nav-item').forEach(el => {
