@@ -434,7 +434,28 @@
                 console.error("載入資料失敗:", error);
                 startupFailed = true;
                 const overlay = document.getElementById('loading-overlay');
-                overlay.innerHTML = '<div style="max-width:320px;padding:24px;text-align:center;"><h2>資料載入失敗</h2><p>請確認網路連線與 Firebase 權限設定，再重新載入。</p><button class="primary-btn" onclick="location.reload()">重新載入</button></div>';
+                const card = document.createElement('div');
+                card.style.cssText = 'max-width:340px;padding:24px;text-align:center;';
+                const title = document.createElement('h2');
+                title.textContent = '資料載入失敗';
+                const explanation = document.createElement('p');
+                const code = String(error && error.code ? error.code : 'unknown');
+                if (code.includes('permission-denied')) {
+                    explanation.textContent = 'Firebase Firestore 規則拒絕了目前帳號的資料存取。';
+                } else if (code.includes('unavailable') || code.includes('network')) {
+                    explanation.textContent = '無法連線至 Firebase，請檢查網路後再試。';
+                } else {
+                    explanation.textContent = '請把下方錯誤代碼提供給我，以便確認設定。';
+                }
+                const details = document.createElement('pre');
+                details.style.cssText = 'white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;font-size:12px;';
+                details.textContent = '代碼：' + code + '\n' + String(error && error.message ? error.message : error || '沒有更多錯誤資訊');
+                const reloadButton = document.createElement('button');
+                reloadButton.className = 'primary-btn';
+                reloadButton.textContent = '重新載入';
+                reloadButton.addEventListener('click', () => location.reload());
+                card.append(title, explanation, details, reloadButton);
+                overlay.replaceChildren(card);
                 overlay.style.display = 'flex';
             };
 
