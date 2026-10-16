@@ -38,11 +38,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
         
         :root {
+            /* 完全還原您最初始設計的淺色模式色彩與透明度 */
             --theme-bg: #F8F4EC; --theme-bg-dot: #E6DCCD; --theme-text-main: #38343A; --theme-text-heading: #39445E; --theme-text-muted: #756D68;
             --theme-primary: #465875; --theme-primary-hover: #34445F; --theme-primary-text: #FFFFFF; --theme-secondary: #F2E3E1;
-            --theme-accent: #B84A3A; --theme-accent-hover: #963B31; --theme-accent-text: #FFFFFF; --theme-card-bg: rgba(255, 252, 246, 0.85); --theme-header-bg: #39445E;
-            --theme-header-text: #FFF9F0; --theme-header-subtext: #E9DCD3; --theme-border: rgba(151, 129, 116, 0.25); --theme-input-bg: rgba(255, 252, 246, 0.98);
+            --theme-accent: #B84A3A; --theme-accent-hover: #963B31; --theme-accent-text: #FFFFFF; --theme-card-bg: rgba(255, 252, 246, 0.96); --theme-header-bg: #39445E;
+            --theme-header-text: #FFF9F0; --theme-header-subtext: #E9DCD3; --theme-border: rgba(151, 129, 116, 0.38); --theme-input-bg: rgba(255, 252, 246, 0.98);
             --theme-nav-bg: rgba(255, 252, 246, 0.98); --theme-modal-overlay: rgba(35, 31, 34, 0.66); --theme-danger: #B23A48; --theme-sidebar-item: #FFFCF6;
+            
+            /* 淺色模式維持原本的光影效果 */
+            --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --fab-bg: var(--theme-accent);
+            --fab-shadow: 0 8px 20px color-mix(in srgb, var(--theme-accent) 40%, transparent);
         }
 
         /* 深度星空 Dark Mode */
@@ -53,6 +59,11 @@
                 --theme-accent: #E26D5C; --theme-accent-hover: #F08068; --theme-accent-text: #FFFFFF; --theme-card-bg: rgba(26, 31, 46, 0.75); --theme-header-bg: #171E2E;
                 --theme-header-text: #FFF7ED; --theme-header-subtext: #C4D0DF; --theme-border: rgba(255, 255, 255, 0.08); --theme-input-bg: rgba(20, 25, 38, 0.8);
                 --theme-nav-bg: rgba(20, 25, 38, 0.95); --theme-modal-overlay: rgba(5, 7, 12, 0.85); --theme-sidebar-item: rgba(255, 255, 255, 0.03);
+                
+                /* 深色模式專屬：玻璃高光與星空漸層 */
+                --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                --fab-bg: linear-gradient(135deg, var(--theme-accent), #D46A5A);
+                --fab-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 50%, transparent), 0 0 0 1px inset rgba(255,255,255,0.2);
             }
         }
         :root[data-theme="dark"] {
@@ -61,6 +72,10 @@
             --theme-accent: #E26D5C; --theme-accent-hover: #F08068; --theme-accent-text: #FFFFFF; --theme-card-bg: rgba(26, 31, 46, 0.75); --theme-header-bg: #171E2E;
             --theme-header-text: #FFF7ED; --theme-header-subtext: #C4D0DF; --theme-border: rgba(255, 255, 255, 0.08); --theme-input-bg: rgba(20, 25, 38, 0.8);
             --theme-nav-bg: rgba(20, 25, 38, 0.95); --theme-modal-overlay: rgba(5, 7, 12, 0.85); --theme-sidebar-item: rgba(255, 255, 255, 0.03);
+            
+            --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            --fab-bg: linear-gradient(135deg, var(--theme-accent), #D46A5A);
+            --fab-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 50%, transparent), 0 0 0 1px inset rgba(255,255,255,0.2);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -71,7 +86,7 @@
         .num-font { font-family: 'Inter', -apple-system, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
 
         /* 光澤玻璃質感 */
-        .glass-panel { background: var(--theme-card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--theme-border); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
+        .glass-panel { background: var(--theme-card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--theme-border); box-shadow: var(--theme-glass-shadow); }
         .app-container { max-width: 600px; margin: 0 auto; padding: 15px 15px 90px 15px; display: none; }
         .card { padding: 20px; border-radius: 20px; margin-top: 15px; border-left: 6px solid var(--theme-primary); transition: transform 0.2s, background 0.4s; }
         .card-header { display: flex; justify-content: space-between; align-items: center; }
@@ -96,7 +111,7 @@
         .sidebar-header .close-btn:hover { background: var(--theme-secondary); transform: scale(1.04); }
         
         /* 懸浮按鈕發光細節 */
-        .fab { position: fixed; bottom: 80px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--theme-accent), #D46A5A); display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 50%, transparent), 0 0 0 1px inset rgba(255,255,255,0.2); cursor: pointer; z-index: 90; transition: transform 0.2s; color: white; font-size: 28px; }
+        .fab { position: fixed; bottom: 80px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: var(--fab-bg); display: flex; justify-content: center; align-items: center; box-shadow: var(--fab-shadow); cursor: pointer; z-index: 90; transition: transform 0.2s; color: white; font-size: 28px; }
         .fab:active { transform: scale(0.85); }
 
         .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .desc-text { font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px; } .form-group { display: flex; gap: 10px; margin-bottom: 6px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } input[type="date"] { display: block; width: 100%; min-width: 0; max-width: 100%; padding-left: 10px; padding-right: 8px; font-size: 14px; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;}
@@ -404,7 +419,6 @@
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table"></i> 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <script>
-        // ... (Firebase 初始配置保持不變) ...
         const firebaseConfig = { apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4", authDomain: "bookkeeping-app-cf680.firebaseapp.com", projectId: "bookkeeping-app-cf680", storageBucket: "bookkeeping-app-cf680.firebasestorage.app", messagingSenderId: "480039184522", appId: "1:480039184522:web:31658c3229b8fa0cef2573" };
         firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore(); const googleProvider = new firebase.auth.GoogleAuthProvider();
         db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
@@ -438,7 +452,7 @@
 
         function setupRealtimeListeners(user) {
             let userDataLoaded = false; let tripsLoaded = false; let latestTrips = []; let startupFailed = false;
-            const showStartupError = (error) => { /* 錯誤處理維持原樣 */
+            const showStartupError = (error) => {
                 console.error("載入資料失敗:", error); startupFailed = true;
                 const overlay = document.getElementById('loading-overlay');
                 overlay.innerHTML = '<div style="max-width:340px;padding:24px;text-align:center;"><h2>資料載入失敗</h2><p>無法連線或權限拒絕，請重新載入。</p><button class="primary-btn" onclick="location.reload()">重新載入</button></div>';
@@ -624,7 +638,6 @@
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
 
-        // ... Sidebar, ContextMenu, Drag-and-Drop邏輯不變 ...
         function getSidebarContextItem(target) { const tripItem = target.closest('.trip-menu-item[data-type="trip"]'); if (tripItem) return { type: 'trip', id: tripItem.dataset.id }; const folderHeader = target.closest('.folder-header[data-folder-id]'); if (folderHeader) return { type: 'folder', id: folderHeader.dataset.folderId }; return null; }
         function setSidebarSortablesDisabled(disabled) { sortableInstances.forEach(instance => instance.option('disabled', disabled)); }
         function openSidebarContextMenu(item, x, y) { const menu = document.getElementById('sidebar-context-menu'); if (!menu || isSidebarEditMode) return; activeSidebarContextTarget = item; sidebarContextOpenedAt = Date.now(); menu.classList.add('open'); const rect = menu.getBoundingClientRect(); menu.style.left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)) + 'px'; menu.style.top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)) + 'px'; setSidebarSortablesDisabled(true); }
@@ -855,7 +868,7 @@
             const list = document.getElementById('manageCurrencyList'); list.replaceChildren();
             Object.entries(appData.rates || {}).filter(([code]) => code !== 'TWD').sort(([a], [b]) => a.localeCompare(b)).forEach(([code, rate]) => {
                 const row = document.createElement('div'); row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--theme-border);';
-                const label = document.createElement('span'); label.textContent = code + ' 1 ' + code + ' = NT$ ' + Number(rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                const label = document.createElement('span'); label.textContent = code + '　1 ' + code + ' = NT$ ' + Number(rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
                 const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:6px;';
                 [['edit', '修改'], ['delete', '刪除']].forEach(([action, text]) => { const button = document.createElement('button'); button.type = 'button'; button.className = action === 'delete' ? 'danger-btn' : 'manage-btn'; button.style.cssText = 'width:auto;margin:0;padding:7px 10px;font-size:13px;'; button.dataset.action = action; button.dataset.currency = code; button.textContent = text; actions.appendChild(button); });
                 row.append(label, actions); list.appendChild(row);
