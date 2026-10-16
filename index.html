@@ -868,7 +868,7 @@
             const list = document.getElementById('manageCurrencyList'); list.replaceChildren();
             Object.entries(appData.rates || {}).filter(([code]) => code !== 'TWD').sort(([a], [b]) => a.localeCompare(b)).forEach(([code, rate]) => {
                 const row = document.createElement('div'); row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--theme-border);';
-                const label = document.createElement('span'); label.textContent = code + '　1 ' + code + ' = NT$ ' + Number(rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                const label = document.createElement('span'); label.textContent = code + ' 1 ' + code + ' = NT$ ' + Number(rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
                 const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:6px;';
                 [['edit', '修改'], ['delete', '刪除']].forEach(([action, text]) => { const button = document.createElement('button'); button.type = 'button'; button.className = action === 'delete' ? 'danger-btn' : 'manage-btn'; button.style.cssText = 'width:auto;margin:0;padding:7px 10px;font-size:13px;'; button.dataset.action = action; button.dataset.currency = code; button.textContent = text; actions.appendChild(button); });
                 row.append(label, actions); list.appendChild(row);
