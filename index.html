@@ -9,8 +9,8 @@
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0F19">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="彗星帳簿">
-    <title>彗星帳簿</title>
+    <meta name="apple-mobile-web-app-title" content="記帳軟體beta">
+    <title>記帳軟體beta</title>
     
     <!-- Firebase 官方套件 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -38,16 +38,34 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
         
         :root {
-            /* 淺色模式維持原本設計的色彩與透明度 */
-            --theme-bg: #F8F4EC; --theme-bg-dot: #E6DCCD; --theme-text-main: #38343A; --theme-text-heading: #39445E; --theme-text-muted: #756D68;
-            --theme-primary: #465875; --theme-primary-hover: #34445F; --theme-primary-text: #FFFFFF; --theme-secondary: #F2E3E1;
-            --theme-accent: #B84A3A; --theme-accent-hover: #963B31; --theme-accent-text: #FFFFFF; --theme-card-bg: rgba(255, 252, 246, 0.96); --theme-header-bg: #39445E;
-            --theme-header-text: #FFF9F0; --theme-header-subtext: #E9DCD3; --theme-border: rgba(151, 129, 116, 0.38); --theme-input-bg: rgba(255, 252, 246, 0.98);
-            --theme-nav-bg: rgba(255, 252, 246, 0.98); --theme-modal-overlay: rgba(35, 31, 34, 0.66); --theme-danger: #B23A48; --theme-warning: #D97706; --theme-sidebar-item: #FFFCF6;
+            /* 淺色模式：和紙米白基底 + 日系青綠色 (青磁/若竹/千歲綠) 元素 */
+            --theme-bg: #F8F4EC;
+            --theme-bg-dot: #D5E0DC;
+            --theme-text-main: #2F3E46;
+            --theme-text-heading: #233D3B;
+            --theme-text-muted: #647A76;
+            --theme-primary: #5F958B;
+            --theme-primary-hover: #4B7B72;
+            --theme-primary-text: #FFFFFF;
+            --theme-secondary: #E6F0EE;
+            --theme-accent: #E07A5F;
+            --theme-accent-hover: #C86449;
+            --theme-accent-text: #FFFFFF;
+            --theme-card-bg: rgba(255, 253, 249, 0.96);
+            --theme-header-bg: #2F4846;
+            --theme-header-text: #F9F6F0;
+            --theme-header-subtext: #C8DFDB;
+            --theme-border: rgba(95, 149, 139, 0.34);
+            --theme-input-bg: rgba(255, 255, 255, 0.98);
+            --theme-nav-bg: rgba(252, 250, 245, 0.98);
+            --theme-modal-overlay: rgba(32, 45, 44, 0.62);
+            --theme-danger: #B23A48;
+            --theme-warning: #D97706;
+            --theme-sidebar-item: #FFFFFF;
             
-            --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-            --fab-bg: var(--theme-accent);
-            --fab-shadow: 0 8px 20px color-mix(in srgb, var(--theme-accent) 40%, transparent);
+            --theme-glass-shadow: 0 8px 30px rgba(47, 72, 70, 0.08);
+            --fab-bg: linear-gradient(135deg, #5F958B, #43766C);
+            --fab-shadow: 0 8px 20px rgba(95, 149, 139, 0.42);
         }
 
         /* 深度星空 Dark Mode */
@@ -77,7 +95,7 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Klee One', 'LXGW WenKai TC', cursive; background-color: var(--theme-bg); background-image: radial-gradient(var(--theme-bg-dot) 1px, transparent 1px); background-size: 20px 20px; color: var(--theme-text-main); margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
+        body { font-family: 'Klee One', 'LXGW WenKai TC', cursive; background-color: var(--theme-bg); background-image: radial-gradient(var(--theme-bg-dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--theme-text-main); margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
         h1, h2, h3 { color: var(--theme-text-heading) !important; margin: 0; }
         
         /* 數字與英文專屬字體，等寬對齊 */
@@ -101,9 +119,39 @@
         @keyframes pulseSync { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
         /* 輸入框與表單舒適度提升 */
-        input, select, button { width: 100%; padding: 16px 14px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 14px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); transition: all 0.2s; outline: none; }
-        input[type="number"], input[type="date"] { font-family: 'Inter', sans-serif; }
-        input:focus, select:focus { border-color: var(--theme-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 12%, transparent); transform: translateY(-1px); }
+        input, select, button { width: 100%; padding: 15px 14px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 14px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); transition: all 0.2s; outline: none; }
+        input[type="number"] { font-family: 'Inter', sans-serif; }
+        input:focus, select:focus { border-color: var(--theme-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 16%, transparent); transform: translateY(-1px); }
+
+        /* 日期輸入框與月曆按鈕組合 */
+        .date-picker-field { position: relative; display: flex; align-items: center; width: 100%; margin-top: 8px; }
+        .date-picker-field input.date-input-box { margin-top: 0; padding-right: 44px; cursor: pointer; font-weight: 600; color: var(--theme-text-heading); background: var(--theme-input-bg); }
+        .date-picker-field .calendar-trigger-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; margin: 0; padding: 0; border: none; border-radius: 10px; background: var(--theme-secondary); color: var(--theme-primary); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; cursor: pointer; transition: all 0.2s; }
+        .date-picker-field .calendar-trigger-btn:hover { background: var(--theme-primary); color: var(--theme-primary-text); }
+        .date-picker-field .calendar-trigger-btn:active { transform: translateY(-50%) scale(0.92); }
+
+        /* 互動式月曆選單樣式 */
+        .calendar-modal-card { max-width: 350px !important; padding: 20px !important; }
+        .cal-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .cal-nav-btn { width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 10px; background: var(--theme-secondary); color: var(--theme-text-heading); border: 1px solid var(--theme-border); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+        .cal-nav-btn:hover { background: var(--theme-primary); color: var(--theme-primary-text); }
+        .cal-month-title { font-size: 17px; font-weight: 700; color: var(--theme-text-heading); }
+        .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: bold; color: var(--theme-text-muted); margin-bottom: 6px; padding: 4px 0; }
+        .cal-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-day-cell { aspect-ratio: 1; border: none; margin: 0; padding: 0; border-radius: 12px; background: transparent; color: var(--theme-text-main); font-size: 14px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.15s; }
+        .cal-day-cell:hover:not(:disabled) { background: var(--theme-secondary); color: var(--theme-primary); transform: scale(1.05); }
+        .cal-day-cell.other-month { opacity: 0.3; }
+        /* 帳本旅遊期間底色（日系淡青綠） */
+        .cal-day-cell.in-trip-range { background: var(--theme-secondary); color: var(--theme-text-heading); border-radius: 8px; }
+        /* 今日標記（青綠外框） */
+        .cal-day-cell.is-today { border: 2px solid var(--theme-primary); color: var(--theme-primary); font-weight: 700; }
+        .cal-day-cell.is-today::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--theme-primary); position: absolute; bottom: 4px; }
+        /* 選擇的日期以醒目的不同顏色標示（赤陶柿紅） */
+        .cal-day-cell.is-selected { background: var(--theme-accent) !important; color: var(--theme-accent-text) !important; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent) 45%, transparent); transform: scale(1.06); }
+        .cal-day-cell.is-selected::after { background: var(--theme-accent-text); }
+        .cal-legend-bar { display: flex; justify-content: center; gap: 14px; font-size: 12px; color: var(--theme-text-muted); margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--theme-border); }
+        .cal-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
         .primary-btn { background-color: var(--theme-primary); color: var(--theme-primary-text); border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .primary-btn:hover { background-color: var(--theme-primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 35%, transparent); }
         .primary-btn:active { transform: scale(0.97); }
@@ -128,7 +176,7 @@
         .fab { position: fixed; bottom: 80px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: var(--fab-bg); display: flex; justify-content: center; align-items: center; box-shadow: var(--fab-shadow); cursor: pointer; z-index: 90; transition: transform 0.2s; color: white; font-size: 28px; }
         .fab:active { transform: scale(0.85); }
 
-        .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .desc-text { font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px; } .form-group { display: flex; gap: 10px; margin-bottom: 6px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } input[type="date"] { display: block; width: 100%; min-width: 0; max-width: 100%; padding-left: 10px; padding-right: 8px; font-size: 14px; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;}
+        .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .desc-text { font-size: 14px; color: var(--theme-text-muted); margin-bottom: 15px; } .form-group { display: flex; gap: 10px; margin-bottom: 6px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;}
 
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--theme-modal-overlay); display: none; z-index: 190; backdrop-filter: blur(4px); }
         .sidebar { position: fixed; top: 0; left: 0; width: 300px; max-width: 85vw; height: 100%; background: var(--theme-card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--theme-border); z-index: 195; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; border-radius: 0 20px 20px 0; }
@@ -137,17 +185,18 @@
         .sidebar-header { padding: 20px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
         .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
         .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
-        .trip-menu-item.active { border-left-color: var(--theme-accent); background: var(--theme-header-bg); box-shadow: 0 5px 16px rgba(27, 32, 48, 0.18); }
-        .trip-menu-item.active .trip-menu-name, .trip-menu-item.active .trip-menu-spent { color: var(--theme-header-text) !important; }
-        .trip-menu-item.active .trip-menu-meta { color: var(--theme-header-subtext) !important; }
-        .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-accent); }
+        .trip-menu-item.active { border-left-color: var(--theme-primary); background: var(--theme-secondary); box-shadow: 0 4px 12px rgba(95, 149, 139, 0.16); }
+        .trip-menu-item.active .trip-menu-name { color: var(--theme-text-heading) !important; font-weight: 700 !important; }
+        .trip-menu-item.active .trip-menu-spent { color: var(--theme-primary) !important; }
+        .trip-menu-item.active .trip-menu-meta { color: var(--theme-text-muted) !important; }
+        .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-primary); }
         .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
         .trip-menu-item:active, .folder-header:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.35; }
         .sortable-chosen { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .sortable-drag { opacity: 0.95; }
         #root-sortable.root-drop-active { outline: 2px dashed var(--theme-primary); outline-offset: 4px; border-radius: 12px; background: color-mix(in srgb, var(--theme-primary) 8%, transparent); }
-        .folder-header { padding: 12px 15px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid var(--theme-border); }
+        .folder-header { padding: 12px 15px; background: var(--theme-secondary); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid var(--theme-border); }
         .join-shared-form { display: flex; align-items: stretch; gap: 8px; margin: 10px 0 0; }
         .join-shared-form input { flex: 1; width: 0; min-width: 0; margin: 0; text-transform: uppercase; }
         .join-shared-form button { width: auto; min-width: 86px; margin: 0; padding-left: 12px; padding-right: 12px; }
@@ -162,7 +211,7 @@
         .nav-item.active { opacity: 1; color: var(--theme-primary); transform: translateY(-4px) scale(1.1); filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--theme-primary) 40%, transparent)); }
 
         .expense-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--theme-border); padding: 14px 8px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
-        .expense-payer-label { background: var(--theme-secondary); color: var(--theme-text-main); padding: 2px 8px; border: 1px solid var(--theme-border); border-radius: 8px; font-size: 12px; margin-left: 6px; }
+        .expense-payer-label { background: var(--theme-secondary); color: var(--theme-text-heading); padding: 2px 8px; border: 1px solid var(--theme-border); border-radius: 8px; font-size: 12px; margin-left: 6px; font-weight: 600; }
         .expense-item:active { background-color: var(--theme-secondary); border-radius: 12px; }
         .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(8px); font-size: 15px; font-weight: bold; color: var(--theme-text-heading); padding: 12px 5px 8px 5px; border-bottom: 2px solid var(--theme-primary); z-index: 10; margin-top: 10px; border-radius: 0 0 10px 10px; }
         .lazy-load-hint { text-align: center; padding: 12px; font-size: 13px; color: var(--theme-text-muted); }
@@ -178,7 +227,7 @@
         .filter-container { display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden; padding: 8px 8px 16px; margin: -4px -8px 5px; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
         .filter-chip { padding: 8px 18px; background: var(--theme-secondary); border-radius: 20px; font-size: 15px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: bold; border: 1px solid var(--theme-border); transition: all 0.3s; }
-        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-accent); box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-primary) 24%, transparent); transform: none; }
+        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-primary-hover); box-shadow: 0 3px 10px color-mix(in srgb, var(--theme-primary) 30%, transparent); transform: none; }
         
         .tab-view { display: none; animation: slideInFade 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .tab-view.active { display: block; }
@@ -192,11 +241,11 @@
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--theme-bg); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { padding: 35px 25px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border-top: 8px solid var(--theme-primary); }
         
-        .toast-msg { padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: bold; box-shadow: 0 8px 24px rgba(0,0,0,0.4); text-align: center; letter-spacing: 0.5px;}
+        .toast-msg { padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: bold; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center; letter-spacing: 0.5px;}
         #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         #toast-container .toast-msg { pointer-events: auto; }
         
-        .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--theme-border); }
+        .budget-bar { position: relative; background-color: var(--theme-secondary); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--theme-border); }
         .budget-fill { background-color: var(--theme-primary); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: var(--theme-text-main); z-index: 2;}
 
@@ -213,7 +262,7 @@
         .summary-table th, .summary-table td { padding:10px 8px; border-bottom:1px solid var(--theme-border); text-align:left; }
         .summary-table th { position:sticky; top:0; background:var(--theme-secondary); color:var(--theme-text-heading); z-index:1; }
         .tag-total { font-size: 14px; color: var(--theme-primary-text); font-weight: bold; background: var(--theme-primary); padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
-        .select-sm { width: auto; margin: 0; padding: 6px 10px; font-size: 14px; border-radius: 10px; font-weight:bold; cursor: pointer; }
+        .select-sm { width: auto; margin: 0; padding: 6px 10px; font-size: 14px; border-radius: 10px; font-weight:bold; cursor: pointer; background: var(--theme-secondary); border: 1px solid var(--theme-border); }
         .cross-stat-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
         .cross-stat-box { background: var(--theme-secondary); border: 1px solid var(--theme-border); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
     </style>
@@ -227,8 +276,8 @@
     <!-- 登入畫面 -->
     <div id="login-overlay">
         <div class="login-card glass-panel">
-            <div style="font-size: 48px; margin-bottom: 10px; color: var(--theme-primary);"><i class="ph-fill ph-meteor"></i></div>
-            <h2>彗星帳簿</h2>
+            <div style="font-size: 48px; margin-bottom: 10px; color: var(--theme-primary);"><i class="ph-fill ph-notebook"></i></div>
+            <h2>記帳軟體beta</h2>
             <p style="color: var(--theme-text-muted); margin-bottom: 20px;">即時同步，與旅伴共筆每一刻</p>
             <button class="primary-btn w-100" id="btn-login" style="background: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); padding: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
@@ -241,7 +290,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span style="display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-meteor" style="color:var(--theme-primary)"></i> 帳本與資料夾</span>
+            <span style="display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-notebook" style="color:var(--theme-primary)"></i> 帳本與資料夾</span>
             <button type="button" class="close-btn" id="btn-close-sidebar"><i class="ph ph-x"></i></button>
         </div>
         <div class="sidebar-content">
@@ -289,7 +338,7 @@
         <div id="tab-records" class="tab-view active">
             <div class="card glass-panel" id="budgetCard">
                 <div class="card-header">
-                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wallet"></i> 預算進度 (TWD)</h3>
+                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wallet" style="color:var(--theme-primary);"></i> 預算進度 (TWD)</h3>
                     <span style="font-size:14px; color:var(--theme-primary); cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:4px;" id="btn-edit-budget"><i class="ph ph-gear"></i> 修改</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 15px; margin-top: 12px; font-weight: bold;">
@@ -304,7 +353,7 @@
 
             <div class="card glass-panel" style="padding-bottom: 10px;">
                 <div class="flex-wrap" style="margin-bottom: 12px;">
-                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-receipt"></i> 帳目明細</h3>
+                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-receipt" style="color:var(--theme-primary);"></i> 帳目明細</h3>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span id="record-total" class="tag-total num-font">NT$ 0</span>
                         <select id="sortSelect" class="select-sm">
@@ -323,15 +372,15 @@
         <!-- 分頁 2：統計 -->
         <div id="tab-stats" class="tab-view">
             <div class="card glass-panel" id="chartCard">
-                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-chart-pie-slice"></i> 消費分類佔比</h3>
+                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-chart-pie-slice" style="color:var(--theme-primary);"></i> 消費分類佔比</h3>
                 <div style="max-width: 260px; margin: 10px auto;"><canvas id="expenseChart"></canvas></div>
                 <div id="customChartLegend"></div>
             </div>
 
-            <!-- 全新進階視覺：每月/年度跨帳本分析 -->
+            <!-- 每月/年度跨帳本分析 -->
             <div class="card glass-panel" id="crossStatsCard">
                 <div class="flex-wrap" style="margin-bottom: 10px;">
-                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-chart-bar"></i> 跨帳本／月份趨勢分析</h3>
+                    <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-chart-bar" style="color:var(--theme-primary);"></i> 跨帳本／月份趨勢分析</h3>
                     <select id="crossChartMode" class="select-sm">
                         <option value="by-month">依月份趨勢 (YYYY-MM)</option>
                         <option value="by-trip">各帳本總花費對比</option>
@@ -342,12 +391,12 @@
             </div>
             
             <div class="card glass-panel" id="payerSummaryCard">
-                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-users"></i> 成員付款統計</h3>
+                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-users" style="color:var(--theme-primary);"></i> 成員付款統計</h3>
                 <div id="payerSummaryList" style="margin-top:10px; line-height: 2; font-size: 16px;"></div>
             </div>
             
             <div class="card glass-panel">
-                <h3 style="font-size: 18px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-trend-up"></i> 詳細報表</h3>
+                <h3 style="font-size: 18px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-trend-up" style="color:var(--theme-primary);"></i> 詳細報表</h3>
                 <button class="secondary-btn w-100 mb-10" id="btn-open-summary"><i class="ph ph-table"></i> 檢視表格總覽</button>
                 <button class="primary-btn w-100" style="margin-top:0;" id="btn-export-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button>
             </div>
@@ -356,23 +405,23 @@
         <!-- 分頁 3：設定 -->
         <div id="tab-settings" class="tab-view">
             <div class="card glass-panel">
-                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette"></i> 介面外觀設定</h3>
-                <p class="desc-text">切換您喜歡的主題風格</p>
+                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette" style="color:var(--theme-primary);"></i> 介面外觀設定</h3>
+                <p class="desc-text">切換您喜歡的主題風格（淺色模式採用日系青綠和風配色）</p>
                 <select id="themeSelect" style="font-weight: bold; text-align: center;">
                     <option value="system">跟隨系統預設</option>
-                    <option value="light">淺色模式</option>
+                    <option value="light">淺色模式（日系青綠）</option>
                     <option value="dark">星空深色</option>
                 </select>
             </div>
             
             <div class="card glass-panel">
-                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear"></i> 目前帳本設定</h3>
-                <p class="desc-text">修改名稱、預算，分享邀請碼給旅伴。</p>
+                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:var(--theme-primary);"></i> 目前帳本設定</h3>
+                <p class="desc-text">修改名稱、旅遊期間、預算，分享邀請碼給旅伴。</p>
                 <button class="manage-btn w-100 text-left" style="padding: 15px;" id="btn-open-trip-settings"><i class="ph ph-pencil-simple"></i> 編輯「<span id="settings-trip-name"></span>」設定</button>
             </div>
             
             <div class="card glass-panel">
-                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wrench"></i> 全域設定 (共用)</h3>
+                <h3 style="font-size: 18px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wrench" style="color:var(--theme-primary);"></i> 全域設定 (共用)</h3>
                 <p class="desc-text">自訂您的分類名稱與專屬幣別</p>
                 <button class="manage-btn w-100 text-left mb-10" style="padding: 15px;" id="btn-manage-categories"><i class="ph ph-tag"></i> 管理消費分類</button>
                 <button class="manage-btn w-100 text-left" style="padding: 15px;" id="btn-manage-currencies"><i class="ph ph-currency-circle-dollar"></i> 管理自訂幣別與匯率</button>
@@ -390,14 +439,25 @@
         <div class="nav-item" data-tab="settings"><i class="ph ph-gear"></i></div>
     </div>
 
-    <!-- 新增消費 Modal (支援連續記帳、Enter快捷鍵、即時預算超支預警) -->
+    <!-- ================= 彈跳視窗區 (Modals) ================= -->
+
+    <!-- 新增消費 Modal (含月曆選單點選器) -->
     <div class="modal bottom-sheet" id="addExpenseModal">
         <div class="modal-content glass-panel">
-            <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-                <h3 style="font-size: 20px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-note-pencil"></i> 新增消費</h3>
+            <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;">
+                <h3 style="font-size: 20px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-note-pencil" style="color:var(--theme-primary);"></i> 新增消費</h3>
                 <span class="close-btn" data-target="addExpenseModal"><i class="ph ph-x"></i></span>
             </div>
-            <div class="form-group"><div><input type="date" id="itemDate" class="num-font" required></div></div>
+            <!-- 消費日期：月曆點選 -->
+            <div class="form-group">
+                <div>
+                    <label style="font-size:12px; color:var(--theme-text-muted); font-weight:bold;">消費日期（點擊開啟月曆）</label>
+                    <div class="date-picker-field" data-date-target="itemDate" data-date-title="選擇消費日期">
+                        <input type="text" id="itemDate" class="date-input-box num-font" placeholder="YYYY-MM-DD" readonly required>
+                        <button type="button" class="calendar-trigger-btn" aria-label="開啟月曆選擇消費日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+            </div>
             <div class="form-group">
                 <input type="text" id="itemName" placeholder="項目名稱 (按 Enter 跳至金額)" maxlength="50" required style="flex-grow: 1;">
                 <label class="inline-checkbox-label"><input type="checkbox" id="enableDetailsBtn"> <i class="ph ph-plus"></i> 細項</label>
@@ -436,12 +496,20 @@
         </div>
     </div>
 
-    <!-- 編輯消費 Modal -->
+    <!-- 編輯消費 Modal (含月曆選單點選器) -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content glass-panel">
-            <h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-pencil-simple"></i> 編輯消費</h3>
+            <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-pencil-simple" style="color:var(--theme-primary);"></i> 編輯消費</h3>
             <input type="hidden" id="editExpId">
-            <div class="form-group"><div><input type="date" id="editExpDate" class="num-font"></div></div>
+            <div class="form-group">
+                <div>
+                    <label style="font-size:12px; color:var(--theme-text-muted); font-weight:bold;">消費日期（點擊開啟月曆）</label>
+                    <div class="date-picker-field" data-date-target="editExpDate" data-date-title="修改消費日期">
+                        <input type="text" id="editExpDate" class="date-input-box num-font" placeholder="YYYY-MM-DD" readonly>
+                        <button type="button" class="calendar-trigger-btn" aria-label="開啟月曆修改消費日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+            </div>
             <input type="text" id="editExpName" placeholder="項目名稱" maxlength="50">
             <input type="text" id="editExpDetails" placeholder="細項說明" maxlength="100">
             <div class="form-group mt-10">
@@ -469,18 +537,117 @@
         </div>
     </div>
 
-    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar"></i> 管理幣別與匯率</h3><p class="desc-text">匯率表示 1 單位外幣可換算的新台幣金額。</p><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+    <!-- 新增帳本 Modal (開始與結束日期皆支援月曆點選) -->
+    <div class="modal" id="addTripModal">
+        <div class="modal-content glass-panel">
+            <h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-book-open" style="color:var(--theme-primary);"></i> 新增帳本</h3>
+            <input type="text" id="newTripNameInput" placeholder="帳本名稱 (例：京都賞楓行)" maxlength="50">
+            <div class="form-group mt-10">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:var(--theme-text-muted);">開始日期：</label>
+                    <div class="date-picker-field" data-date-target="newTripStartInput" data-date-title="選擇帳本開始日期">
+                        <input type="text" id="newTripStartInput" class="date-input-box num-font" readonly>
+                        <button type="button" class="calendar-trigger-btn" aria-label="選擇開始日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:var(--theme-text-muted);">結束日期：</label>
+                    <div class="date-picker-field" data-date-target="newTripEndInput" data-date-title="選擇帳本結束日期">
+                        <input type="text" id="newTripEndInput" class="date-input-box num-font" readonly>
+                        <button type="button" class="calendar-trigger-btn" aria-label="選擇結束日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="newTripBudgetInput" class="num-font" placeholder="40000"></div>
+            <div style="border-top:1px solid var(--theme-border);margin-top:18px;padding-top:14px;">
+                <label for="sharedTripCodeInput" style="font-weight:bold;color:var(--theme-text-heading); display:flex; align-items:center; gap:6px;"><i class="ph ph-handshake"></i> 加入共用帳本</label>
+                <div class="join-shared-form">
+                    <input type="text" id="sharedTripCodeInput" class="num-font" placeholder="輸入 6 碼邀請碼" maxlength="6" autocomplete="off" autocapitalize="characters">
+                    <button class="secondary-btn" id="btn-join-shared" type="button">加入</button>
+                </div>
+            </div>
+            <div class="form-group mt-20">
+                <button class="manage-btn flex-1 close-btn" data-target="addTripModal">取消</button>
+                <button class="primary-btn flex-1" style="margin-top:0;" id="btn-create-trip"><i class="ph ph-check"></i> 建立</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帳本設定 Modal (開始與結束日期皆支援月曆點選) -->
+    <div class="modal" id="tripSettingsModal">
+        <div class="modal-content glass-panel">
+            <h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:var(--theme-primary);"></i> 帳本設定</h3>
+            <div style="background:var(--theme-secondary); padding:15px; border-radius:14px; text-align:center; margin-bottom:15px; border:1px dashed var(--theme-primary);">
+                <label style="font-size:14px; font-weight:bold;">🤝 旅伴邀請碼</label>
+                <div id="modalTripInviteCode" class="num-font" style="font-size:24px; font-weight:bold; color:var(--theme-primary); letter-spacing:4px; margin-top:5px;">------</div>
+            </div>
+            <input type="text" id="modalTripNameInput" placeholder="帳本名稱">
+            <div class="form-group mt-10">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:var(--theme-text-muted);">開始日期：</label>
+                    <div class="date-picker-field" data-date-target="modalTripStartInput" data-date-title="修改帳本開始日期">
+                        <input type="text" id="modalTripStartInput" class="date-input-box num-font" readonly>
+                        <button type="button" class="calendar-trigger-btn" aria-label="修改開始日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:var(--theme-text-muted);">結束日期：</label>
+                    <div class="date-picker-field" data-date-target="modalTripEndInput" data-date-title="修改帳本結束日期">
+                        <input type="text" id="modalTripEndInput" class="date-input-box num-font" readonly>
+                        <button type="button" class="calendar-trigger-btn" aria-label="修改結束日期"><i class="ph-fill ph-calendar-blank"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="modalTripBudgetInput" class="num-font"></div>
+            <div style="margin-top:18px;">
+                <strong style="color:var(--theme-text-heading);">顯示項目</strong>
+                <label class="settings-checkbox-label"><input type="checkbox" id="tripShowBudget"> 預算進度</label>
+                <label class="settings-checkbox-label"><input type="checkbox" id="tripShowPayerSummary"> 成員付款統計</label>
+                <label class="settings-checkbox-label"><input type="checkbox" id="tripShowCategoryChart"> 消費分類圓餅圖</label>
+            </div>
+            <div class="form-group mt-20">
+                <button class="manage-btn flex-1 close-btn" data-target="tripSettingsModal">取消</button>
+                <button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-trip-settings">儲存設定</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal" id="liveRateModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-globe"></i> 查詢當日匯率</h3><p class="desc-text">輸入 3～5 碼幣別代碼，查詢 1 單位外幣換算新台幣金額。</p><div class="form-group"><input type="text" id="liveRateCurrencyCode" class="num-font" placeholder="例如 USD、JPY" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="desc-text num-font"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
-    
-    <div class="modal" id="manageCategoryModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
-    
-    <div class="modal" id="addTripModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-book-open"></i> 新增帳本</h3><input type="text" id="newTripNameInput" placeholder="帳本名稱" maxlength="50"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="newTripStartInput" class="num-font"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="newTripEndInput" class="num-font"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="newTripBudgetInput" class="num-font" placeholder="40000"></div><div style="border-top:1px solid var(--theme-border);margin-top:18px;padding-top:14px;"><label for="sharedTripCodeInput" style="font-weight:bold;color:var(--theme-text-heading); display:flex; align-items:center; gap:6px;"><i class="ph ph-handshake"></i> 加入共用帳本</label><div class="join-shared-form"><input type="text" id="sharedTripCodeInput" class="num-font" placeholder="輸入 6 碼邀請碼" maxlength="6" autocomplete="off" autocapitalize="characters"><button class="secondary-btn" id="btn-join-shared" type="button">加入</button></div></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="addTripModal">取消</button><button class="primary-btn flex-1" style="margin-top:0;" id="btn-create-trip"><i class="ph ph-check"></i> 建立</button></div></div></div>
-    
-    <div class="modal" id="tripSettingsModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear"></i> 帳本設定</h3><div style="background:var(--theme-secondary); padding:15px; border-radius:14px; text-align:center; margin-bottom:15px; border:1px dashed var(--theme-primary);"><label style="font-size:14px; font-weight:bold;">🤝 旅伴邀請碼</label><div id="modalTripInviteCode" class="num-font" style="font-size:24px; font-weight:bold; color:var(--theme-primary); letter-spacing:4px; margin-top:5px;">------</div></div><input type="text" id="modalTripNameInput" placeholder="帳本名稱"><div class="form-group mt-10"><div><label style="font-size:13px;">開始：</label><input type="date" id="modalTripStartInput" class="num-font"></div><div><label style="font-size:13px;">結束：</label><input type="date" id="modalTripEndInput" class="num-font"></div></div><div class="mt-10"><label style="font-size:13px;">總預算 (TWD)：</label><input type="number" id="modalTripBudgetInput" class="num-font"></div><div style="margin-top:18px;"><strong style="color:var(--theme-text-heading);">顯示項目</strong><label class="settings-checkbox-label"><input type="checkbox" id="tripShowBudget"> 預算進度</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowPayerSummary"> 成員付款統計</label><label class="settings-checkbox-label"><input type="checkbox" id="tripShowCategoryChart"> 消費分類圓餅圖</label></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="tripSettingsModal">取消</button><button class="primary-btn flex-1-5" style="margin-top:0;" id="btn-save-trip-settings">儲存設定</button></div></div></div>
+    <!-- 專屬互動式月曆點選器 Modal -->
+    <div class="modal" id="calendarPickerModal" style="z-index: 320;">
+        <div class="modal-content glass-panel calendar-modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 id="calendarModalTitle" style="font-size:17px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-calendar-check" style="color:var(--theme-primary);"></i> 選擇日期</h3>
+                <button type="button" class="close-btn" data-target="calendarPickerModal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="cal-header-bar">
+                <button type="button" class="cal-nav-btn" id="calPrevMonthBtn" aria-label="上個月"><i class="ph-bold ph-caret-left"></i></button>
+                <div id="calMonthYearLabel" class="cal-month-title num-font">2026 年 10 月</div>
+                <button type="button" class="cal-nav-btn" id="calNextMonthBtn" aria-label="下個月"><i class="ph-bold ph-caret-right"></i></button>
+            </div>
+            <div class="cal-weekdays">
+                <span style="color:var(--theme-accent);">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:var(--theme-primary);">六</span>
+            </div>
+            <div id="calDaysGrid" class="cal-days-grid num-font"></div>
+            <div class="cal-legend-bar">
+                <span><i class="cal-legend-dot" style="background:var(--theme-accent);"></i>已選日期</span>
+                <span><i class="cal-legend-dot" style="border:2px solid var(--theme-primary);"></i>今天</span>
+                <span><i class="cal-legend-dot" style="background:var(--theme-secondary); border:1px solid var(--theme-border);"></i>帳本期間</span>
+            </div>
+            <div class="form-group mt-10" style="margin-bottom:0;">
+                <button type="button" class="secondary-btn flex-1" id="calSelectTodayBtn" style="padding:10px;"><i class="ph-fill ph-Map-pin"></i> 今天</button>
+                <button type="button" class="manage-btn flex-1 close-btn" data-target="calendarPickerModal" style="padding:10px;">關閉</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise"></i> 最近刪除</h3><p class="desc-text">刪除的帳本與資料夾會保留 30 天。</p><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 18px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
-    <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table"></i> 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
+    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar" style="color:var(--theme-primary);"></i> 管理幣別與匯率</h3><p class="desc-text">匯率表示 1 單位外幣可換算的新台幣金額。</p><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+
+    <div class="modal" id="liveRateModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-globe" style="color:var(--theme-primary);"></i> 查詢當日匯率</h3><p class="desc-text">輸入 3～5 碼幣別代碼，查詢 1 單位外幣換算新台幣金額。</p><div class="form-group"><input type="text" id="liveRateCurrencyCode" class="num-font" placeholder="例如 USD、JPY" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="desc-text num-font"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
+    
+    <div class="modal" id="manageCategoryModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:15px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:var(--theme-primary);"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:14px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
+
+    <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--theme-primary);"></i> 最近刪除</h3><p class="desc-text">刪除的帳本與資料夾會保留 30 天。</p><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 18px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
+    <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:var(--theme-primary);"></i> 帳本表格總覽</h3><p id="summaryTripName" class="desc-text" style="margin-bottom:12px;"></p><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4", authDomain: "bookkeeping-app-cf680.firebaseapp.com", projectId: "bookkeeping-app-cf680", storageBucket: "bookkeeping-app-cf680.firebasestorage.app", messagingSenderId: "480039184522", appId: "1:480039184522:web:31658c3229b8fa0cef2573" };
@@ -496,14 +663,153 @@
         let unsubUser = null; let unsubTrips = null;
         let pendingSyncCount = 0;
 
-        // 長列表延遲載入 (Lazy / Virtual Scrolling) 狀態
+        // 長列表延遲載入狀態
         const LAZY_BATCH_SIZE = 30;
         let currentDisplayExps = [];
         let renderedExpCount = 0;
         let lastRenderedDateHeader = '';
         let currentPayerStatsEnabled = true;
 
+        // 互動式月曆狀態
+        let activeDateInputId = null;
+        let calViewYear = new Date().getFullYear();
+        let calViewMonth = new Date().getMonth();
+
         const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trash: [], trips: [] };
+
+        function getLocalDateString(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        // ====== 專屬互動式月曆點選器邏輯 ======
+        function openCalendarPicker(inputId, titleText = '選擇日期') {
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            activeDateInputId = inputId;
+            document.getElementById('calendarModalTitle').innerHTML = `<i class="ph-fill ph-calendar-check" style="color:var(--theme-primary);"></i> ${escapeHtml(titleText)}`;
+
+            const currentVal = inputEl.value && /^\d{4}-\d{2}-\d{2}$/.test(inputEl.value)
+                ? inputEl.value
+                : getLocalDateString();
+            const [y, m] = currentVal.split('-').map(Number);
+            calViewYear = y || new Date().getFullYear();
+            calViewMonth = (m ? m - 1 : new Date().getMonth());
+
+            renderCalendarGrid();
+            document.getElementById('calendarPickerModal').classList.add('open');
+        }
+
+        function getCalendarTripRange() {
+            if (activeDateInputId === 'newTripStartInput' || activeDateInputId === 'newTripEndInput') {
+                return {
+                    start: document.getElementById('newTripStartInput')?.value || '',
+                    end: document.getElementById('newTripEndInput')?.value || ''
+                };
+            }
+            if (activeDateInputId === 'modalTripStartInput' || activeDateInputId === 'modalTripEndInput') {
+                return {
+                    start: document.getElementById('modalTripStartInput')?.value || '',
+                    end: document.getElementById('modalTripEndInput')?.value || ''
+                };
+            }
+            const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
+            return { start: trip?.startDate || '', end: trip?.endDate || '' };
+        }
+
+        function renderCalendarGrid() {
+            const label = document.getElementById('calMonthYearLabel');
+            const grid = document.getElementById('calDaysGrid');
+            label.textContent = `${calViewYear} 年 ${String(calViewMonth + 1).padStart(2, '0')} 月`;
+            grid.replaceChildren();
+
+            const selectedVal = activeDateInputId ? (document.getElementById(activeDateInputId)?.value || '') : '';
+            const todayVal = getLocalDateString();
+            const range = getCalendarTripRange();
+
+            const firstDayOfWeek = new Date(calViewYear, calViewMonth, 1).getDay();
+            const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+            const prevMonthDays = new Date(calViewYear, calViewMonth, 0).getDate();
+
+            const createDayBtn = (y, m, d, isOtherMonth) => {
+                const dateObj = new Date(y, m, d);
+                const dateStr = getLocalDateString(dateObj);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'cal-day-cell num-font';
+                if (isOtherMonth) btn.classList.add('other-month');
+                if (range.start && range.end && dateStr >= range.start && dateStr <= range.end) {
+                    btn.classList.add('in-trip-range');
+                }
+                if (dateStr === todayVal) btn.classList.add('is-today');
+                if (dateStr === selectedVal) btn.classList.add('is-selected');
+                btn.textContent = d;
+                btn.addEventListener('click', () => selectDateFromCalendar(dateStr));
+                return btn;
+            };
+
+            // 補齊上月尾端日期
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                grid.appendChild(createDayBtn(calViewYear, calViewMonth - 1, prevMonthDays - i, true));
+            }
+            // 本月日期
+            for (let d = 1; d <= daysInMonth; d++) {
+                grid.appendChild(createDayBtn(calViewYear, calViewMonth, d, false));
+            }
+            // 補齊下月開頭日期 (維持 42 格整齊版面)
+            const totalCells = firstDayOfWeek + daysInMonth;
+            const trailing = (7 - (totalCells % 7)) % 7;
+            for (let d = 1; d <= trailing; d++) {
+                grid.appendChild(createDayBtn(calViewYear, calViewMonth + 1, d, true));
+            }
+        }
+
+        function selectDateFromCalendar(dateStr) {
+            if (!activeDateInputId) return;
+            const inputEl = document.getElementById(activeDateInputId);
+            if (!inputEl) return;
+            inputEl.value = dateStr;
+
+            // 若起日大於迄日，貼心自動校正對應欄位
+            if (activeDateInputId === 'newTripStartInput') {
+                const endEl = document.getElementById('newTripEndInput');
+                if (endEl && endEl.value && dateStr > endEl.value) endEl.value = dateStr;
+            } else if (activeDateInputId === 'newTripEndInput') {
+                const startEl = document.getElementById('newTripStartInput');
+                if (startEl && startEl.value && dateStr < startEl.value) startEl.value = dateStr;
+            } else if (activeDateInputId === 'modalTripStartInput') {
+                const endEl = document.getElementById('modalTripEndInput');
+                if (endEl && endEl.value && dateStr > endEl.value) endEl.value = dateStr;
+            } else if (activeDateInputId === 'modalTripEndInput') {
+                const startEl = document.getElementById('modalTripStartInput');
+                if (startEl && startEl.value && dateStr < startEl.value) startEl.value = dateStr;
+            }
+
+            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+            renderCalendarGrid();
+            setTimeout(() => closeModal('calendarPickerModal'), 120);
+        }
+
+        document.querySelectorAll('.date-picker-field').forEach(wrapper => {
+            wrapper.addEventListener('click', () => {
+                openCalendarPicker(wrapper.dataset.dateTarget, wrapper.dataset.dateTitle || '選擇日期');
+            });
+        });
+        document.getElementById('calPrevMonthBtn').addEventListener('click', () => {
+            calViewMonth--;
+            if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+            renderCalendarGrid();
+        });
+        document.getElementById('calNextMonthBtn').addEventListener('click', () => {
+            calViewMonth++;
+            if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+            renderCalendarGrid();
+        });
+        document.getElementById('calSelectTodayBtn').addEventListener('click', () => {
+            selectDateFromCalendar(getLocalDateString());
+        });
 
         // 離線與雲端同步狀態更新器
         function updateSyncStatusIndicator() {
@@ -588,7 +894,7 @@
                 appData.categories = Array.isArray(appData.categories) && appData.categories.length ? appData.categories : [...defaultAppData.categories];
                 appData.folders = Array.isArray(appData.folders) ? appData.folders : []; appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
                 userDataLoaded = true; applyTheme(appData.theme || 'system');
-                document.getElementById('user-info').innerHTML = '<i class="ph-fill ph-user"></i> ' + escapeHtml(appData.customUserName || user.displayName || '使用者');
+                document.getElementById('user-info').innerHTML = '<i class="ph-fill ph-user" style="color:var(--theme-primary);"></i> ' + escapeHtml(appData.customUserName || user.displayName || '使用者');
                 finishStartup();
             }, showStartupError);
 
@@ -607,7 +913,6 @@
         }
 
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
-        function getLocalDateString(date = new Date()) { const year = date.getFullYear(); const month = String(date.getMonth() + 1).padStart(2, '0'); const day = String(date.getDate()).padStart(2, '0'); return year + '-' + month + '-' + day; }
         async function updateTripExpenses(tripId, updateFn, offlineExpenses) {
             const ref = db.collection("trips").doc(tripId);
             if (!navigator.onLine) { await ref.set({ expenses: offlineExpenses }, { merge: true }); return; }
@@ -718,7 +1023,7 @@
 
             if (currentDisplayExps.length === 0) {
                 const empty = document.createElement('div'); empty.style.textAlign = 'center'; empty.style.padding = '40px 10px'; empty.style.color = 'var(--theme-text-muted)';
-                empty.innerHTML = '<div style="font-size:50px;margin-bottom:12px;opacity:0.6;"><i class="ph ph-receipt-x"></i></div><div style="font-size:18px;font-weight:bold;color:var(--theme-text-heading);">目前沒有任何紀錄</div>';
+                empty.innerHTML = '<div style="font-size:50px;margin-bottom:12px;opacity:0.7;color:var(--theme-primary);"><i class="ph ph-leaf"></i></div><div style="font-size:18px;font-weight:bold;color:var(--theme-text-heading);">目前沒有任何紀錄</div>';
                 listEl.appendChild(empty);
             } else {
                 appendNextExpenseBatch();
@@ -740,7 +1045,7 @@
             else {
                 payerNames.forEach(payer => {
                     const line = document.createElement('div'); line.style.cssText = 'display:flex;justify-content:space-between;border-bottom:1px dashed var(--theme-border);padding:6px 0;';
-                    const payerLabel = document.createElement('span'); payerLabel.innerHTML = '<i class="ph-fill ph-user" style="vertical-align:middle; margin-right:4px;"></i> <strong>' + escapeHtml(payer) + '</strong>';
+                    const payerLabel = document.createElement('span'); payerLabel.innerHTML = '<i class="ph-fill ph-user" style="vertical-align:middle; margin-right:4px; color:var(--theme-primary);"></i> <strong>' + escapeHtml(payer) + '</strong>';
                     const total = document.createElement('span'); total.style.color = 'var(--theme-text-main)'; total.className = 'num-font'; total.textContent = 'NT$ ' + payers[payer].toLocaleString();
                     line.append(payerLabel, total); payerSummary.appendChild(line);
                 });
@@ -767,7 +1072,8 @@
             if (categoryNames.length === 0) { if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } chartCard.style.display = 'none'; return; }
             chartCard.style.display = '';
             if (expenseChartInstance) expenseChartInstance.destroy();
-            const colors = ['#264653', '#E4572E', '#007F73', '#6C5B7B', '#C58B00', '#B23A48', '#457B9D', '#588157', '#A23B72', '#8F5D2F', '#277DA1', '#7A7E32'];
+            // 融入日系青綠與和風色票
+            const colors = ['#5F958B', '#E07A5F', '#84A59D', '#F4A261', '#2F4846', '#94D2BD', '#B23A48', '#588157', '#457B9D', '#C58B00'];
             const chartBorder = getComputedStyle(chartCard).backgroundColor || '#FFFCF6';
             expenseChartInstance = new Chart(ctx, {
                 type: 'doughnut',
@@ -818,8 +1124,8 @@
             }
 
             if (crossTripChartInstance) crossTripChartInstance.destroy();
-            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-text-muted').trim() || '#756D68';
-            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#465875';
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-text-muted').trim() || '#647A76';
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#5F958B';
 
             if (labels.length === 0) {
                 summaryEl.innerHTML = '<div class="cross-stat-box" style="grid-column: 1 / -1; text-align:center; color:var(--theme-text-muted);">尚無跨帳本消費數據</div>';
@@ -1102,7 +1408,6 @@
                 document.getElementById('itemDetails').style.display = 'none';
                 updateTWDPreview('add');
 
-                // 檢查是否觸發預算警告
                 let budgetAlertMsg = '';
                 let toastType = 'success';
                 if (trip.budget > 0 && trip.showBudget !== false) {
@@ -1146,7 +1451,7 @@
 
         document.getElementById('btn-delete-expense').onclick = async () => { if (!confirm('確定要刪除這筆紀錄嗎？')) return; const id = parseInt(document.getElementById('editExpId').value, 10); const trip = appData.trips.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error'); const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : []; const offlineExpenses = currentExpenses.filter(expense => String(expense.id) !== String(id)); try { await updateTripExpenses(trip.id, expenses => expenses.filter(expense => String(expense.id) !== String(id)), offlineExpenses); closeModal('editExpenseModal'); showToast('紀錄已刪除'); } catch (error) { console.error(error); showToast('刪除失敗，請稍後再試', 'error'); } };
 
-        // 預覽、匯率查詢與即時預算超支預警 (Real-time Budget Alerts)
+        // 預覽、匯率查詢與即時預算超支預警
         const rateMeta = { add: '', edit: '' }; const dailyRateCache = new Map();
         function currentRateFor(mode) { return mode === 'add' ? currentFetchedAddRate : currentFetchedEditRate; }
         function setCurrentRateFor(mode, rate) { if (mode === 'add') currentFetchedAddRate = rate; else currentFetchedEditRate = rate; }
@@ -1321,7 +1626,7 @@
 
         document.getElementById('btn-open-trip-settings').onclick = () => {
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
-            document.getElementById('modalTripInviteCode').innerText = trip.inviteCode || '無代碼'; document.getElementById('modalTripNameInput').value = trip.name || ''; document.getElementById('modalTripStartInput').value = trip.startDate || ''; document.getElementById('modalTripEndInput').value = trip.endDate || ''; document.getElementById('modalTripBudgetInput').value = trip.budget || 0; document.getElementById('tripShowBudget').checked = trip.showBudget !== false; document.getElementById('tripShowPayerSummary').checked = trip.showPayerSummary !== false; document.getElementById('tripShowCategoryChart').checked = trip.showCategoryChart !== false; openModal('tripSettingsModal');
+            document.getElementById('modalTripInviteCode').innerText = trip.inviteCode || '無代碼'; document.getElementById('modalTripNameInput').value = trip.name || ''; document.getElementById('modalTripStartInput').value = trip.startDate || getLocalDateString(); document.getElementById('modalTripEndInput').value = trip.endDate || getLocalDateString(); document.getElementById('modalTripBudgetInput').value = trip.budget || 0; document.getElementById('tripShowBudget').checked = trip.showBudget !== false; document.getElementById('tripShowPayerSummary').checked = trip.showPayerSummary !== false; document.getElementById('tripShowCategoryChart').checked = trip.showCategoryChart !== false; openModal('tripSettingsModal');
         };
         document.getElementById('btn-edit-budget').onclick = () => document.getElementById('btn-open-trip-settings').click();
         document.getElementById('btn-save-trip-settings').onclick = async () => {
