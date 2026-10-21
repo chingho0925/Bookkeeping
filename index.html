@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="cover.png">
+    <link rel="apple-touch-icon" href="cover.png">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F3EB">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0F19">
@@ -23,6 +25,12 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
+        // 註冊 Service Worker 以支援手機桌面安裝 (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW 註冊略過:', err));
+            });
+        }
         window.addEventListener('load', function() {
             if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function' || typeof firebase.firestore !== 'function') {
                 const overlay = document.getElementById('loading-overlay');
@@ -144,7 +152,7 @@
         .header { flex-shrink: 0; color: var(--theme-header-text); background: var(--theme-header-bg); padding: 12px 16px; border-radius: 18px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: 8px; border-bottom: 2px solid color-mix(in srgb, var(--wafu-gold) 55%, transparent); }
         .header-title-container { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
         .header h1 { font-size: 19px; font-weight: 700; color: var(--theme-header-text) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .trip-period-text { font-size: 12.5px; opacity: 0.95; margin-top: 3px; color: var(--theme-header-subtext); }
+        .trip-period-text { font-size: 12.5px; opacity: 0.95; margin-top: 3px; color: var(--theme-header-subtext); display: none; }
 
         /* 分頁視圖：使明細頁完全貼合螢幕高度不裁切，統計與設定頁獨立捲動 */
         .tab-view { display: none; flex: 1; min-height: 0; animation: slideInFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -171,7 +179,7 @@
         .date-picker-field input.date-input-box { width: 100%; margin-top: 0; padding: 11px 34px 11px 10px; font-size: 13.5px; letter-spacing: -0.3px; cursor: pointer; font-weight: 600; color: var(--theme-text-heading); background: var(--theme-input-bg); text-overflow: clip; }
         .date-picker-field .calendar-trigger-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; margin: 0; padding: 0; border: none; border-radius: 8px; background: var(--theme-secondary); color: var(--theme-primary); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; transition: all 0.2s; pointer-events: none; }
 
-        /* 互動式月曆選單樣式（支援起始日與結束日不同顏色標示、禁用起始日前的日期） */
+        /* 互動式月曆選單樣式 */
         .calendar-modal-card { max-width: 355px !important; padding: 18px !important; }
         .cal-step-banner { font-size: 12.5px; font-weight: bold; padding: 6px 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; background: var(--wafu-gold-bg); color: var(--wafu-gold-text); border: 1px solid color-mix(in srgb, var(--wafu-gold) 35%, transparent); display: none; }
         .cal-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -184,17 +192,11 @@
         .cal-day-cell:hover:not(:disabled) { background: var(--theme-secondary); color: var(--theme-primary); transform: scale(1.05); }
         .cal-day-cell.other-month { opacity: 0.35; }
         .cal-day-cell.is-disabled { opacity: 0.22 !important; cursor: not-allowed !important; text-decoration: line-through; pointer-events: none; background: transparent !important; }
-        /* 帳本旅遊期間底色 */
         .cal-day-cell.in-trip-range { background: var(--theme-secondary); color: var(--theme-text-heading); border-radius: 8px; }
-        /* 今日標記 */
         .cal-day-cell.is-today { border: 1.5px dashed var(--wafu-gold); color: var(--wafu-gold-text); font-weight: 700; }
-        /* 單一消費日期選取（山吹金／柿紅） */
         .cal-day-cell.is-selected { background: var(--wafu-gold) !important; color: #FFFFFF !important; font-weight: 700; border-radius: 11px; box-shadow: 0 3px 10px color-mix(in srgb, var(--wafu-gold) 45%, transparent); }
-        /* 起始日專屬標示（若竹青綠） */
         .cal-day-cell.is-range-start { background: var(--theme-primary) !important; color: var(--theme-primary-text) !important; font-weight: 700; border-radius: 11px 6px 6px 11px; box-shadow: 0 3px 10px color-mix(in srgb, var(--theme-primary) 40%, transparent); }
-        /* 結束日專屬標示（柿紅） */
         .cal-day-cell.is-range-end { background: var(--theme-accent) !important; color: var(--theme-accent-text) !important; font-weight: 700; border-radius: 6px 11px 11px 6px; box-shadow: 0 3px 10px color-mix(in srgb, var(--theme-accent) 40%, transparent); }
-        /* 當起始日與結束日為同一天時（雙色漸層標示） */
         .cal-day-cell.is-range-start.is-range-end { background: linear-gradient(135deg, var(--theme-primary) 50%, var(--theme-accent) 50%) !important; border-radius: 11px; }
         .cal-legend-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 11.5px; color: var(--theme-text-muted); margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--theme-border); }
         .cal-legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
@@ -292,6 +294,7 @@
         #network-status { background-color: var(--theme-danger); color: white; text-align: center; padding: 6px 12px; font-size: 12px; font-weight: bold; display: none; position: fixed; top: 0; width: 100%; z-index: 3000; }
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--theme-bg); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { padding: 35px 25px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border-top: 8px solid var(--theme-primary); }
+        .cover-img-box { width: 112px; height: 112px; object-fit: cover; border-radius: 24px; margin-bottom: 12px; box-shadow: 0 6px 18px rgba(47, 72, 70, 0.16); border: 2px solid var(--theme-border); }
         
         .toast-msg { padding: 12px 24px; border-radius: 30px; font-size: 14.5px; font-weight: bold; box-shadow: 0 8px 24px rgba(0,0,0,0.25); text-align: center; letter-spacing: 0.5px;}
         #toast-container { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
@@ -323,12 +326,18 @@
 
     <div id="toast-container"></div>
     <div id="network-status"><i class="ph ph-wifi-slash"></i> 目前為離線狀態，新增或修改將於恢復連線後自動同步雲端</div>
-    <div id="loading-overlay"><div class="spinner"></div></div>
+    
+    <!-- 啟動載入畫面（支援 cover.png 封面圖與自動退回圖示） -->
+    <div id="loading-overlay">
+        <img src="cover.png" alt="記帳軟體封面" class="cover-img-box" onerror="this.style.display='none'">
+        <div class="spinner"></div>
+    </div>
 
-    <!-- 登入畫面 -->
+    <!-- 登入畫面（支援 cover.png 封面圖與自動退回圖示） -->
     <div id="login-overlay">
         <div class="login-card glass-panel">
-            <div style="font-size: 48px; margin-bottom: 10px; color: var(--theme-primary);"><i class="ph-fill ph-notebook"></i></div>
+            <img src="cover.png" alt="記帳軟體封面" class="cover-img-box" onerror="this.style.display='none'; document.getElementById('login-fallback-icon').style.display='block';">
+            <div id="login-fallback-icon" style="display:none; font-size: 48px; margin-bottom: 10px; color: var(--theme-primary);"><i class="ph-fill ph-notebook"></i></div>
             <h2>記帳軟體beta</h2>
             <p style="color: var(--theme-text-muted); margin-bottom: 20px;">即時同步，與旅伴共筆每一刻</p>
             <button class="primary-btn w-100" id="btn-login" style="background: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); padding: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -453,7 +462,7 @@
             </div>
         </div>
 
-        <!-- 分頁 3：設定（已移除冗長說明文字，保持簡潔） -->
+        <!-- 分頁 3：設定 -->
         <div id="tab-settings" class="tab-view">
             <div class="card card-gold glass-panel" style="margin-top:0;">
                 <h3 style="font-size: 17.5px; margin-bottom: 8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette" style="color:var(--wafu-gold);"></i> 介面外觀設定</h3>
@@ -525,7 +534,7 @@
             </div>
             
             <div class="form-group mt-10">
-                <div style="flex: 1;"><select id="itemCategory"></select></div>
+                <div style="flex: 1;"><select id="itemCategory" aria-label="消費分類"></select></div>
                 <div id="payerInputContainer" style="flex: 1.5;"><select id="itemPayer" aria-label="付款成員"></select></div>
             </div>
 
@@ -569,7 +578,7 @@
                 <div id="editTwdPreview" class="real-time-preview num-font">換算台幣: NT$ 0</div>
             </div>
             <div class="form-group mt-10">
-                <div style="flex: 1;"><select id="editExpCategory"></select></div>
+                <div style="flex: 1;"><select id="editExpCategory" aria-label="消費分類"></select></div>
                 <div id="editPayerInputContainer" style="flex: 1.5;"><select id="editExpPayer" aria-label="付款成員"></select></div>
             </div>
             <div class="form-group mt-20">
@@ -580,7 +589,7 @@
         </div>
     </div>
 
-    <!-- 新增帳本 Modal（支援「限定記錄期間」開關與連貫選取起迄日） -->
+    <!-- 新增帳本 Modal -->
     <div class="modal" id="addTripModal">
         <div class="modal-content glass-panel">
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-book-open" style="color:var(--theme-primary);"></i> 新增帳本</h3>
@@ -621,7 +630,7 @@
         </div>
     </div>
     
-    <!-- 帳本設定 Modal（支援「限定記錄期間」開關與無裁切日期欄位） -->
+    <!-- 帳本設定 Modal -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content glass-panel">
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:var(--theme-primary);"></i> 帳本設定</h3>
@@ -695,11 +704,11 @@
         </div>
     </div>
 
-    <div class="modal" id="manageCurrencyModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar" style="color:var(--theme-primary);"></i> 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin:12px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+    <div class="modal" id="manageCurrencyModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar" style="color:var(--theme-primary);"></i> 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin:12px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
 
-    <div class="modal" id="liveRateModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-globe" style="color:var(--theme-primary);"></i> 查詢當日匯率</h3><div class="form-group"><input type="text" id="liveRateCurrencyCode" class="num-font" placeholder="例如 USD、JPY" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="num-font" style="font-size:13px; color:var(--theme-text-muted); margin-top:8px;"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
+    <div class="modal" id="liveRateModal" style="z-index: 270;"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-globe" style="color:var(--theme-primary);"></i> 查詢當日匯率</h3><div class="form-group"><input type="text" id="liveRateCurrencyCode" class="num-font" placeholder="例如 USD、JPY" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="num-font" style="font-size:13px; color:var(--theme-text-muted); margin-top:8px;"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
     
-    <div class="modal" id="manageCategoryModal"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:var(--theme-primary);"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin:12px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
+    <div class="modal" id="manageCategoryModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:var(--theme-primary);"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin:12px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
 
     <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--theme-primary);"></i> 最近刪除 (保留 30 天)</h3><div id="trashList" style="max-height:55vh;overflow:auto;margin:10px 0 16px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:var(--theme-primary);"></i> 帳本表格總覽</h3><div id="summaryTripName" style="font-size:14px; font-weight:bold; color:var(--theme-primary); margin-bottom:10px;"></div><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
@@ -758,7 +767,7 @@
             document.getElementById('modalTripDateRangeBox').style.display = this.checked ? 'flex' : 'none';
         });
 
-        // ====== 專屬互動式月曆點選器（支援起始日直選結束日、不同顏色標示、期間限制） ======
+        // ====== 專屬互動式月曆點選器 ======
         function openCalendarPicker(inputId, titleText = '選擇日期') {
             const inputEl = document.getElementById(inputId);
             if (!inputEl) return;
@@ -920,7 +929,6 @@
             inputEl.value = dateStr;
             inputEl.dispatchEvent(new Event('change', { bubbles: true }));
 
-            // 當點選「開始日期」後，自動切換為點選「結束日期」並鎖定起始日前的日期
             if (activeDateInputId === 'newTripStartInput' || activeDateInputId === 'modalTripStartInput') {
                 const endId = activeDateInputId === 'newTripStartInput' ? 'newTripEndInput' : 'modalTripEndInput';
                 const endEl = document.getElementById(endId);
@@ -1088,7 +1096,7 @@
             return 'cat-tone-' + (idx % 5);
         }
 
-        // 延遲載入批次渲染函式 (Lazy Scrolling + 細項防擠壓排版)
+        // 延遲載入批次渲染函式
         function appendNextExpenseBatch() {
             const listEl = document.getElementById('expense-list');
             const oldHint = listEl.querySelector('.lazy-load-hint');
@@ -1235,10 +1243,16 @@
                 });
             }
 
-            const addCurrency = document.getElementById('itemCurrency').value; const editCurrency = document.getElementById('editExpCurrency').value;
+            const addCurrency = document.getElementById('itemCurrency').value;
+            const editCurrency = document.getElementById('editExpCurrency').value;
+            const addCategory = document.getElementById('itemCategory').value;
+            const editCategory = document.getElementById('editExpCategory').value;
+
             renderSelectOptions('itemCurrency', appData.rates, appData.rates[addCurrency] ? addCurrency : (appData.rates[previousCurrency.add] ? previousCurrency.add : 'TWD'), false, true);
             renderSelectOptions('editExpCurrency', appData.rates, appData.rates[editCurrency] ? editCurrency : (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
-            renderSelectOptions('itemCategory', appData.categories, appData.categories[0], true);
+            renderSelectOptions('itemCategory', appData.categories, appData.categories.includes(addCategory) ? addCategory : appData.categories[0], true);
+            renderSelectOptions('editExpCategory', appData.categories, appData.categories.includes(editCategory) ? editCategory : appData.categories[0], true);
+
             renderChart(trip, totalTWD);
             renderCrossTripChart();
         }
@@ -1256,7 +1270,6 @@
             if (categoryNames.length === 0) { if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } chartCard.style.display = 'none'; return; }
             chartCard.style.display = '';
             if (expenseChartInstance) expenseChartInstance.destroy();
-            // 多彩日系和風色票（若竹、柿色、山吹、櫻色、露草、藤紫、千歲綠、珊瑚）
             const colors = ['#4E877D', '#D96B52', '#D49A35', '#C86D7E', '#4A7C9B', '#7E6B9E', '#2F4846', '#E6A15C', '#6A994E', '#B23A48'];
             const chartBorder = getComputedStyle(chartCard).backgroundColor || '#FFFCF6';
             expenseChartInstance = new Chart(ctx, {
@@ -1384,14 +1397,14 @@
         function renderSidebarContent() {
             const container = document.getElementById('sidebar-items-container'); updateTrashCount();
             const rootItems = [...appData.folders.map(folder => ({ ...folder, type: 'folder' })), ...appData.trips.filter(trip => !trip.folderId).map(trip => ({ ...trip, type: 'trip' }))].sort((a, b) => (a.order || 0) - (b.order || 0));
-            let html = '<div id="root-sortable" style="min-height:100px;padding:4px 0 32px;">';
+            let html = '<div id="root-sortable" style="min-height:100px;padding:4px 0 32px;" aria-label="最外層帳本，可將帳本拖曳至此移出資料夾">';
             rootItems.forEach(item => {
                 const safeId = escapeHtml(item.id);
                 if (item.type === 'folder') {
                     const children = appData.trips.filter(trip => trip.folderId === item.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                     const expanded = item.expanded !== false;
                     const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="folder">' : '';
-                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span><i class="ph-fill ph-folder"></i> ' + escapeHtml(item.name) + ' <small style="opacity:0.75;font-weight:normal;">(' + children.length + ')</small></span></div><span aria-hidden="true">' + (expanded ? '⌄' : '›') + '</span></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
+                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '" title="右鍵或長按以重新命名／刪除"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span><i class="ph-fill ph-folder" style="color:var(--theme-primary);"></i> ' + escapeHtml(item.name) + ' <small style="color:var(--theme-text-muted);font-weight:normal;">(' + children.length + ')</small></span></div><span aria-hidden="true">' + (expanded ? '⌄' : '›') + '</span></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
                     children.forEach(trip => { html += renderTripItem(trip); }); html += '</div></div>';
                 } else { html += renderTripItem(item); }
             });
@@ -1407,7 +1420,7 @@
             const safeId = escapeHtml(trip.id); const active = trip.id === appData.activeTripId; const spent = (trip.expenses || []).reduce((sum, expense) => sum + getTwd(expense), 0); const shared = trip.members && trip.members.length > 1;
             const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="trip">' : '';
             const dateMeta = isTripDateLimited(trip) ? `<small class="trip-menu-meta num-font" style="color:var(--theme-text-muted);font-size:12.5px;">${escapeHtml(trip.startDate)} ~ ${escapeHtml(trip.endDate)}</small>` : '';
-            return '<div class="trip-menu-item ' + (active && !isSidebarEditMode ? 'active' : '') + '" data-id="' + safeId + '" data-type="trip">' + checkbox + '<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;">' +
+            return '<div class="trip-menu-item ' + (active && !isSidebarEditMode ? 'active' : '') + '" data-id="' + safeId + '" data-type="trip" title="右鍵或長按以重新命名／刪除">' + checkbox + '<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;">' +
                 '<div class="trip-menu-name" style="font-size:15.5px;color:var(--theme-text-main);font-weight:' + (active ? 'bold' : 'normal') + ';line-height:1.3;margin-bottom:2px;">' +
                 (shared ? '<i class="ph-fill ph-handshake" style="color:var(--wafu-sakura);"></i> ' : '') + escapeHtml(trip.name) + '</div>' + dateMeta +
                 '<small class="trip-menu-spent num-font" style="color:var(--theme-primary);font-weight:bold;margin-top:3px;font-size:13px;">花費: $' + spent.toLocaleString() + '</small></div></div>';
@@ -1433,7 +1446,7 @@
             try { await batch.commit(); showToast('帳本分類與排序已儲存'); } catch (error) { appData.trips.forEach(trip => { const prior = before.get(trip.id); if (prior) { trip.folderId = prior.folderId; trip.order = prior.order; } }); appData.folders.forEach(folder => { if (beforeFolderOrder.has(folder.id)) folder.order = beforeFolderOrder.get(folder.id); }); console.error(error); showToast('排序同步失敗，已還原原本順序', 'error'); }
         }
 
-        async function createFolder() { const name = prompt('請輸入資料夾名稱：'); if (!name || !name.trim()) return; const folder = { id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() }; appData.folders = [...(appData.folders || []), folder]; try { await db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true }); renderSidebarContent(); showToast('資料夾已建立'); } catch (error) { appData.folders = appData.folders.filter(item => item.id !== folder.id); console.error(error); showToast('建立資料夾失敗', 'error'); } }
+        async function createFolder() { const name = prompt('請輸入資料夾名稱：'); if (!name || !name.trim()) return; const folder = { id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() }; appData.folders = [...(appData.folders || []), folder]; try { await db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true }); renderSidebarContent(); showToast('資料夾已建立，可拖曳帳本分類'); } catch (error) { appData.folders = appData.folders.filter(item => item.id !== folder.id); console.error(error); showToast('建立資料夾失敗，請稍後再試', 'error'); } }
         async function deleteSelectedItems() { const selected = Array.from(document.querySelectorAll('.sidebar-cb:checked')); if (!selected.length) return showToast('請先勾選帳本或資料夾', 'error'); return deleteSidebarItems( selected.filter(item => item.dataset.type === 'trip').map(item => item.dataset.id), selected.filter(item => item.dataset.type === 'folder').map(item => item.dataset.id) ); }
 
         async function deleteSidebarItems(tripIds, folderIds) {
@@ -1456,7 +1469,7 @@
             const batch = db.batch();
             tripsToRemove.forEach(trip => { if (sharedTripIds.has(trip.id)) { batch.update(db.collection('trips').doc(trip.id), { members: firebase.firestore.FieldValue.arrayRemove(uid) }); } else { batch.update(db.collection('trips').doc(trip.id), { members: firebase.firestore.FieldValue.arrayRemove(uid), trashedBy: uid, trashedAt: deletedAt, trashExpiresAt: expiresAt }); } });
             batch.set(db.collection('users').doc(uid), { folders: nextFolders, trash: nextTrash, activeTripId: nextActiveTripId }, { merge: true });
-            try { await batch.commit(); appData.trips = remaining; appData.folders = nextFolders; appData.trash = nextTrash; appData.activeTripId = nextActiveTripId; isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display = 'block'; document.getElementById('sidebar-edit-actions').style.display = 'none'; updateUI(); renderSidebarContent(); updateTrashCount(); showToast('已移至最近刪除'); } catch (error) { console.error(error); showToast('移至最近刪除失敗', 'error'); }
+            try { await batch.commit(); appData.trips = remaining; appData.folders = nextFolders; appData.trash = nextTrash; appData.activeTripId = nextActiveTripId; isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display = 'block'; document.getElementById('sidebar-edit-actions').style.display = 'none'; updateUI(); renderSidebarContent(); updateTrashCount(); showToast('已移至最近刪除，可在 30 天內復原'); } catch (error) { console.error(error); showToast('移至最近刪除失敗，請確認網路與權限', 'error'); }
         }
 
         function updateTrashCount() { const countNode = document.getElementById('trash-count'); if (!countNode) return; const count = (appData?.trash || []).filter(item => Number(item.expiresAt || 0) > Date.now()).length; countNode.textContent = '(' + count + ')'; }
@@ -1482,7 +1495,7 @@
             await pruneExpiredTrash(); const list = document.getElementById('trashList');
             const items = [...(appData?.trash || [])].filter(item => Number(item.expiresAt || 0) > Date.now()).sort((a, b) => b.deletedAt - a.deletedAt);
             updateTrashCount(); list.replaceChildren();
-            if (!items.length) { const empty = document.createElement('div'); empty.style.cssText = 'text-align:center;padding:24px 12px;color:var(--theme-text-muted);font-size:14px;'; empty.textContent = '目前沒有最近刪除的項目'; list.appendChild(empty); return; }
+            if (!items.length) { const empty = document.createElement('div'); empty.style.cssText = 'text-align:center;padding:28px 12px;margin:0;color:var(--theme-text-muted);font-size:14px;'; empty.textContent = '目前沒有最近刪除的項目'; list.appendChild(empty); return; }
             const foldersInTrash = new Set(items.filter(item => item.kind === 'folder').map(item => item.folder?.id));
             const visibleItems = items.filter(item => item.kind !== 'trip' || !foldersInTrash.has(item.folderId));
             visibleItems.forEach(item => {
@@ -1490,7 +1503,7 @@
                 const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;'; const title = document.createElement('strong');
                 const folderId = item.kind === 'folder' ? item.folder?.id : item.folderId;
                 const childCount = item.kind === 'folder' ? items.filter(child => child.kind === 'trip' && child.folderId === folderId).length : 0;
-                title.innerHTML = (item.kind === 'folder' ? '<i class="ph-fill ph-folder" style="color:var(--wafu-gold);"></i> 資料夾：' : '<i class="ph-fill ph-book-open" style="color:var(--theme-primary);"></i> 帳本：') + escapeHtml(item.name || item.folder?.name || '未命名');
+                title.innerHTML = (item.kind === 'folder' ? '<i class="ph-fill ph-folder" style="color:var(--theme-primary);"></i> 資料夾：' : '<i class="ph-fill ph-book-open"></i> 帳本：') + escapeHtml(item.name || item.folder?.name || '未命名');
                 const detail = document.createElement('div'); detail.style.cssText = 'font-size:12px;margin:4px 0 0;color:var(--theme-text-muted);';
                 const expires = new Date(Number(item.expiresAt)).toLocaleDateString('zh-TW'); const sharedNote = item.shared ? ' · 共用帳本將重新加入' : '';
                 detail.textContent = (item.kind === 'folder' ? '包含 ' + childCount + ' 個帳本 · ' : '') + '期限至 ' + expires + sharedNote;
@@ -1569,7 +1582,7 @@
             });
         });
 
-        // 新增消費（含限定記錄期間檢查、連續記帳與預算超支告警）
+        // 新增消費
         document.getElementById('btn-submit-expense').onclick = async function() {
             if (isSubmitting) return; if (rateLoading.add) return showToast('正在更新匯率，請稍候再記帳', 'error');
             const name = document.getElementById('itemName').value.trim(); const amount = parseAmount(document.getElementById('itemAmount').value); const date = document.getElementById('itemDate').value; const currency = document.getElementById('itemCurrency').value;
@@ -1620,10 +1633,32 @@
             } catch (error) { console.error(error); showToast('寫入失敗，請稍後再試', 'error'); } finally { isSubmitting = false; this.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> 記上一筆'; this.disabled = false; }
         };
 
+        // 開啟編輯視窗時，動態載入完整消費分類選項
         function openEditExpenseModal(id) {
-            const trip = appData.trips.find(t => t.id === appData.activeTripId); const exp = trip.expenses.find(e => e.id === id); if (!exp) return;
-            document.getElementById('editExpId').value = exp.id; document.getElementById('editExpName').value = exp.name; document.getElementById('editExpDetails').value = exp.details || ''; document.getElementById('editExpAmount').value = exp.amount; if (trip.showPayerSummary !== false) populatePayerSelect('editExpPayer', trip, exp.payer || '我'); document.getElementById('editExpDate').value = exp.date; document.getElementById('editExpCurrency').value = exp.currency; document.getElementById('editExpCategory').value = appData.categories.includes(exp.category) ? exp.category : appData.categories[0];
-            currentFetchedEditRate = Number(exp.rate) || Number(appData.rates[exp.currency]) || 1; previousCurrency.edit = exp.currency || 'TWD'; rateMeta.edit = exp.currency === 'TWD' ? '' : '記帳時匯率'; updateTWDPreview('edit'); openModal('editExpenseModal'); handleCurrencyDateChange('edit');
+            const trip = appData.trips.find(t => t.id === appData.activeTripId);
+            const exp = trip.expenses.find(e => e.id === id);
+            if (!exp) return;
+
+            document.getElementById('editExpId').value = exp.id;
+            document.getElementById('editExpName').value = exp.name;
+            document.getElementById('editExpDetails').value = exp.details || '';
+            document.getElementById('editExpAmount').value = exp.amount;
+            if (trip.showPayerSummary !== false) populatePayerSelect('editExpPayer', trip, exp.payer || '我');
+            document.getElementById('editExpDate').value = exp.date;
+
+            renderSelectOptions('editExpCurrency', appData.rates, exp.currency || 'TWD', false, true);
+
+            const editCatList = appData.categories.includes(exp.category)
+                ? appData.categories
+                : [exp.category || '其他', ...appData.categories];
+            renderSelectOptions('editExpCategory', editCatList, exp.category || appData.categories[0], true);
+
+            currentFetchedEditRate = Number(exp.rate) || Number(appData.rates[exp.currency]) || 1;
+            previousCurrency.edit = exp.currency || 'TWD';
+            rateMeta.edit = exp.currency === 'TWD' ? '' : '記帳時匯率';
+            updateTWDPreview('edit');
+            openModal('editExpenseModal');
+            handleCurrencyDateChange('edit');
         }
 
         document.getElementById('btn-save-edit').onclick = async () => {
@@ -1771,7 +1806,6 @@
         document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
         document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); }); document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency); document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction); document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage')); document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog); document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
         document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction); document.getElementById('btn-export-csv').addEventListener('click', exportToCSV); document.getElementById('btn-export-summary-csv').addEventListener('click', exportToCSV);
-        document.getElementById('itemCurrency').onchange = () => updateTWDPreview('add'); document.getElementById('editExpCurrency').onchange = () => updateTWDPreview('edit');
         
         function getTwd(exp) { return Math.round(exp.amount * (exp.rate || appData.rates[exp.currency] || 1)); }
         function showToast(msg, type='success') {
@@ -1902,8 +1936,9 @@
             const select = document.getElementById(selectId); if (!select) return; select.replaceChildren();
             const appendOption = (value, label) => { const option = document.createElement('option'); option.value = String(value); option.textContent = String(label); select.appendChild(option); };
             if (isArray) { (Array.isArray(dataObj) ? dataObj : []).forEach(item => appendOption(item, item)); } else { appendOption('TWD', '台幣 (TWD)'); Object.entries(dataObj || {}).forEach(([currency, rate]) => { if (currency !== 'TWD') appendOption(currency, currency + ' (' + rate + ')'); }); if (includeOnlineLookup) appendOption('ONLINE_LOOKUP', '線上查詢當日匯率／新增幣別…'); }
-            select.value = defaultVal; if (select.value !== String(defaultVal)) select.value = 'TWD';
+            select.value = defaultVal;
+            if (select.value !== String(defaultVal)) select.value = isArray ? (dataObj?.[0] || '') : 'TWD';
         }
     </script>
 </body>
-    </html>
+</html>
