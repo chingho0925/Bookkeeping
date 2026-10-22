@@ -581,15 +581,23 @@
 
         .settings-checkbox-label { display:flex; align-items:center; gap:10px; padding:12px 14px; margin-top:10px; border:1px solid var(--theme-border); border-radius:16px; background:var(--theme-input-bg); color:var(--theme-text-main); font-weight:600; cursor:pointer; font-size: 14.5px; }
         .settings-checkbox-label input { width:19px; height:19px; margin:0; accent-color:var(--theme-primary-solid); flex:0 0 auto; box-shadow: none; }
-        .summary-table-wrap { max-height:60vh; overflow:auto; border:1px solid var(--theme-border); border-radius:16px; background: var(--theme-input-bg); }
-        .summary-table { width:100%; border-collapse:collapse; min-width:540px; font-size:13.5px; }
+        .summary-table-wrap { max-height:58vh; overflow:auto; border:1px solid var(--theme-border); border-radius:16px; background: var(--theme-input-bg); }
+        .summary-table { width:100%; border-collapse:collapse; min-width:500px; font-size:13.5px; }
         .summary-table th, .summary-table td { padding:11px 10px; border-bottom:1px solid var(--theme-border); text-align:left; }
         .summary-table th { position:sticky; top:0; background:var(--theme-secondary); color:var(--theme-text-heading); z-index:1; }
+        .summary-table td:last-child, .summary-table th:last-child { text-align:right; white-space:nowrap; }
+        .summary-table tfoot td { position:sticky; bottom:0; background:var(--theme-secondary); font-weight:700; color:var(--theme-text-heading); }
         .tag-total { font-size: 13px; color: var(--theme-text-main); font-weight: 600; background: var(--theme-input-bg); border: 1px solid var(--theme-border); padding: 5px 10px; border-radius: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 145px; flex-shrink: 1; }
         .select-sm { width: auto; margin: 0; padding: 5px 9px; font-size: 13px; border-radius: 12px; font-weight:600; cursor: pointer; background: var(--theme-input-bg); border: 1px solid var(--theme-border); flex-shrink: 0; }
         .cross-stat-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
         .cross-stat-box { background: var(--theme-input-bg); border: 1px solid var(--theme-border); border-radius: 16px; padding: 12px 14px; font-size: 13px; }
-        .code-block-box { background: var(--theme-input-bg); border: 1px solid var(--theme-border); border-radius: 14px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; overflow-x: auto; color: var(--theme-text-main); max-height: 45vh; }
+        
+        /* 共用成員名單管理區塊 */
+        .member-manage-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .member-manage-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--theme-input-bg); border: 1px solid var(--theme-border); font-size: 14px; }
+        .member-role-badge { font-size: 11px; padding: 2px 7px; border-radius: 8px; background: var(--wafu-gold-bg); color: var(--theme-text-main); font-weight: 600; margin-left: 6px; }
+        .member-action-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .member-sm-btn { width: auto; margin: 0; padding: 5px 10px; font-size: 12.5px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -771,13 +779,12 @@
             </div>
 
             <div class="card glass-panel">
-                <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-shield-check" style="color:#ECA054;"></i> 資料備份與雲端安全</h3>
-                <div class="form-group" style="margin-bottom: 10px;">
+                <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-shield-check" style="color:#ECA054;"></i> 資料備份與還原</h3>
+                <div class="form-group" style="margin-bottom: 0;">
                     <button class="secondary-btn flex-1" id="btn-backup-json" style="margin-top:0;"><i class="ph ph-export"></i> 匯出備份 (JSON)</button>
                     <button class="secondary-btn flex-1" id="btn-restore-json" style="margin-top:0;"><i class="ph ph-import"></i> 匯入還原 (JSON)</button>
                     <input type="file" id="jsonRestoreInput" accept=".json,application/json" style="display:none;">
                 </div>
-                <button class="manage-btn w-100 text-left" id="btn-open-security-rules" style="margin-top:0;"><i class="ph ph-lock-key"></i> 檢視 Firebase 隱私安全規則</button>
             </div>
         </div>
     </div>
@@ -931,7 +938,7 @@
         </div>
     </div>
     
-    <!-- 帳本設定 Modal -->
+    <!-- 帳本設定 Modal（新增建立者專屬「共用成員名單」檢視與編輯功能） -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content glass-panel">
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:#ECA054;"></i> 帳本設定</h3>
@@ -939,6 +946,16 @@
                 <label style="font-size:13px; font-weight:600; color:var(--theme-text-muted);">旅伴邀請碼</label>
                 <div id="modalTripInviteCode" class="num-font" style="font-size:22px; font-weight:700; color:var(--theme-text-main); letter-spacing:4px; margin-top:4px;">------</div>
             </div>
+
+            <!-- 共用成員名單區塊（建立者可編輯名稱與移除成員） -->
+            <div id="tripMembersManageSection" style="margin-bottom:14px; display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="color:var(--theme-text-heading); font-size:14px; display:flex; align-items:center; gap:5px;"><i class="ph-fill ph-users" style="color:#ECA054;"></i> 共用成員名單</strong>
+                    <small id="tripOwnerHint" style="color:var(--theme-text-muted); font-size:12px;"></small>
+                </div>
+                <div id="tripMembersManageList" class="member-manage-list"></div>
+            </div>
+
             <input type="text" id="modalTripNameInput" placeholder="帳本名稱">
             
             <label class="settings-checkbox-label mt-10">
@@ -1012,33 +1029,25 @@
     <div class="modal" id="manageCategoryModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:#ECA054;"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin:14px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
 
     <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:#ECA054;"></i> 最近刪除 (保留 30 天)</h3><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 16px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
-    <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:#ECA054;"></i> 帳本表格總覽</h3><div id="summaryTripName" style="font-size:14px; font-weight:600; color:var(--theme-text-muted); margin-bottom:12px;"></div><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
-
-    <!-- Firebase 隱私安全規則指引 Modal -->
-    <div class="modal" id="securityRulesModal">
-        <div class="modal-content glass-panel" style="max-width:540px;">
-            <h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-lock-key" style="color:#ECA054;"></i> Firestore 隱私安全規則</h3>
-            <p style="font-size:13px; color:var(--theme-text-muted); margin:0 0 10px;">請將以下規則貼至 Firebase Console ➔ Firestore Database ➔ 規則 (Rules)，確保每位使用者僅能讀寫自己與授權共用的帳本：</p>
-            <pre class="code-block-box" id="firestoreRulesText">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /trips/{tripId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth != null && (
-        request.auth.uid in resource.data.members ||
-        resource.data.trashedBy == request.auth.uid ||
-        request.resource.data.members.hasAny([request.auth.uid])
-      );
-    }
-  }
-}</pre>
-            <div class="form-group mt-10">
-                <button class="primary-btn flex-1" style="margin-top:0;" id="btn-copy-rules"><i class="ph ph-copy"></i> 複製規則</button>
-                <button class="manage-btn flex-1 close-btn" data-target="securityRulesModal" style="margin-top:0;">關閉</button>
+    
+    <!-- 帳本表格總覽 Modal（新增單獨分類篩選選單） -->
+    <div class="modal" id="summaryModal">
+        <div class="modal-content glass-panel" style="max-width:760px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                <div>
+                    <h3 style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:#ECA054;"></i> 帳本表格總覽</h3>
+                    <div id="summaryTripName" style="font-size:13.5px; font-weight:600; color:var(--theme-text-muted); margin-top:2px;"></div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <label for="summaryCategoryFilter" style="font-size:13px; font-weight:600; color:var(--theme-text-muted); white-space:nowrap;">分類：</label>
+                    <select id="summaryCategoryFilter" class="select-sm" aria-label="篩選表格分類">
+                        <option value="ALL">全部類別</option>
+                    </select>
+                </div>
             </div>
+            <div id="summaryTableContainer"></div>
+            <button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button>
+            <button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button>
         </div>
     </div>
 
@@ -1097,6 +1106,7 @@ service cloud.firestore {
 
         let appData = null;
         let currentFilter = 'ALL';
+        let currentSummaryCategory = 'ALL';
         let currentSearchQuery = '';
         let currentSort = 'date-desc';
         let isSubmitting = false;
@@ -1153,6 +1163,16 @@ service cloud.firestore {
 
         function currentUid() {
             return auth?.currentUser?.uid || 'local_user';
+        }
+
+        function getTripOwnerId(trip) {
+            if (!trip) return '';
+            if (trip.ownerId) return trip.ownerId;
+            return Array.isArray(trip.members) && trip.members.length ? trip.members[0] : '';
+        }
+
+        function isCurrentUserTripOwner(trip) {
+            return getTripOwnerId(trip) === currentUid();
         }
 
         function saveLocalBackup() {
@@ -1220,9 +1240,11 @@ service cloud.firestore {
             } catch (e) { stored = null; }
 
             const today = getLocalDateString();
+            const uid = currentUid();
             const defaultTrip = {
                 id: 'trip_' + Date.now(),
                 name: '我的日常帳本',
+                ownerId: uid,
                 useDateRange: true,
                 startDate: today,
                 endDate: today,
@@ -1233,8 +1255,8 @@ service cloud.firestore {
                 expenses: [],
                 folderId: null,
                 order: Date.now(),
-                members: [currentUid()],
-                memberNames: { [currentUid()]: auth?.currentUser?.displayName || '我' },
+                members: [uid],
+                memberNames: { [uid]: auth?.currentUser?.displayName || '我' },
                 inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase()
             };
 
@@ -1638,17 +1660,135 @@ service cloud.firestore {
         }
 
         function currentPayerName() { return appData?.customUserName || auth?.currentUser?.displayName || '我'; }
+        function getMemberDisplayName(trip, uid, index = 0) {
+            const memberNames = trip?.memberNames || {};
+            if (memberNames[uid]) return memberNames[uid];
+            if (uid === currentUid()) return currentPayerName();
+            return '旅伴 ' + (index + 1);
+        }
         function populatePayerSelect(selectId, trip, selectedValue = '') {
             const select = document.getElementById(selectId); if (!select) return;
             const members = Array.isArray(trip.members) && trip.members.length ? trip.members : [currentUid()].filter(Boolean);
-            const memberNames = trip.memberNames || {};
-            const names = members.map((uid, index) => ({ value: uid === currentUid() ? currentPayerName() : (memberNames[uid] || '旅伴 ' + (index + 1)), uid }));
+            const names = members.map((uid, index) => ({ value: getMemberDisplayName(trip, uid, index), uid }));
             const uniqueNames = Array.from(new Map(names.map(item => [item.value, item])).values());
             const desired = selectedValue || select.value || currentPayerName();
             select.replaceChildren();
             uniqueNames.forEach(item => { const option = document.createElement('option'); option.value = item.value; option.textContent = item.value; select.appendChild(option); });
             if (desired && !uniqueNames.some(item => item.value === desired)) { const legacyOption = document.createElement('option'); legacyOption.value = desired; legacyOption.textContent = desired; select.appendChild(legacyOption); }
             select.value = desired;
+        }
+
+        // ====== 建立者檢視與編輯共用者名單 ======
+        function renderTripMembersManageList(trip) {
+            const sectionEl = document.getElementById('tripMembersManageSection');
+            const listEl = document.getElementById('tripMembersManageList');
+            const hintEl = document.getElementById('tripOwnerHint');
+            if (!sectionEl || !listEl || !trip) return;
+
+            const members = Array.isArray(trip.members) && trip.members.length ? trip.members : [currentUid()];
+            const ownerId = getTripOwnerId(trip);
+            const isOwner = isCurrentUserTripOwner(trip);
+
+            sectionEl.style.display = 'block';
+            hintEl.textContent = isOwner ? '您是建立者，可編輯或移除成員' : `共 ${members.length} 位成員`;
+            listEl.replaceChildren();
+
+            members.forEach((uid, index) => {
+                const mName = getMemberDisplayName(trip, uid, index);
+                const isThisOwner = uid === ownerId;
+                const isSelf = uid === currentUid();
+
+                const row = document.createElement('div');
+                row.className = 'member-manage-row';
+
+                const leftInfo = document.createElement('div');
+                leftInfo.style.cssText = 'display:flex; align-items:center; flex-wrap:wrap; min-width:0; flex:1;';
+                leftInfo.innerHTML = `<i class="ph-fill ph-user" style="color:#ECA054; margin-right:6px;"></i><strong style="overflow-wrap:anywhere;">${escapeHtml(mName)}</strong>` +
+                    (isThisOwner ? `<span class="member-role-badge">建立者</span>` : '') +
+                    (isSelf && !isThisOwner ? `<span class="member-role-badge">我</span>` : '');
+
+                row.appendChild(leftInfo);
+
+                if (isOwner) {
+                    const actionBox = document.createElement('div');
+                    actionBox.className = 'member-action-btns';
+
+                    const renameBtn = document.createElement('button');
+                    renameBtn.type = 'button';
+                    renameBtn.className = 'manage-btn member-sm-btn';
+                    renameBtn.innerHTML = '<i class="ph ph-pencil-simple"></i> 改名';
+                    renameBtn.addEventListener('click', () => editTripMemberName(trip, uid, mName));
+                    actionBox.appendChild(renameBtn);
+
+                    if (!isThisOwner) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'danger-btn member-sm-btn';
+                        removeBtn.innerHTML = '<i class="ph ph-user-minus"></i> 移除';
+                        removeBtn.addEventListener('click', () => removeTripMember(trip, uid, mName));
+                        actionBox.appendChild(removeBtn);
+                    }
+                    row.appendChild(actionBox);
+                }
+
+                listEl.appendChild(row);
+            });
+        }
+
+        async function editTripMemberName(trip, targetUid, oldName) {
+            if (!isCurrentUserTripOwner(trip)) return showToast('僅帳本建立者可編輯成員名單', 'error');
+            const input = prompt(`請輸入成員「${oldName}」在此帳本的顯示名稱：`, oldName);
+            if (input === null) return;
+            const newName = input.trim();
+            if (!newName || newName === oldName) return;
+
+            trip.memberNames = { ...(trip.memberNames || {}), [targetUid]: newName };
+            if (targetUid === currentUid()) {
+                appData.customUserName = newName;
+                await saveUserDoc({ customUserName: newName });
+                updateNicknameDisplay();
+            }
+            if (Array.isArray(trip.expenses)) {
+                trip.expenses = trip.expenses.map(exp => exp.payer === oldName ? { ...exp, payer: newName } : exp);
+            }
+            saveLocalBackup();
+            if (!isLocalFallbackMode && auth?.currentUser) {
+                try {
+                    await db.collection('trips').doc(trip.id).set({
+                        memberNames: trip.memberNames,
+                        expenses: trip.expenses
+                    }, { merge: true });
+                } catch (e) { console.warn('更新成員名稱同步略過:', e); }
+            }
+            renderTripMembersManageList(trip);
+            updateUI();
+            showToast(`已將成員名稱更新為「${newName}」`);
+        }
+
+        async function removeTripMember(trip, targetUid, memberName) {
+            if (!isCurrentUserTripOwner(trip)) return showToast('僅帳本建立者可移除共用成員', 'error');
+            if (targetUid === getTripOwnerId(trip)) return showToast('無法移除帳本建立者本人', 'error');
+            if (!confirm(`確定要將「${memberName}」從此共用帳本中移除嗎？（該成員先前已記錄的帳目仍會保留）`)) return;
+
+            trip.members = (trip.members || []).filter(uid => uid !== targetUid);
+            if (trip.memberNames && trip.memberNames[targetUid]) {
+                const nextNames = { ...trip.memberNames };
+                delete nextNames[targetUid];
+                trip.memberNames = nextNames;
+            }
+            saveLocalBackup();
+            if (!isLocalFallbackMode && auth?.currentUser) {
+                try {
+                    await db.collection('trips').doc(trip.id).update({
+                        members: firebase.firestore.FieldValue.arrayRemove(targetUid),
+                        memberNames: trip.memberNames || {}
+                    });
+                } catch (e) { console.warn('移除成員雲端同步略過:', e); }
+            }
+            renderTripMembersManageList(trip);
+            updateUI();
+            renderSidebarContent();
+            showToast(`已移除成員「${memberName}」`);
         }
 
         function getCategoryToneClass(categoryName) {
@@ -2168,15 +2308,13 @@ service cloud.firestore {
             try { const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get(); if (snapshot.empty) return showToast('找不到此邀請碼', 'error'); const tripDoc = snapshot.docs[0]; const trip = tripDoc.data(); if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員'); const joinedUid = auth.currentUser.uid; const memberNames = { ...(trip.memberNames || {}), [joinedUid]: currentPayerName() }; await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(joinedUid), memberNames }); const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), joinedUid], memberNames }; await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: joinedTrip.id }, { merge: true }); appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), joinedTrip]; appData.activeTripId = joinedTrip.id; codeInput.value = ''; updateUI(); renderSidebarContent(); closeModal('addTripModal'); toggleSidebar(false); showToast('已加入共用帳本'); } catch (error) { console.error(error); showToast('加入失敗，請確認邀請碼及權限', 'error'); }
         }
 
-        // ====== 安全數學算式解析器（防止 150++2 或 5/0 產生異常） ======
+        // ====== 安全數學算式解析器 ======
         function parseAmount(input) {
             let expr = String(input ?? '').replace(/\s+/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
             expr = expr.replace(/[^0-9.+\-*/()]/g, '');
-            // 合併連續加減乘除符號並移除結尾殘留運算符
             expr = expr.replace(/([+\-*/]){2,}/g, '$1').replace(/^[*/]+/, '').replace(/[+\-*/]+$/, '');
             if (!expr) return NaN;
 
-            // Shunting-yard 演算法安全計算
             const tokens = expr.match(/\d+(?:\.\d+)?|[+\-*/()]/g);
             if (!tokens) return NaN;
             const values = [];
@@ -2370,7 +2508,7 @@ service cloud.firestore {
             }
         });
 
-        // 儲存編輯（含防連點鎖定）
+        // 儲存編輯
         document.getElementById('btn-save-edit').onclick = async function() {
             if (isEditSaving) return;
             if (rateLoading.edit) return showToast('正在更新匯率，請稍候再儲存', 'error');
@@ -2566,15 +2704,24 @@ service cloud.firestore {
             renderManageCategories(); updateUI(); showToast('分類與既有紀錄已更新');
         }
 
-        // ====== 匯出 CSV（支援純台幣自動精簡欄位） ======
-        function exportToCSV() {
-            const trip = appData?.trips?.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
-            const csvCell = value => { let text = String(value ?? ''); if (/^[=+@\-\t\r]/.test(text)) text = "'" + text; return '"' + text.replace(/"/g, '""') + '"'; };
-            const expenses = [...(trip.expenses || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-            const hasForeign = expenses.some(e => (e.currency || 'TWD') !== 'TWD');
-            const rows = hasForeign
-                ? [['日期', '分類', '項目名稱', '細項說明', '原幣金額', '幣別', '付款人', '記帳匯率 (TWD)', '金額(TWD)']]
-                : [['日期', '分類', '項目名稱', '細項說明', '付款人', '金額(TWD)']];
+        // ====== 匯出 CSV（支援分類篩選、TWD 原幣空白、未勾選付款統計時隱藏付款人） ======
+        function exportToCSV(categoryFilter = 'ALL') {
+            const trip = appData?.trips?.find(item => item.id === appData.activeTripId);
+            if (!trip) return showToast('找不到目前帳本', 'error');
+            const csvCell = value => {
+                let text = String(value ?? '');
+                if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;
+                return '"' + text.replace(/"/g, '""') + '"';
+            };
+            const showPayer = trip.showPayerSummary !== false;
+            const allExps = [...(trip.expenses || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            const expenses = categoryFilter === 'ALL' ? allExps : allExps.filter(e => (e.category || '其他') === categoryFilter);
+
+            const header = ['日期', '分類', '項目名稱', '細項說明'];
+            if (showPayer) header.push('付款人');
+            header.push('原幣金額', '金額(TWD)');
+            const rows = [header];
+
             let total = 0;
             expenses.forEach(expense => {
                 const currency = expense.currency || 'TWD';
@@ -2582,14 +2729,34 @@ service cloud.firestore {
                 const rate = currency === 'TWD' ? 1 : Number(expense.rate || appData.rates[currency] || 1);
                 const twd = Math.round(amount * rate);
                 total += twd;
-                if (hasForeign) rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', amount, currency, expense.payer || '我', rate, twd]);
-                else rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', expense.payer || '我', twd]);
+                // 幣別為 TWD 時，原幣金額呈現空白
+                const foreignStr = currency === 'TWD' ? '' : `${currency} ${amount}`;
+                const row = [expense.date || '', expense.category || '其他', expense.name || '', expense.details || ''];
+                if (showPayer) row.push(expense.payer || '我');
+                row.push(foreignStr, twd);
+                rows.push(row);
             });
-            rows.push(hasForeign ? ['', '', '', '', '', '', '總計', '', total] : ['', '', '', '', '總計', total]);
-            const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = (String(trip.name || '帳本').replace(/[\\/:*?"<>|]/g, '_')) + '_消費明細.csv'; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); showToast('CSV 報表已下載');
+
+            const totalRow = ['', '', '', ''];
+            if (showPayer) totalRow.push('');
+            totalRow.push('總計', total);
+            rows.push(totalRow);
+
+            const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const suffix = categoryFilter === 'ALL' ? '消費明細' : `${categoryFilter}_消費明細`;
+            link.download = `${String(trip.name || '帳本').replace(/[\\/:*?"<>|]/g, '_')}_${suffix}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('CSV 報表已下載');
         }
 
-        // ====== JSON 完整備份匯出／匯入與 Firebase 規則檢視 ======
+        // ====== JSON 完整備份匯出／匯入 ======
         document.getElementById('btn-backup-json').addEventListener('click', () => {
             if (!appData) return;
             const payload = JSON.stringify(appData, null, 2);
@@ -2623,6 +2790,7 @@ service cloud.firestore {
                 const uid = currentUid();
                 parsed.trips = parsed.trips.map(t => ({
                     ...t,
+                    ownerId: t.ownerId || uid,
                     members: Array.from(new Set([...(t.members || []), uid]))
                 }));
                 appData = {
@@ -2661,20 +2829,11 @@ service cloud.firestore {
             }
         });
 
-        document.getElementById('btn-open-security-rules').addEventListener('click', () => openModal('securityRulesModal'));
-        document.getElementById('btn-copy-rules').addEventListener('click', async () => {
-            const text = document.getElementById('firestoreRulesText').textContent;
-            try {
-                await navigator.clipboard.writeText(text);
-                showToast('已複製安全規則至剪貼簿');
-            } catch (e) {
-                showToast('請手動全選文字複製', 'warn');
-            }
-        });
-
         document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
         document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); }); document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency); document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction); document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage')); document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog); document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
-        document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction); document.getElementById('btn-export-csv').addEventListener('click', exportToCSV); document.getElementById('btn-export-summary-csv').addEventListener('click', exportToCSV);
+        document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction);
+        document.getElementById('btn-export-csv').addEventListener('click', () => exportToCSV('ALL'));
+        document.getElementById('btn-export-summary-csv').addEventListener('click', () => exportToCSV(currentSummaryCategory));
         
         function getTwd(exp) { return Math.round(exp.amount * (exp.rate || appData.rates[exp.currency] || 1)); }
 
@@ -2774,6 +2933,7 @@ service cloud.firestore {
             document.getElementById('tripShowBudget').checked = trip.showBudget !== false;
             document.getElementById('tripShowPayerSummary').checked = trip.showPayerSummary !== false;
             document.getElementById('tripShowCategoryChart').checked = trip.showCategoryChart !== false;
+            renderTripMembersManageList(trip);
             openModal('tripSettingsModal');
         };
         document.getElementById('btn-edit-budget').onclick = () => document.getElementById('btn-open-trip-settings').click();
@@ -2809,30 +2969,98 @@ service cloud.firestore {
             }
         };
 
-        // 表格總覽（支援純台幣自動隱藏多餘外幣欄）
-        function renderSummaryTable() {
-            const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
-            const expenses = [...(Array.isArray(trip.expenses) ? trip.expenses : [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        // ====== 帳本表格總覽（支援單獨分類選擇、未勾選成員統計不顯示付款人、TWD 原幣空白） ======
+        function openSummaryModal() {
+            const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
+            if (!trip) return showToast('找不到目前帳本', 'error');
+
+            const catSelect = document.getElementById('summaryCategoryFilter');
+            const usedCats = Array.from(new Set([
+                ...(appData.categories || []),
+                ...(trip.expenses || []).map(e => e.category || '其他')
+            ]));
+            catSelect.replaceChildren();
+            const allOpt = document.createElement('option');
+            allOpt.value = 'ALL';
+            allOpt.textContent = '全部類別';
+            catSelect.appendChild(allOpt);
+            usedCats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                catSelect.appendChild(opt);
+            });
+            currentSummaryCategory = 'ALL';
+            catSelect.value = 'ALL';
+
+            renderSummaryTableContent();
+            openModal('summaryModal');
+        }
+
+        function renderSummaryTableContent() {
+            const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
+            if (!trip) return;
+            const showPayer = trip.showPayerSummary !== false;
+            const allExpenses = [...(Array.isArray(trip.expenses) ? trip.expenses : [])]
+                .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            const expenses = currentSummaryCategory === 'ALL'
+                ? allExpenses
+                : allExpenses.filter(e => (e.category || '其他') === currentSummaryCategory);
+
             const total = expenses.reduce((sum, expense) => sum + getTwd(expense), 0);
-            const hasForeign = expenses.some(e => (e.currency || 'TWD') !== 'TWD');
-            document.getElementById('summaryTripName').textContent = trip.name || '';
-            const colSpan = hasForeign ? 5 : 4;
+            document.getElementById('summaryTripName').textContent = `${trip.name || ''}（共 ${expenses.length} 筆）`;
+
+            // 欄位數：日期、項目、分類、(選配：付款人)、原幣金額、台幣金額
+            const colCountBeforeTotal = showPayer ? 5 : 4;
+            const totalCols = colCountBeforeTotal + 1;
+
             const rows = expenses.map(expense => {
                 const currency = expense.currency || 'TWD';
                 const amount = Number(expense.amount || 0).toLocaleString();
                 const twd = getTwd(expense).toLocaleString();
-                return hasForeign
-                    ? `<tr><td class="num-font">${escapeHtml(expense.date || '')}</td><td>${escapeHtml(expense.name || '')}</td><td>${escapeHtml(expense.category || '其他')}</td><td>${escapeHtml(expense.payer || '我')}</td><td class="num-font">${escapeHtml(currency)} ${amount}</td><td class="num-font">NT$ ${twd}</td></tr>`
-                    : `<tr><td class="num-font">${escapeHtml(expense.date || '')}</td><td>${escapeHtml(expense.name || '')}</td><td>${escapeHtml(expense.category || '其他')}</td><td>${escapeHtml(expense.payer || '我')}</td><td class="num-font">NT$ ${twd}</td></tr>`;
+                // 當付款幣別為 TWD 時，原幣金額呈現空白
+                const foreignAmountDisplay = currency === 'TWD' ? '' : `${escapeHtml(currency)} ${amount}`;
+                const payerCell = showPayer ? `<td>${escapeHtml(expense.payer || '我')}</td>` : '';
+                return `<tr>
+                    <td class="num-font">${escapeHtml(expense.date || '')}</td>
+                    <td>${escapeHtml(expense.name || '')}</td>
+                    <td>${escapeHtml(expense.category || '其他')}</td>
+                    ${payerCell}
+                    <td class="num-font">${foreignAmountDisplay}</td>
+                    <td class="num-font">NT$ ${twd}</td>
+                </tr>`;
             }).join('');
-            const empty = `<tr><td colspan="${colSpan + 1}" style="text-align:center;color:var(--theme-text-muted);">目前沒有消費紀錄</td></tr>`;
-            const headHtml = hasForeign
-                ? '<tr><th>日期</th><th>項目</th><th>分類</th><th>付款人</th><th>原幣金額</th><th>金額(TWD)</th></tr>'
-                : '<tr><th>日期</th><th>項目</th><th>分類</th><th>付款人</th><th>金額(TWD)</th></tr>';
-            document.getElementById('summaryTableContainer').innerHTML = `<div class="summary-table-wrap"><table class="summary-table"><thead>${headHtml}</thead><tbody>${rows || empty}</tbody><tfoot><tr><td colspan="${colSpan}">總計</td><td class="num-font">NT$ ${total.toLocaleString()}</td></tr></tfoot></table></div>`;
-            openModal('summaryModal');
+
+            const empty = `<tr><td colspan="${totalCols}" style="text-align:center;color:var(--theme-text-muted);">目前沒有符合條件的消費紀錄</td></tr>`;
+            const headHtml = `<tr>
+                <th>日期</th>
+                <th>項目</th>
+                <th>分類</th>
+                ${showPayer ? '<th>付款人</th>' : ''}
+                <th>原幣金額</th>
+                <th>台幣金額</th>
+            </tr>`;
+
+            document.getElementById('summaryTableContainer').innerHTML = `
+                <div class="summary-table-wrap">
+                    <table class="summary-table">
+                        <thead>${headHtml}</thead>
+                        <tbody>${rows || empty}</tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="${colCountBeforeTotal}">${currentSummaryCategory === 'ALL' ? '合計（台幣）' : `「${escapeHtml(currentSummaryCategory)}」合計（台幣）`}</td>
+                                <td class="num-font">NT$ ${total.toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>`;
         }
-        document.getElementById('btn-open-summary').addEventListener('click', renderSummaryTable);
+
+        document.getElementById('btn-open-summary').addEventListener('click', openSummaryModal);
+        document.getElementById('summaryCategoryFilter').addEventListener('change', function() {
+            currentSummaryCategory = this.value;
+            renderSummaryTableContent();
+        });
         
         document.getElementById('btn-open-add-trip').onclick = () => {
             document.getElementById('newTripNameInput').value = '';
@@ -2858,7 +3086,24 @@ service cloud.firestore {
         };
         async function createNewTripDirectly(name, uid, startDate = getLocalDateString(), endDate = startDate, budget = 0, useDateRange = true) {
             const memberName = appData?.customUserName || auth?.currentUser?.displayName || '我';
-            const trip = { id: 'trip_' + Date.now(), name, useDateRange, startDate: useDateRange ? startDate : '', endDate: useDateRange ? endDate : '', budget, showBudget: true, showPayerSummary: true, showCategoryChart: true, expenses: [], folderId: null, order: Date.now(), members: [uid], memberNames: { [uid]: memberName }, inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase() };
+            const trip = {
+                id: 'trip_' + Date.now(),
+                name,
+                ownerId: uid,
+                useDateRange,
+                startDate: useDateRange ? startDate : '',
+                endDate: useDateRange ? endDate : '',
+                budget,
+                showBudget: true,
+                showPayerSummary: true,
+                showCategoryChart: true,
+                expenses: [],
+                folderId: null,
+                order: Date.now(),
+                members: [uid],
+                memberNames: { [uid]: memberName },
+                inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase()
+            };
             if (appData) {
                 appData.trips = [...(appData.trips || []), trip];
                 appData.activeTripId = trip.id;
