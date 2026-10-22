@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="cover.png">
-    <link rel="apple-touch-icon" href="cover.png">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F3EB">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0F19">
@@ -25,12 +23,6 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
-        // 註冊 Service Worker 以支援手機桌面安裝 (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW 註冊略過:', err));
-            });
-        }
         window.addEventListener('load', function() {
             if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function' || typeof firebase.firestore !== 'function') {
                 const overlay = document.getElementById('loading-overlay');
@@ -46,7 +38,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One:wght@400;600&family=LXGW+WenKai+TC:wght@400;700&display=swap');
         
         :root {
-            /* 淺色模式：和紙米白基底 + 多彩日系和風點綴（若竹青綠、柿紅、山吹金、櫻花粉、藤紫、露草藍） */
+            /* 淺色模式：和紙米白基底 + 多彩日系和風點綴 */
             --theme-bg: #F7F3EB;
             --theme-bg-dot: #DCE4DF;
             --theme-text-main: #2F3E46;
@@ -74,7 +66,7 @@
             --wafu-tsuyukusa-bg: #E6F1F8;
             --wafu-tsuyukusa-text: #2C5975;
 
-            --theme-card-bg: rgba(255, 253, 249, 0.96);
+            --theme-card-bg: rgba(255, 253, 249, 0.94);
             --theme-header-bg: linear-gradient(135deg, #2B4448, #3B5C5A);
             --theme-header-text: #F9F6F0;
             --theme-header-subtext: #D0E3DF;
@@ -86,7 +78,7 @@
             --theme-warning: #D97706;
             --theme-sidebar-item: #FFFFFF;
             
-            --theme-glass-shadow: 0 8px 28px rgba(47, 72, 70, 0.07);
+            --theme-glass-shadow: 0 8px 28px rgba(47, 72, 70, 0.08);
             --fab-bg: linear-gradient(135deg, #D96B52, #E68A5C);
             --fab-shadow: 0 8px 20px rgba(217, 107, 82, 0.42);
         }
@@ -101,11 +93,11 @@
                 --wafu-sakura: #D98292; --wafu-sakura-bg: rgba(217, 130, 146, 0.16); --wafu-sakura-text: #F4B3C0;
                 --wafu-fuji: #9C89B8; --wafu-fuji-bg: rgba(156, 137, 184, 0.16); --wafu-fuji-text: #D1C4E9;
                 --wafu-tsuyukusa: #6BA3C7; --wafu-tsuyukusa-bg: rgba(107, 163, 199, 0.16); --wafu-tsuyukusa-text: #A7D2EE;
-                --theme-card-bg: rgba(26, 31, 46, 0.78); --theme-header-bg: #171E2E;
+                --theme-card-bg: rgba(26, 31, 46, 0.82); --theme-header-bg: #171E2E;
                 --theme-header-text: #FFF7ED; --theme-header-subtext: #C4D0DF; --theme-border: rgba(255, 255, 255, 0.09); --theme-input-bg: rgba(20, 25, 38, 0.85);
                 --theme-nav-bg: rgba(20, 25, 38, 0.96); --theme-modal-overlay: rgba(5, 7, 12, 0.85); --theme-warning: #F59E0B; --theme-sidebar-item: rgba(255, 255, 255, 0.04);
                 
-                --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+                --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
                 --fab-bg: linear-gradient(135deg, var(--theme-accent), #D46A5A);
                 --fab-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 50%, transparent), 0 0 0 1px inset rgba(255,255,255,0.2);
             }
@@ -118,13 +110,36 @@
             --wafu-sakura: #D98292; --wafu-sakura-bg: rgba(217, 130, 146, 0.16); --wafu-sakura-text: #F4B3C0;
             --wafu-fuji: #9C89B8; --wafu-fuji-bg: rgba(156, 137, 184, 0.16); --wafu-fuji-text: #D1C4E9;
             --wafu-tsuyukusa: #6BA3C7; --wafu-tsuyukusa-bg: rgba(107, 163, 199, 0.16); --wafu-tsuyukusa-text: #A7D2EE;
-            --theme-card-bg: rgba(26, 31, 46, 0.78); --theme-header-bg: #171E2E;
+            --theme-card-bg: rgba(26, 31, 46, 0.82); --theme-header-bg: #171E2E;
             --theme-header-text: #FFF7ED; --theme-header-subtext: #C4D0DF; --theme-border: rgba(255, 255, 255, 0.09); --theme-input-bg: rgba(20, 25, 38, 0.85);
             --theme-nav-bg: rgba(20, 25, 38, 0.96); --theme-modal-overlay: rgba(5, 7, 12, 0.85); --theme-warning: #F59E0B; --theme-sidebar-item: rgba(255, 255, 255, 0.04);
             
-            --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
             --fab-bg: linear-gradient(135deg, var(--theme-accent), #D46A5A);
             --fab-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 50%, transparent), 0 0 0 1px inset rgba(255,255,255,0.2);
+        }
+
+        /* ================= 櫻花紛飛動態背景 ================= */
+        .sakura-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .sakura-petal {
+            position: absolute;
+            background: linear-gradient(135deg, var(--wafu-sakura), #ffb7c5);
+            border-radius: 15px 2px 15px 2px;
+            opacity: 0;
+            animation: fall linear infinite, sway ease-in-out infinite alternate;
+        }
+        @keyframes fall { 
+            0% { top: -10%; opacity: 0; transform: rotate(0deg); } 
+            10% { opacity: 0.55; } 
+            90% { opacity: 0.55; } 
+            100% { top: 110%; opacity: 0; transform: rotate(180deg); } 
+        }
+        @keyframes sway { 
+            0% { margin-left: 0px; } 
+            100% { margin-left: 35px; } 
         }
 
         /* 全域與裝置螢幕高度自適應設定 */
@@ -136,9 +151,9 @@
         /* 數字與英文專屬字體，等寬對齊 */
         .num-font { font-family: 'Inter', -apple-system, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -0.4px; }
 
-        /* 光澤玻璃質感與自適應主容器 */
+        /* 光澤玻璃質感與自適應主容器 (z-index 確保在櫻花之上) */
         .glass-panel { background: var(--theme-card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--theme-border); box-shadow: var(--theme-glass-shadow); }
-        .app-container { max-width: 600px; height: 100dvh; margin: 0 auto; padding: 10px 12px calc(68px + env(safe-area-inset-bottom)) 12px; display: none; flex-direction: column; overflow: hidden; }
+        .app-container { position: relative; z-index: 10; max-width: 600px; height: 100dvh; margin: 0 auto; padding: 10px 12px calc(68px + env(safe-area-inset-bottom)) 12px; display: none; flex-direction: column; overflow: hidden; }
         .card { padding: 16px; border-radius: 18px; margin-top: 10px; border-left: 6px solid var(--theme-primary); transition: transform 0.2s, background 0.4s; }
         
         /* 日系和風多重卡片邊框點綴 */
@@ -170,7 +185,7 @@
         @keyframes pulseSync { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
         /* 輸入框與表單 */
-        input, select, button { width: 100%; padding: 13px 12px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 13px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); transition: all 0.2s; outline: none; }
+        input, select, button { width: 100%; padding: 13px 12px; margin-top: 8px; border: 1px solid var(--theme-border); border-radius: 13px; font-family: inherit; font-size: 15px; background: var(--theme-input-bg); color: var(--theme-text-main); transition: all 0.25s ease; outline: none; }
         input[type="number"] { font-family: 'Inter', sans-serif; }
         input:focus, select:focus { border-color: var(--theme-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 16%, transparent); }
 
@@ -201,16 +216,37 @@
         .cal-legend-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 11.5px; color: var(--theme-text-muted); margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--theme-border); }
         .cal-legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 
+        /* 統一按鈕懸浮與點擊動效 */
         .primary-btn { background-color: var(--theme-primary); color: var(--theme-primary-text); border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .primary-btn:hover { background-color: var(--theme-primary-hover); transform: translateY(-1px); }
-        .primary-btn:active { transform: scale(0.98); }
+        .primary-btn:active { transform: scale(0.97); }
         .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .secondary-btn { background-color: var(--theme-secondary); color: var(--theme-text-heading); border: 1px solid var(--theme-border); font-weight: bold; padding: 13px; border-radius: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .secondary-btn:active { transform: scale(0.97); }
         .danger-btn { background-color: var(--theme-danger); color: #FFF; font-weight: bold; border: none; border-radius: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .danger-btn:active { transform: scale(0.97); }
         .manage-btn { background: var(--theme-secondary); color: var(--theme-text-main); border: 1px solid var(--theme-primary); font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .icon-btn, .close-btn { background: none; border: none; padding: 0; margin: 0; font-size: 23px; cursor: pointer; color: inherit; box-shadow: none; width: auto; font-weight: bold;}
-        .sidebar-header .close-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .manage-btn:active { transform: scale(0.97); }
         
+        /* 選單關閉與側邊欄關閉按鈕 */
+        .icon-btn, .close-btn { background: none; border: none; padding: 0; margin: 0; font-size: 23px; cursor: pointer; color: inherit; box-shadow: none; width: auto; font-weight: bold; transition: all 0.25s;}
+        .close-btn:hover { color: var(--theme-danger); transform: scale(1.1); }
+        .sidebar-header .close-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: color-mix(in srgb, var(--theme-secondary) 30%, transparent); }
+        
+        /* 側邊欄隱藏選項按鈕 (⋮) - 防突兀設計 */
+        .context-menu-btn {
+            background: transparent; border: none; padding: 6px; margin: 0 0 0 8px;
+            color: var(--theme-text-muted); border-radius: 8px; cursor: pointer;
+            transition: all 0.25s ease; opacity: 0.5; display: inline-flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .trip-menu-item:hover .context-menu-btn, .folder-header:hover .context-menu-btn { opacity: 0.8; }
+        .context-menu-btn:hover {
+            opacity: 1 !important;
+            background: color-mix(in srgb, var(--theme-primary) 15%, transparent);
+            color: var(--theme-primary);
+            transform: scale(1.05);
+        }
+
         /* 算式快捷列與預覽列 */
         .calc-Quick-bar { display: flex; gap: 6px; margin-top: 6px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
         .calc-op-group { display: flex; gap: 5px; }
@@ -226,34 +262,38 @@
 
         .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 16px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .form-group { display: flex; gap: 8px; margin-bottom: 4px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;}
 
+        /* 側邊欄與選單 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--theme-modal-overlay); display: none; z-index: 190; backdrop-filter: blur(4px); }
         .sidebar { position: fixed; top: 0; left: 0; width: 300px; max-width: 85vw; height: 100%; background: var(--theme-card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--theme-border); z-index: 195; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; border-radius: 0 20px 20px 0; }
         .sidebar.open { transform: translateX(0); }
         .sidebar-overlay.open { display: block; }
         .sidebar-header { padding: 18px 20px; font-size: 19px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
         .sidebar-content { padding: 14px; flex-grow: 1; overflow-y: auto; }
-        .trip-menu-item { position: relative; padding: 12px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04);}
+        .trip-menu-item { position: relative; padding: 10px 6px 10px 14px; margin-bottom: 8px; background: var(--theme-sidebar-item); border-radius: 12px; border-left: 6px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04);}
         .trip-menu-item.active { border-left-color: var(--theme-accent); background: var(--theme-secondary); box-shadow: 0 4px 12px rgba(78, 135, 125, 0.14); }
         .trip-menu-item.active .trip-menu-name { color: var(--theme-text-heading) !important; font-weight: 700 !important; }
         .trip-menu-item.active .trip-menu-spent { color: var(--theme-accent) !important; }
         .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-primary); }
         .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
         .sortable-ghost { opacity: 0.35; }
-        .folder-header { padding: 11px 14px; background: var(--wafu-gold-bg); color: var(--wafu-gold-text); border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid color-mix(in srgb, var(--wafu-gold) 30%, transparent); }
+        .folder-header { padding: 10px 6px 10px 14px; background: var(--wafu-gold-bg); color: var(--wafu-gold-text); border-radius: 12px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border: 1px solid color-mix(in srgb, var(--wafu-gold) 30%, transparent); }
         .join-shared-form { display: flex; align-items: stretch; gap: 8px; margin: 8px 0 0; }
         .join-shared-form input { flex: 1; width: 0; min-width: 0; margin: 0; text-transform: uppercase; }
         .join-shared-form button { width: auto; min-width: 82px; margin: 0; padding: 0 14px; }
+        
+        /* 隱藏式內容操作選單 */
         .sidebar-context-menu { display: none; position: fixed; z-index: 400; min-width: 176px; padding: 7px; border-radius: 14px; }
-        .sidebar-context-menu.open { display: block; }
+        .sidebar-context-menu.open { display: block; animation: slideInFade 0.2s ease-out; }
         .sidebar-context-menu button { display: block; width: 100%; margin: 0; padding: 11px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--theme-text-main); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;}
-        .sidebar-context-menu button:hover { background: var(--theme-secondary); }
+        .sidebar-context-menu button:hover { background: var(--theme-secondary); color: var(--theme-primary); }
         .sidebar-context-menu button[data-action="delete"] { color: var(--theme-danger); }
+        .sidebar-context-menu button[data-action="delete"]:hover { background: color-mix(in srgb, var(--theme-danger) 15%, transparent); }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--theme-nav-bg); border-top: 1px solid var(--theme-border); display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; height: calc(60px + env(safe-area-inset-bottom)); }
         .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0.55; color: var(--theme-text-muted); transition: all 0.25s; font-size: 25px;}
         .nav-item.active { opacity: 1; color: var(--theme-primary); transform: translateY(-2px) scale(1.08); }
 
-        /* 帳目明細項目：解決細項過長與金額欄位過於靠近的問題 */
+        /* 帳目明細項目 */
         #expense-list { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; overscroll-behavior: contain; }
         .expense-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 1px dashed var(--theme-border); padding: 12px 6px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
         .expense-item:active { background-color: var(--theme-secondary); border-radius: 12px; }
@@ -285,7 +325,7 @@
         .filter-container { flex-shrink: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 4px 2px 10px; margin-bottom: 2px; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
         .filter-chip { padding: 6px 15px; background: var(--theme-secondary); border-radius: 18px; font-size: 14px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: bold; border: 1px solid var(--theme-border); transition: all 0.2s; }
-        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-primary-hover); box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary) 28%, transparent); }
+        .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: var(--theme-primary-hover); box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary) 28%, transparent); transform: translateY(-1px); }
         
         #loading-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-bg); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--theme-secondary); border-top: 4px solid var(--theme-primary); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -327,13 +367,13 @@
     <div id="toast-container"></div>
     <div id="network-status"><i class="ph ph-wifi-slash"></i> 目前為離線狀態，新增或修改將於恢復連線後自動同步雲端</div>
     
-    <!-- 啟動載入畫面（支援 cover.png 封面圖與自動退回圖示） -->
+    <!-- 啟動載入畫面 -->
     <div id="loading-overlay">
         <img src="cover.png" alt="記帳軟體封面" class="cover-img-box" onerror="this.style.display='none'">
         <div class="spinner"></div>
     </div>
 
-    <!-- 登入畫面（支援 cover.png 封面圖與自動退回圖示） -->
+    <!-- 登入畫面 -->
     <div id="login-overlay">
         <div class="login-card glass-panel">
             <img src="cover.png" alt="記帳軟體封面" class="cover-img-box" onerror="this.style.display='none'; document.getElementById('login-fallback-icon').style.display='block';">
@@ -363,14 +403,8 @@
                     <button class="primary-btn flex-1" style="margin-top:0;" id="btn-open-add-trip"><i class="ph ph-plus"></i> 新帳本</button>
                     <button class="manage-btn flex-1" style="margin-top:0;" id="btn-create-folder"><i class="ph ph-folder-plus"></i> 新資料夾</button>
                 </div>
-                <button class="primary-btn w-100 mb-10" style="background:var(--theme-accent); color:var(--theme-accent-text);" id="btn-toggle-edit-mode"><i class="ph ph-pencil-simple"></i> 批次管理</button>
                 <button class="secondary-btn w-100 mb-10" id="btn-open-trash"><i class="ph ph-clock-counter-clockwise"></i> 最近刪除 <span id="trash-count" class="num-font" style="font-size:13px;opacity:.8;"></span></button>
                 <button class="danger-btn w-100" id="btn-logout"><i class="ph ph-sign-out"></i> 登出帳號</button>
-            </div>
-
-            <div id="sidebar-edit-actions" style="display: none; margin-top: 20px;">
-                <button class="danger-btn w-100 mb-10" id="btn-delete-selected"><i class="ph ph-trash"></i> 刪除選取項目</button>
-                <button class="primary-btn w-100" id="btn-finish-edit-mode"><i class="ph ph-check"></i> 完成</button>
             </div>
         </div>
     </div>
@@ -714,12 +748,35 @@
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:var(--theme-primary);"></i> 帳本表格總覽</h3><div id="summaryTripName" style="font-size:14px; font-weight:bold; color:var(--theme-primary); margin-bottom:10px;"></div><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <script>
+        // ====== 櫻花紛飛背景動畫邏輯 ======
+        function createSakura() {
+            const container = document.createElement('div');
+            container.className = 'sakura-container';
+            document.body.insertBefore(container, document.body.firstChild);
+            for(let i=0; i<18; i++) {
+                let petal = document.createElement('div');
+                petal.className = 'sakura-petal';
+                let size = Math.random() * 6 + 8; // 8~14px
+                petal.style.width = size + 'px';
+                petal.style.height = size + 'px';
+                petal.style.left = Math.random() * 100 + 'vw';
+                let fallDur = Math.random() * 6 + 6; // 6~12s
+                let swayDur = Math.random() * 3 + 2; // 2~5s
+                let fallDelay = Math.random() * 6;
+                petal.style.animationDuration = `${fallDur}s, ${swayDur}s`;
+                petal.style.animationDelay = `${fallDelay}s, 0s`;
+                container.appendChild(petal);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', createSakura);
+
+        // ====== Firebase 初始化與核心邏輯 ======
         const firebaseConfig = { apiKey: "AIzaSyD-NlX22-qoK2M_wFV6YUIzNGvzQgFldv4", authDomain: "bookkeeping-app-cf680.firebaseapp.com", projectId: "bookkeeping-app-cf680", storageBucket: "bookkeeping-app-cf680.firebasestorage.app", messagingSenderId: "480039184522", appId: "1:480039184522:web:31658c3229b8fa0cef2573" };
         firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.firestore(); const googleProvider = new firebase.auth.GoogleAuthProvider();
         db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("離線模式警告:", err));
 
         let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let isSidebarDragging = false; let sortableInstances = [];
-        let sidebarLongPressTimer = null; let sidebarPressState = null; let suppressSidebarClickUntil = 0; let activeSidebarContextTarget = null; let sidebarContextOpenedAt = 0;
+        let activeSidebarContextTarget = null;
         let trashPrunePromise = null; let expenseChartInstance = null; let crossTripChartInstance = null;
         let currentFetchedAddRate = 1; let currentFetchedEditRate = 1; let currentLookupRate = null; let currentLookupTarget = 'manage';
         let rateRequestIds = { add: 0, edit: 0 }; let rateLoading = { add: false, edit: false }; let liveRateRequestId = 0;
@@ -759,7 +816,7 @@
             return dateStr;
         }
 
-        // ====== 限定記錄期間 Checkbox 切換顯示 ======
+        // 限定記錄期間 Checkbox 切換顯示
         document.getElementById('newTripUseDateRange').addEventListener('change', function() {
             document.getElementById('newTripDateRangeBox').style.display = this.checked ? 'flex' : 'none';
         });
@@ -823,34 +880,16 @@
             if (activeDateInputId === 'newTripStartInput' || activeDateInputId === 'newTripEndInput') {
                 const start = document.getElementById('newTripStartInput')?.value || '';
                 const end = document.getElementById('newTripEndInput')?.value || '';
-                return {
-                    mode: activeDateInputId === 'newTripStartInput' ? 'range-start' : 'range-end',
-                    start,
-                    end,
-                    minDate: activeDateInputId === 'newTripEndInput' ? start : '',
-                    maxDate: ''
-                };
+                return { mode: activeDateInputId === 'newTripStartInput' ? 'range-start' : 'range-end', start, end, minDate: activeDateInputId === 'newTripEndInput' ? start : '', maxDate: '' };
             }
             if (activeDateInputId === 'modalTripStartInput' || activeDateInputId === 'modalTripEndInput') {
                 const start = document.getElementById('modalTripStartInput')?.value || '';
                 const end = document.getElementById('modalTripEndInput')?.value || '';
-                return {
-                    mode: activeDateInputId === 'modalTripStartInput' ? 'range-start' : 'range-end',
-                    start,
-                    end,
-                    minDate: activeDateInputId === 'modalTripEndInput' ? start : '',
-                    maxDate: ''
-                };
+                return { mode: activeDateInputId === 'modalTripStartInput' ? 'range-start' : 'range-end', start, end, minDate: activeDateInputId === 'modalTripEndInput' ? start : '', maxDate: '' };
             }
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
             const limited = isTripDateLimited(trip);
-            return {
-                mode: 'expense',
-                start: limited ? trip.startDate : '',
-                end: limited ? trip.endDate : '',
-                minDate: limited ? trip.startDate : '',
-                maxDate: limited ? trip.endDate : ''
-            };
+            return { mode: 'expense', start: limited ? trip.startDate : '', end: limited ? trip.endDate : '', minDate: limited ? trip.startDate : '', maxDate: limited ? trip.endDate : '' };
         }
 
         function renderCalendarGrid() {
@@ -877,14 +916,8 @@
 
                 const isBeforeMin = Boolean(ctx.minDate && dateStr < ctx.minDate);
                 const isAfterMax = Boolean(ctx.maxDate && dateStr > ctx.maxDate);
-                if (isBeforeMin || isAfterMax) {
-                    btn.classList.add('is-disabled');
-                    btn.disabled = true;
-                }
-
-                if (ctx.start && ctx.end && dateStr >= ctx.start && dateStr <= ctx.end) {
-                    btn.classList.add('in-trip-range');
-                }
+                if (isBeforeMin || isAfterMax) { btn.classList.add('is-disabled'); btn.disabled = true; }
+                if (ctx.start && ctx.end && dateStr >= ctx.start && dateStr <= ctx.end) btn.classList.add('in-trip-range');
                 if (dateStr === todayVal) btn.classList.add('is-today');
 
                 if (ctx.mode === 'range-start' || ctx.mode === 'range-end') {
@@ -897,34 +930,22 @@
                 }
 
                 btn.textContent = d;
-                if (!btn.disabled) {
-                    btn.addEventListener('click', () => selectDateFromCalendar(dateStr));
-                }
+                if (!btn.disabled) btn.addEventListener('click', () => selectDateFromCalendar(dateStr));
                 return btn;
             };
 
-            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-                grid.appendChild(createDayBtn(calViewYear, calViewMonth - 1, prevMonthDays - i, true));
-            }
-            for (let d = 1; d <= daysInMonth; d++) {
-                grid.appendChild(createDayBtn(calViewYear, calViewMonth, d, false));
-            }
-            const totalCells = firstDayOfWeek + daysInMonth;
-            const trailing = (7 - (totalCells % 7)) % 7;
-            for (let d = 1; d <= trailing; d++) {
-                grid.appendChild(createDayBtn(calViewYear, calViewMonth + 1, d, true));
-            }
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) grid.appendChild(createDayBtn(calViewYear, calViewMonth - 1, prevMonthDays - i, true));
+            for (let d = 1; d <= daysInMonth; d++) grid.appendChild(createDayBtn(calViewYear, calViewMonth, d, false));
+            const trailing = (7 - ((firstDayOfWeek + daysInMonth) % 7)) % 7;
+            for (let d = 1; d <= trailing; d++) grid.appendChild(createDayBtn(calViewYear, calViewMonth + 1, d, true));
         }
 
         function selectDateFromCalendar(dateStr) {
             if (!activeDateInputId) return;
             const inputEl = document.getElementById(activeDateInputId);
             if (!inputEl) return;
-
             const ctx = getCalendarContext();
-            if ((ctx.minDate && dateStr < ctx.minDate) || (ctx.maxDate && dateStr > ctx.maxDate)) {
-                return showToast('所選日期超出允許範圍', 'error');
-            }
+            if ((ctx.minDate && dateStr < ctx.minDate) || (ctx.maxDate && dateStr > ctx.maxDate)) return showToast('所選日期超出允許範圍', 'error');
 
             inputEl.value = dateStr;
             inputEl.dispatchEvent(new Event('change', { bubbles: true }));
@@ -932,44 +953,32 @@
             if (activeDateInputId === 'newTripStartInput' || activeDateInputId === 'modalTripStartInput') {
                 const endId = activeDateInputId === 'newTripStartInput' ? 'newTripEndInput' : 'modalTripEndInput';
                 const endEl = document.getElementById(endId);
-                if (endEl && (!endEl.value || endEl.value < dateStr)) {
-                    endEl.value = dateStr;
-                }
+                if (endEl && (!endEl.value || endEl.value < dateStr)) endEl.value = dateStr;
                 activeDateInputId = endId;
                 updateCalendarHeaderStatus();
                 renderCalendarGrid();
                 return;
             }
-
             renderCalendarGrid();
             setTimeout(() => closeModal('calendarPickerModal'), 140);
         }
 
         document.querySelectorAll('.date-picker-field').forEach(wrapper => {
-            wrapper.addEventListener('click', () => {
-                openCalendarPicker(wrapper.dataset.dateTarget, wrapper.dataset.dateTitle || '選擇日期');
-            });
+            wrapper.addEventListener('click', () => openCalendarPicker(wrapper.dataset.dateTarget, wrapper.dataset.dateTitle || '選擇日期'));
         });
         document.getElementById('calPrevMonthBtn').addEventListener('click', () => {
-            calViewMonth--;
-            if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
-            renderCalendarGrid();
+            calViewMonth--; if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; } renderCalendarGrid();
         });
         document.getElementById('calNextMonthBtn').addEventListener('click', () => {
-            calViewMonth++;
-            if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
-            renderCalendarGrid();
+            calViewMonth++; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; } renderCalendarGrid();
         });
         document.getElementById('calSelectTodayBtn').addEventListener('click', () => {
             const today = getLocalDateString();
             const ctx = getCalendarContext();
-            if ((ctx.minDate && today < ctx.minDate) || (ctx.maxDate && today > ctx.maxDate)) {
-                return showToast('今日不在設定的日期範圍內', 'warn');
-            }
+            if ((ctx.minDate && today < ctx.minDate) || (ctx.maxDate && today > ctx.maxDate)) return showToast('今日不在設定的日期範圍內', 'warn');
             selectDateFromCalendar(today);
         });
 
-        // 離線與雲端同步狀態更新器
         function updateSyncStatusIndicator() {
             const netBar = document.getElementById('network-status');
             const badge = document.getElementById('sync-status-badge');
@@ -980,22 +989,17 @@
             if (!isOnline) {
                 netBar.style.display = 'block';
                 netBar.innerHTML = '<i class="ph ph-wifi-slash"></i> 離線模式中' + (pendingSyncCount > 0 ? `（尚有 ${pendingSyncCount} 個帳本變更待同步）` : '，變更將於恢復連線後自動同步');
-                badge.className = 'sync-badge offline';
-                icon.className = 'ph-fill ph-cloud-slash';
+                badge.className = 'sync-badge offline'; icon.className = 'ph-fill ph-cloud-slash';
                 badge.title = pendingSyncCount > 0 ? `離線中：尚有 ${pendingSyncCount} 個帳本變更待上傳` : '離線快取模式';
-                if (pendingSyncCount > 0) { countEl.style.display = 'inline-block'; countEl.textContent = pendingSyncCount; }
-                else { countEl.style.display = 'none'; }
+                if (pendingSyncCount > 0) { countEl.style.display = 'inline-block'; countEl.textContent = pendingSyncCount; } else countEl.style.display = 'none';
             } else if (pendingSyncCount > 0) {
                 netBar.style.display = 'none';
-                badge.className = 'sync-badge pending';
-                icon.className = 'ph-bold ph-arrows-clockwise';
+                badge.className = 'sync-badge pending'; icon.className = 'ph-bold ph-arrows-clockwise';
                 badge.title = `正在同步 ${pendingSyncCount} 個帳本變更至雲端...`;
-                countEl.style.display = 'inline-block';
-                countEl.textContent = pendingSyncCount;
+                countEl.style.display = 'inline-block'; countEl.textContent = pendingSyncCount;
             } else {
                 netBar.style.display = 'none';
-                badge.className = 'sync-badge';
-                icon.className = 'ph-fill ph-cloud-check';
+                badge.className = 'sync-badge'; icon.className = 'ph-fill ph-cloud-check';
                 badge.title = '雲端資料已即時同步';
                 countEl.style.display = 'none';
             }
@@ -1003,9 +1007,7 @@
 
         window.addEventListener('online', updateSyncStatusIndicator);
         window.addEventListener('offline', updateSyncStatusIndicator);
-        document.getElementById('sync-status-badge').addEventListener('click', () => {
-            showToast( document.getElementById('sync-status-badge').title );
-        });
+        document.getElementById('sync-status-badge').addEventListener('click', () => showToast( document.getElementById('sync-status-badge').title ));
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -1057,20 +1059,14 @@
             }, showStartupError);
 
             unsubTrips = db.collection("trips").where("members", "array-contains", user.uid).onSnapshot({ includeMetadataChanges: true }, snap => {
-                latestTrips = [];
-                pendingSyncCount = 0;
-                snap.docs.forEach(d => {
-                    latestTrips.push(d.data());
-                    if (d.metadata.hasPendingWrites) pendingSyncCount++;
-                });
-                updateSyncStatusIndicator();
-                tripsLoaded = true;
+                latestTrips = []; pendingSyncCount = 0;
+                snap.docs.forEach(d => { latestTrips.push(d.data()); if (d.metadata.hasPendingWrites) pendingSyncCount++; });
+                updateSyncStatusIndicator(); tripsLoaded = true;
                 if (latestTrips.length === 0) { createNewTripDirectly("我的新帳本", user.uid).catch(showStartupError); return; }
                 finishStartup();
             }, showStartupError);
         }
 
-        function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
         async function updateTripExpenses(tripId, updateFn, offlineExpenses) {
             const ref = db.collection("trips").doc(tripId);
             if (!navigator.onLine) { await ref.set({ expenses: offlineExpenses }, { merge: true }); return; }
@@ -1096,12 +1092,9 @@
             return 'cat-tone-' + (idx % 5);
         }
 
-        // 延遲載入批次渲染函式
         function appendNextExpenseBatch() {
             const listEl = document.getElementById('expense-list');
-            const oldHint = listEl.querySelector('.lazy-load-hint');
-            if (oldHint) oldHint.remove();
-
+            const oldHint = listEl.querySelector('.lazy-load-hint'); if (oldHint) oldHint.remove();
             if (renderedExpCount >= currentDisplayExps.length) return;
             const nextSlice = currentDisplayExps.slice(renderedExpCount, renderedExpCount + LAZY_BATCH_SIZE);
             const fragment = document.createDocumentFragment();
@@ -1111,18 +1104,15 @@
                 if (currentSort.startsWith('date-') && expense.date !== lastRenderedDateHeader) {
                     lastRenderedDateHeader = expense.date;
                     const dateHeader = document.createElement('div');
-                    dateHeader.className = 'date-header num-font';
-                    dateHeader.textContent = expense.date || '';
+                    dateHeader.className = 'date-header num-font'; dateHeader.textContent = expense.date || '';
                     fragment.appendChild(dateHeader);
                 }
-                const row = document.createElement('div');
-                row.className = 'expense-item';
+                const row = document.createElement('div'); row.className = 'expense-item';
                 row.addEventListener('click', () => openEditExpenseModal(expense.id));
                 const name = escapeHtml(expense.name);
                 const payer = currentPayerStatsEnabled ? `<span class="expense-payer-label"><i class="ph-fill ph-user" style="vertical-align:middle"></i> ${escapeHtml(expense.payer || '我')}</span>` : '';
                 const details = expense.details ? `<span class="expense-detail-text"><i class="ph ph-list-dashes" style="vertical-align:middle"></i> ${escapeHtml(expense.details)}</span>` : '';
-                const categoryRaw = expense.category || '其他';
-                const category = escapeHtml(categoryRaw);
+                const categoryRaw = expense.category || '其他'; const category = escapeHtml(categoryRaw);
                 const toneClass = getCategoryToneClass(categoryRaw);
                 const dateBadge = !currentSort.startsWith('date-') ? `<small class="num-font" style="color:var(--theme-text-muted); margin-left:6px; font-size:12px;">${escapeHtml(expense.date || '')}</small>` : '';
                 const currency = escapeHtml(expense.currency || 'TWD');
@@ -1131,39 +1121,25 @@
 
                 row.innerHTML = `
                     <div class="expense-info-col">
-                        <div class="expense-title-line">
-                            <strong style="font-size:15.5px;color:var(--theme-text-main);">${name}</strong>
-                            ${payer}
-                        </div>
+                        <div class="expense-title-line"><strong style="font-size:15.5px;color:var(--theme-text-main);">${name}</strong>${payer}</div>
                         ${details}
-                        <div>
-                            <span class="expense-cat-badge ${toneClass}">${category}</span>
-                            ${dateBadge}
-                        </div>
+                        <div><span class="expense-cat-badge ${toneClass}">${category}</span>${dateBadge}</div>
                     </div>
                     <div class="expense-amount-col">
-                        ${expense.currency === 'TWD'
-                            ? `<strong style="font-size:15.5px;" class="num-font">TWD ${amount}</strong>`
-                            : `<strong style="color:var(--theme-accent);font-size:15px;" class="num-font">${currency} ${amount}</strong><br><small style="color:var(--theme-text-muted);" class="num-font">≈ NT$ ${converted}</small>`}
+                        ${expense.currency === 'TWD' ? `<strong style="font-size:15.5px;" class="num-font">TWD ${amount}</strong>` : `<strong style="color:var(--theme-accent);font-size:15px;" class="num-font">${currency} ${amount}</strong><br><small style="color:var(--theme-text-muted);" class="num-font">≈ NT$ ${converted}</small>`}
                     </div>
                 `;
                 fragment.appendChild(row);
             });
-
             renderedExpCount += nextSlice.length;
             if (renderedExpCount < currentDisplayExps.length) {
-                const hint = document.createElement('div');
-                hint.className = 'lazy-load-hint num-font';
-                hint.textContent = `已顯示 ${renderedExpCount} / ${currentDisplayExps.length} 筆，向下捲動載入更多...`;
-                fragment.appendChild(hint);
+                const hint = document.createElement('div'); hint.className = 'lazy-load-hint num-font'; hint.textContent = `已顯示 ${renderedExpCount} / ${currentDisplayExps.length} 筆，向下捲動載入更多...`; fragment.appendChild(hint);
             }
             listEl.appendChild(fragment);
         }
 
         document.getElementById('expense-list').addEventListener('scroll', function() {
-            if (renderedExpCount < currentDisplayExps.length && this.scrollTop + this.clientHeight >= this.scrollHeight - 120) {
-                appendNextExpenseBatch();
-            }
+            if (renderedExpCount < currentDisplayExps.length && this.scrollTop + this.clientHeight >= this.scrollHeight - 120) appendNextExpenseBatch();
         }, { passive: true });
 
         function updateUI() {
@@ -1173,18 +1149,12 @@
 
             document.getElementById('header-trip-name').innerText = trip.name || '';
             const periodEl = document.getElementById('header-trip-period');
-            if (isTripDateLimited(trip)) {
-                periodEl.style.display = 'block';
-                periodEl.innerText = `${trip.startDate} ~ ${trip.endDate}`;
-            } else {
-                periodEl.style.display = 'none';
-                periodEl.innerText = '';
-            }
+            if (isTripDateLimited(trip)) { periodEl.style.display = 'block'; periodEl.innerText = `${trip.startDate} ~ ${trip.endDate}`; } 
+            else { periodEl.style.display = 'none'; periodEl.innerText = ''; }
 
             document.getElementById('settings-trip-name').innerText = trip.name || '';
             document.getElementById('budgetCard').style.display = trip.showBudget === false ? 'none' : '';
-            const payerStatsEnabled = trip.showPayerSummary !== false;
-            currentPayerStatsEnabled = payerStatsEnabled;
+            const payerStatsEnabled = trip.showPayerSummary !== false; currentPayerStatsEnabled = payerStatsEnabled;
             document.getElementById('payerSummaryCard').style.display = payerStatsEnabled ? '' : 'none';
             document.getElementById('payerInputContainer').style.display = payerStatsEnabled ? '' : 'none';
             document.getElementById('editPayerInputContainer').style.display = payerStatsEnabled ? '' : 'none';
@@ -1197,8 +1167,7 @@
             addFilterChip('全部', 'ALL'); usedCats.forEach(category => addFilterChip(category, category));
             filterBox.replaceChildren(filterFragment);
 
-            const listEl = document.getElementById('expense-list');
-            listEl.replaceChildren();
+            const listEl = document.getElementById('expense-list'); listEl.replaceChildren();
             const sortedExps = [...trip.expenses].sort((a, b) => {
                 const valueA = Math.round(a.amount * (a.rate || appData.rates[a.currency] || 1)); const valueB = Math.round(b.amount * (b.rate || appData.rates[b.currency] || 1));
                 if (currentSort === 'date-desc') return new Date(b.date) - new Date(a.date) || b.id - a.id;
@@ -1206,8 +1175,7 @@
                 if (currentSort === 'amount-desc') return valueB - valueA || b.id - a.id; return valueA - valueB || a.id - b.id;
             });
             currentDisplayExps = currentFilter === 'ALL' ? sortedExps : sortedExps.filter(e => e.category === currentFilter);
-            renderedExpCount = 0;
-            lastRenderedDateHeader = '';
+            renderedExpCount = 0; lastRenderedDateHeader = '';
 
             let totalTWD = 0; let filteredTWD = 0; const payers = Object.create(null);
             trip.expenses.forEach(expense => { const value = getTwd(expense); totalTWD += value; const payer = expense.payer || '我'; payers[payer] = (payers[payer] || 0) + value; });
@@ -1217,15 +1185,12 @@
                 const empty = document.createElement('div'); empty.style.textAlign = 'center'; empty.style.padding = '36px 10px'; empty.style.color = 'var(--theme-text-muted)';
                 empty.innerHTML = '<div style="font-size:46px;margin-bottom:10px;opacity:0.75;color:var(--theme-primary);"><i class="ph ph-leaf"></i></div><div style="font-size:16.5px;font-weight:bold;color:var(--theme-text-heading);">目前沒有任何紀錄</div>';
                 listEl.appendChild(empty);
-            } else {
-                appendNextExpenseBatch();
-            }
+            } else appendNextExpenseBatch();
 
             document.getElementById('record-total').innerText = 'NT$ ' + filteredTWD.toLocaleString();
             document.getElementById('total-spent').innerText = totalTWD.toLocaleString();
             document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
-            const rawPercent = trip.budget > 0 ? (totalTWD / trip.budget) * 100 : 0;
-            const percent = Math.min(rawPercent, 100);
+            const rawPercent = trip.budget > 0 ? (totalTWD / trip.budget) * 100 : 0; const percent = Math.min(rawPercent, 100);
             document.getElementById('budget-fill').style.width = percent + '%';
             document.getElementById('budget-fill').style.background = rawPercent >= 100 ? 'var(--theme-danger)' : (rawPercent >= 80 ? 'var(--theme-warning)' : 'linear-gradient(90deg, var(--theme-primary), var(--wafu-gold))');
             document.getElementById('budget-text').innerText = Math.round(rawPercent) + '%';
@@ -1243,124 +1208,66 @@
                 });
             }
 
-            const addCurrency = document.getElementById('itemCurrency').value;
-            const editCurrency = document.getElementById('editExpCurrency').value;
-            const addCategory = document.getElementById('itemCategory').value;
-            const editCategory = document.getElementById('editExpCategory').value;
-
+            const addCurrency = document.getElementById('itemCurrency').value; const editCurrency = document.getElementById('editExpCurrency').value;
+            const addCategory = document.getElementById('itemCategory').value; const editCategory = document.getElementById('editExpCategory').value;
             renderSelectOptions('itemCurrency', appData.rates, appData.rates[addCurrency] ? addCurrency : (appData.rates[previousCurrency.add] ? previousCurrency.add : 'TWD'), false, true);
             renderSelectOptions('editExpCurrency', appData.rates, appData.rates[editCurrency] ? editCurrency : (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
             renderSelectOptions('itemCategory', appData.categories, appData.categories.includes(addCategory) ? addCategory : appData.categories[0], true);
             renderSelectOptions('editExpCategory', appData.categories, appData.categories.includes(editCategory) ? editCategory : appData.categories[0], true);
-
-            renderChart(trip, totalTWD);
-            renderCrossTripChart();
+            renderChart(trip, totalTWD); renderCrossTripChart();
         }
 
         function renderChart(trip, grandTotal) {
             const chartCard = document.getElementById('chartCard');
             if (trip.showCategoryChart === false || typeof Chart === 'undefined') {
-                chartCard.style.display = 'none';
-                if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; }
-                return;
+                chartCard.style.display = 'none'; if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } return;
             }
             const canvas = document.getElementById('expenseChart'); const ctx = canvas.getContext('2d'); const categories = {};
             trip.expenses.forEach(expense => { const category = expense.category || '其他'; categories[category] = (categories[category] || 0) + getTwd(expense); });
             const categoryNames = Object.keys(categories);
             if (categoryNames.length === 0) { if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } chartCard.style.display = 'none'; return; }
-            chartCard.style.display = '';
-            if (expenseChartInstance) expenseChartInstance.destroy();
+            chartCard.style.display = ''; if (expenseChartInstance) expenseChartInstance.destroy();
             const colors = ['#4E877D', '#D96B52', '#D49A35', '#C86D7E', '#4A7C9B', '#7E6B9E', '#2F4846', '#E6A15C', '#6A994E', '#B23A48'];
             const chartBorder = getComputedStyle(chartCard).backgroundColor || '#FFFCF6';
-            expenseChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: categoryNames, datasets: [{ data: Object.values(categories), backgroundColor: categoryNames.map((_, index) => colors[index % colors.length]), borderColor: chartBorder, borderWidth: 3, hoverOffset: 7 }] },
-                options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
-            });
+            expenseChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: categoryNames, datasets: [{ data: Object.values(categories), backgroundColor: categoryNames.map((_, index) => colors[index % colors.length]), borderColor: chartBorder, borderWidth: 3, hoverOffset: 7 }] }, options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' } });
             const legend = document.getElementById('customChartLegend');
             legend.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;justify-content:center;">' +
                 categoryNames.map((category, index) => {
                     const percent = grandTotal > 0 ? Math.round(categories[category] / grandTotal * 100) : 0;
-                    return '<div style="font-size:13px;border:1px solid var(--theme-border);padding:9px 11px;border-radius:12px;background:var(--theme-secondary);flex:1;min-width:125px;"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span aria-hidden="true" style="width:12px;height:12px;flex:none;border-radius:50%;background:' + colors[index % colors.length] + ';border:1px solid rgba(0,0,0,.18);"></span><span style="color:var(--theme-text-main);font-weight:bold;overflow-wrap:anywhere;">' + escapeHtml(category) + '</span><strong class="num-font" style="color:var(--theme-text-heading);margin-left:auto;">' + percent + '%</strong></div><div class="num-font" style="color:var(--theme-text-main);font-weight:bold;">NT$ ' + categories[category].toLocaleString() + '</div></div>';
+                    return `<div style="font-size:13px;border:1px solid var(--theme-border);padding:9px 11px;border-radius:12px;background:var(--theme-secondary);flex:1;min-width:125px;"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span aria-hidden="true" style="width:12px;height:12px;flex:none;border-radius:50%;background:${colors[index % colors.length]};border:1px solid rgba(0,0,0,.18);"></span><span style="color:var(--theme-text-main);font-weight:bold;overflow-wrap:anywhere;">${escapeHtml(category)}</span><strong class="num-font" style="color:var(--theme-text-heading);margin-left:auto;">${percent}%</strong></div><div class="num-font" style="color:var(--theme-text-main);font-weight:bold;">NT$ ${categories[category].toLocaleString()}</div></div>`;
                 }).join('') + '</div>';
         }
 
         function renderCrossTripChart() {
             if (!appData || !Array.isArray(appData.trips) || typeof Chart === 'undefined') return;
             const mode = document.getElementById('crossChartMode').value;
-            const canvas = document.getElementById('crossTripChart');
-            const summaryEl = document.getElementById('crossStatSummary');
-            const ctx = canvas.getContext('2d');
-
-            let labels = [];
-            let values = [];
-            let allTotal = 0;
+            const canvas = document.getElementById('crossTripChart'); const summaryEl = document.getElementById('crossStatSummary');
+            const ctx = canvas.getContext('2d'); let labels = []; let values = []; let allTotal = 0;
 
             if (mode === 'by-month') {
                 const monthMap = new Map();
-                appData.trips.forEach(trip => {
-                    (trip.expenses || []).forEach(exp => {
-                        const ym = String(exp.date || '').slice(0, 7) || '未知月份';
-                        const val = getTwd(exp);
-                        allTotal += val;
-                        monthMap.set(ym, (monthMap.get(ym) || 0) + val);
-                    });
-                });
+                appData.trips.forEach(trip => { (trip.expenses || []).forEach(exp => { const ym = String(exp.date || '').slice(0, 7) || '未知月份'; const val = getTwd(exp); allTotal += val; monthMap.set(ym, (monthMap.get(ym) || 0) + val); }); });
                 const sortedEntries = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-12);
-                labels = sortedEntries.map(([k]) => k);
-                values = sortedEntries.map(([, v]) => v);
+                labels = sortedEntries.map(([k]) => k); values = sortedEntries.map(([, v]) => v);
             } else {
-                const tripTotals = appData.trips.map(trip => {
-                    const sum = (trip.expenses || []).reduce((acc, exp) => acc + getTwd(exp), 0);
-                    allTotal += sum;
-                    return { name: trip.name || '未命名', sum };
-                }).filter(t => t.sum > 0).sort((a, b) => b.sum - a.sum).slice(0, 10);
-                labels = tripTotals.map(t => t.name);
-                values = tripTotals.map(t => t.sum);
+                const tripTotals = appData.trips.map(trip => { const sum = (trip.expenses || []).reduce((acc, exp) => acc + getTwd(exp), 0); allTotal += sum; return { name: trip.name || '未命名', sum }; }).filter(t => t.sum > 0).sort((a, b) => b.sum - a.sum).slice(0, 10);
+                labels = tripTotals.map(t => t.name); values = tripTotals.map(t => t.sum);
             }
 
             if (crossTripChartInstance) crossTripChartInstance.destroy();
             const textColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-text-muted').trim() || '#647A76';
             const barPalette = ['#4E877D', '#D96B52', '#D49A35', '#4A7C9B', '#C86D7E', '#7E6B9E'];
 
-            if (labels.length === 0) {
-                summaryEl.innerHTML = '<div class="cross-stat-box" style="grid-column: 1 / -1; text-align:center; color:var(--theme-text-muted);">尚無跨帳本消費數據</div>';
-                return;
-            }
+            if (labels.length === 0) { summaryEl.innerHTML = '<div class="cross-stat-box" style="grid-column: 1 / -1; text-align:center; color:var(--theme-text-muted);">尚無跨帳本消費數據</div>'; return; }
 
             crossTripChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: '消費總額 (TWD)',
-                        data: values,
-                        backgroundColor: labels.map((_, i) => barPalette[i % barPalette.length]),
-                        borderRadius: 8,
-                        maxBarThickness: 34
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, grid: { display: false } },
-                        y: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, beginAtZero: true }
-                    }
-                }
+                type: 'bar', data: { labels, datasets: [{ label: '消費總額 (TWD)', data: values, backgroundColor: labels.map((_, i) => barPalette[i % barPalette.length]), borderRadius: 8, maxBarThickness: 34 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, grid: { display: false } }, y: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, beginAtZero: true } } }
             });
-
-            const maxVal = Math.max(...values, 0);
-            const maxLabel = labels[values.indexOf(maxVal)] || '--';
+            const maxVal = Math.max(...values, 0); const maxLabel = labels[values.indexOf(maxVal)] || '--';
             summaryEl.innerHTML = `
-                <div class="cross-stat-box">
-                    <div style="color:var(--theme-text-muted);">所有帳本累計總支出</div>
-                    <strong class="num-font" style="font-size:15.5px; color:var(--theme-primary);">NT$ ${allTotal.toLocaleString()}</strong>
-                </div>
-                <div class="cross-stat-box">
-                    <div style="color:var(--theme-text-muted);">${mode === 'by-month' ? '最高支出月份' : '最高支出帳本'}</div>
-                    <strong class="num-font" style="font-size:14.5px; color:var(--theme-accent);">${escapeHtml(maxLabel)} ($${maxVal.toLocaleString()})</strong>
-                </div>
+                <div class="cross-stat-box"><div style="color:var(--theme-text-muted);">所有帳本累計總支出</div><strong class="num-font" style="font-size:15.5px; color:var(--theme-primary);">NT$ ${allTotal.toLocaleString()}</strong></div>
+                <div class="cross-stat-box"><div style="color:var(--theme-text-muted);">${mode === 'by-month' ? '最高支出月份' : '最高支出帳本'}</div><strong class="num-font" style="font-size:14.5px; color:var(--theme-accent);">${escapeHtml(maxLabel)} ($${maxVal.toLocaleString()})</strong></div>
             `;
         }
         document.getElementById('crossChartMode').addEventListener('change', renderCrossTripChart);
@@ -1368,7 +1275,6 @@
         function toggleSidebar(open) { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebarOverlay'); if (open) { isSidebarEditMode = false; renderSidebarContent(); sb.classList.add('open'); ov.classList.add('open'); } else { closeSidebarContextMenu(); sb.classList.remove('open'); ov.classList.remove('open'); } }
         
         document.getElementById('btn-open-sidebar').onclick = () => toggleSidebar(true); 
-        document.getElementById('btn-close-sidebar').addEventListener('click', () => toggleSidebar(false));
         document.getElementById('sidebarOverlay').onclick = () => toggleSidebar(false);
         document.getElementById('btn-create-folder').onclick = createFolder;
         document.getElementById('btn-delete-selected').onclick = deleteSelectedItems;
@@ -1380,18 +1286,47 @@
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
 
-        function getSidebarContextItem(target) { const tripItem = target.closest('.trip-menu-item[data-type="trip"]'); if (tripItem) return { type: 'trip', id: tripItem.dataset.id }; const folderHeader = target.closest('.folder-header[data-folder-id]'); if (folderHeader) return { type: 'folder', id: folderHeader.dataset.folderId }; return null; }
-        function setSidebarSortablesDisabled(disabled) { sortableInstances.forEach(instance => instance.option('disabled', disabled)); }
-        function openSidebarContextMenu(item, x, y) { const menu = document.getElementById('sidebar-context-menu'); if (!menu || isSidebarEditMode) return; activeSidebarContextTarget = item; sidebarContextOpenedAt = Date.now(); menu.classList.add('open'); const rect = menu.getBoundingClientRect(); menu.style.left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)) + 'px'; menu.style.top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)) + 'px'; setSidebarSortablesDisabled(true); }
-        function closeSidebarContextMenu() { const menu = document.getElementById('sidebar-context-menu'); if (!menu?.classList.contains('open')) return; menu.classList.remove('open'); activeSidebarContextTarget = null; setSidebarSortablesDisabled(false); }
+        // 徹底解決長按衝突，改為按鈕觸發選單
         function setupSidebarContextActions() {
-            const container = document.getElementById('sidebar-items-container'); const menu = document.getElementById('sidebar-context-menu');
-            container.addEventListener('contextmenu', event => { const item = getSidebarContextItem(event.target); if (!item || isSidebarEditMode) return; event.preventDefault(); openSidebarContextMenu(item, event.clientX, event.clientY); });
-            container.addEventListener('pointerdown', event => { const item = getSidebarContextItem(event.target); if (event.pointerType !== 'touch' || !item || isSidebarEditMode) return; sidebarPressState = { ...item, x: event.clientX, y: event.clientY }; clearTimeout(sidebarLongPressTimer); sidebarLongPressTimer = setTimeout(() => { if (!sidebarPressState) return; suppressSidebarClickUntil = Date.now() + 900; openSidebarContextMenu(sidebarPressState, sidebarPressState.x, sidebarPressState.y); }, 520); });
-            container.addEventListener('pointermove', event => { if (!sidebarPressState) return; if (Math.hypot(event.clientX - sidebarPressState.x, event.clientY - sidebarPressState.y) > 10) { clearTimeout(sidebarLongPressTimer); sidebarPressState = null; } });
-            const cancelLongPress = () => { clearTimeout(sidebarLongPressTimer); sidebarPressState = null; }; container.addEventListener('pointerup', cancelLongPress); container.addEventListener('pointercancel', cancelLongPress);
-            menu.addEventListener('click', async event => { const button = event.target.closest('button[data-action]'); if (!button || !activeSidebarContextTarget || Date.now() - sidebarContextOpenedAt < 250) return; event.preventDefault(); const item = activeSidebarContextTarget; closeSidebarContextMenu(); if (button.dataset.action === 'rename') await renameSidebarItem(item.type, item.id); if (button.dataset.action === 'delete') await deleteSidebarItems(item.type === 'trip' ? [item.id] : [], item.type === 'folder' ? [item.id] : []); });
-            document.addEventListener('pointerdown', event => { if (menu.classList.contains('open') && !menu.contains(event.target)) closeSidebarContextMenu(); }); document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebarContextMenu(); }); window.addEventListener('resize', closeSidebarContextMenu); document.getElementById('sidebar').addEventListener('scroll', closeSidebarContextMenu, { passive: true });
+            const container = document.getElementById('sidebar-items-container');
+            const menu = document.getElementById('sidebar-context-menu');
+            
+            // 監聽 ⋮ 按鈕的點擊事件來開啟選單
+            container.addEventListener('click', event => {
+                const btn = event.target.closest('.context-menu-btn');
+                if (!btn || isSidebarEditMode) return;
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const item = { type: btn.dataset.type, id: btn.dataset.id };
+                activeSidebarContextTarget = item;
+                menu.classList.add('open');
+                
+                // 動態定位選單位置在按鈕的左下方
+                const rect = btn.getBoundingClientRect();
+                menu.style.left = Math.max(8, rect.left - 130) + 'px';
+                menu.style.top = Math.max(8, rect.bottom + 5) + 'px';
+            });
+
+            menu.addEventListener('click', async event => {
+                const button = event.target.closest('button[data-action]');
+                if (!button || !activeSidebarContextTarget) return;
+                event.preventDefault();
+                const item = activeSidebarContextTarget;
+                closeSidebarContextMenu();
+                if (button.dataset.action === 'rename') await renameSidebarItem(item.type, item.id);
+                if (button.dataset.action === 'delete') await deleteSidebarItems(item.type === 'trip' ? [item.id] : [], item.type === 'folder' ? [item.id] : []);
+            });
+
+            document.addEventListener('pointerdown', event => { if (menu.classList.contains('open') && !menu.contains(event.target)) closeSidebarContextMenu(); });
+            document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebarContextMenu(); });
+            window.addEventListener('resize', closeSidebarContextMenu);
+            document.getElementById('sidebar').addEventListener('scroll', closeSidebarContextMenu, { passive: true });
+        }
+        function closeSidebarContextMenu() { 
+            const menu = document.getElementById('sidebar-context-menu');
+            if (menu) menu.classList.remove('open');
+            activeSidebarContextTarget = null;
         }
         
         function renderSidebarContent() {
@@ -1404,26 +1339,23 @@
                     const children = appData.trips.filter(trip => trip.folderId === item.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                     const expanded = item.expanded !== false;
                     const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="folder">' : '';
-                    html += '<div class="folder-item" data-id="' + safeId + '" data-type="folder"><div class="folder-header" data-folder-id="' + safeId + '" title="右鍵或長按以重新命名／刪除"><div style="display:flex;align-items:center;gap:8px;">' + checkbox + '<span><i class="ph-fill ph-folder" style="color:var(--theme-primary);"></i> ' + escapeHtml(item.name) + ' <small style="color:var(--theme-text-muted);font-weight:normal;">(' + children.length + ')</small></span></div><span aria-hidden="true">' + (expanded ? '⌄' : '›') + '</span></div><div class="folder-content" data-folder-id="' + safeId + '" style="display:' + (expanded ? 'block' : 'none') + ';padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">';
+                    html += `<div class="folder-item" data-id="${safeId}" data-type="folder"><div class="folder-header" data-folder-id="${safeId}"><div style="display:flex;align-items:center;gap:8px;">${checkbox}<span><i class="ph-fill ph-folder"></i> ${escapeHtml(item.name)} <small style="opacity:0.75;font-weight:normal;">(${children.length})</small></span></div><div style="display:flex;align-items:center;"><button type="button" class="context-menu-btn" data-id="${safeId}" data-type="folder"><i class="ph-bold ph-dots-three-vertical"></i></button><span aria-hidden="true" style="margin-left:8px;">${expanded ? '⌄' : '›'}</span></div></div><div class="folder-content" data-folder-id="${safeId}" style="display:${expanded ? 'block' : 'none'};padding-left:12px;margin-left:12px;border-left:2px dashed var(--theme-border);margin-top:8px;min-height:40px;">`;
                     children.forEach(trip => { html += renderTripItem(trip); }); html += '</div></div>';
                 } else { html += renderTripItem(item); }
             });
             container.innerHTML = html + '</div>';
             container.onclick = event => {
-                if (isSidebarDragging) return; if (Date.now() < suppressSidebarClickUntil) { event.preventDefault(); event.stopPropagation(); return; }
-                if (event.target.closest('.sidebar-cb')) return;
+                if (isSidebarDragging) return;
+                if (event.target.closest('.sidebar-cb') || event.target.closest('.context-menu-btn')) return;
                 const folderHeader = event.target.closest('.folder-header[data-folder-id]'); if (folderHeader) { toggleFolder(folderHeader.dataset.folderId); return; }
                 const tripItem = event.target.closest('.trip-menu-item[data-id]'); if (tripItem) { if (isSidebarEditMode) toggleCb(tripItem.dataset.id); else switchTrip(tripItem.dataset.id); }
             }; initSortable();
         }
         function renderTripItem(trip) {
             const safeId = escapeHtml(trip.id); const active = trip.id === appData.activeTripId; const spent = (trip.expenses || []).reduce((sum, expense) => sum + getTwd(expense), 0); const shared = trip.members && trip.members.length > 1;
-            const checkbox = isSidebarEditMode ? '<input type="checkbox" class="sidebar-cb" data-id="' + safeId + '" data-type="trip">' : '';
+            const checkbox = isSidebarEditMode ? `<input type="checkbox" class="sidebar-cb" data-id="${safeId}" data-type="trip">` : '';
             const dateMeta = isTripDateLimited(trip) ? `<small class="trip-menu-meta num-font" style="color:var(--theme-text-muted);font-size:12.5px;">${escapeHtml(trip.startDate)} ~ ${escapeHtml(trip.endDate)}</small>` : '';
-            return '<div class="trip-menu-item ' + (active && !isSidebarEditMode ? 'active' : '') + '" data-id="' + safeId + '" data-type="trip" title="右鍵或長按以重新命名／刪除">' + checkbox + '<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;">' +
-                '<div class="trip-menu-name" style="font-size:15.5px;color:var(--theme-text-main);font-weight:' + (active ? 'bold' : 'normal') + ';line-height:1.3;margin-bottom:2px;">' +
-                (shared ? '<i class="ph-fill ph-handshake" style="color:var(--wafu-sakura);"></i> ' : '') + escapeHtml(trip.name) + '</div>' + dateMeta +
-                '<small class="trip-menu-spent num-font" style="color:var(--theme-primary);font-weight:bold;margin-top:3px;font-size:13px;">花費: $' + spent.toLocaleString() + '</small></div></div>';
+            return `<div class="trip-menu-item ${active && !isSidebarEditMode ? 'active' : ''}" data-id="${safeId}" data-type="trip">${checkbox}<div style="flex-grow:1;display:flex;flex-direction:column;width:100%;"><div class="trip-menu-name" style="font-size:15.5px;color:var(--theme-text-main);font-weight:${active ? 'bold' : 'normal'};line-height:1.3;margin-bottom:2px;">${shared ? '<i class="ph-fill ph-handshake" style="color:var(--wafu-sakura);"></i> ' : ''}${escapeHtml(trip.name)}</div>${dateMeta}<small class="trip-menu-spent num-font" style="color:var(--theme-primary);font-weight:bold;margin-top:3px;font-size:13px;">花費: $${spent.toLocaleString()}</small></div><button type="button" class="context-menu-btn" data-id="${safeId}" data-type="trip"><i class="ph-bold ph-dots-three-vertical"></i></button></div>`;
         }
         function toggleFolder(id) { const folder = appData.folders.find(item => item.id === id); if (folder) { folder.expanded = !folder.expanded; db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true }).catch(error => { console.error(error); showToast('資料夾狀態同步失敗', 'error'); }); renderSidebarContent(); } }
         function toggleCb(id) { const checkbox = Array.from(document.querySelectorAll('.sidebar-cb')).find(item => item.dataset.id === String(id)); if (checkbox) checkbox.checked = !checkbox.checked; }
@@ -1431,7 +1363,7 @@
 
         function initSortable() {
             sortableInstances.forEach(instance => instance.destroy()); sortableInstances = []; if (isSidebarEditMode || typeof Sortable === 'undefined') return;
-            const commonOptions = { group: { name: 'ledger-folders', pull: true, put: (to, from, dragged) => dragged.dataset.type === 'trip' || (to.el.id === 'root-sortable' && dragged.dataset.type === 'folder') }, animation: 160, delay: 650, delayOnTouchOnly: true, touchStartThreshold: 8, fallbackOnBody: true, swapThreshold: 0.65, emptyInsertThreshold: 32, onStart: () => { isSidebarDragging = true; }, onMove: event => { const rootTarget = document.getElementById('root-sortable'); if (rootTarget) rootTarget.classList.toggle('root-drop-active', event.dragged.dataset.type === 'trip' && event.to === rootTarget); if (event.dragged.dataset.type === 'folder' && event.to.classList.contains('folder-content')) return false; if (event.dragged.dataset.type === 'trip') { const folderItem = event.related?.closest('[data-type="folder"]') || event.to.closest('.folder-item'); const folderId = folderItem?.dataset.id || event.to.dataset.folderId; const content = folderId ? Array.from(document.querySelectorAll('#sidebar-items-container .folder-content')).find(element => element.dataset.folderId === folderId) : null; if (content && content.style.display === 'none') { content.style.display = 'block'; const folder = appData.folders.find(item => item.id === folderId); if (folder) folder.expanded = true; } } }, onEnd: async () => { document.getElementById('root-sortable')?.classList.remove('root-drop-active'); try { await updateDataFromDOM(); renderSidebarContent(); } finally { setTimeout(() => { isSidebarDragging = false; }, 80); } } };
+            const commonOptions = { group: { name: 'ledger-folders', pull: true, put: (to, from, dragged) => dragged.dataset.type === 'trip' || (to.el.id === 'root-sortable' && dragged.dataset.type === 'folder') }, animation: 160, delay: 650, delayOnTouchOnly: true, touchStartThreshold: 8, fallbackOnBody: true, swapThreshold: 0.65, emptyInsertThreshold: 32, onStart: () => { isSidebarDragging = true; closeSidebarContextMenu(); }, onMove: event => { const rootTarget = document.getElementById('root-sortable'); if (rootTarget) rootTarget.classList.toggle('root-drop-active', event.dragged.dataset.type === 'trip' && event.to === rootTarget); if (event.dragged.dataset.type === 'folder' && event.to.classList.contains('folder-content')) return false; if (event.dragged.dataset.type === 'trip') { const folderItem = event.related?.closest('[data-type="folder"]') || event.to.closest('.folder-item'); const folderId = folderItem?.dataset.id || event.to.dataset.folderId; const content = folderId ? Array.from(document.querySelectorAll('#sidebar-items-container .folder-content')).find(element => element.dataset.folderId === folderId) : null; if (content && content.style.display === 'none') { content.style.display = 'block'; const folder = appData.folders.find(item => item.id === folderId); if (folder) folder.expanded = true; } } }, onEnd: async () => { document.getElementById('root-sortable')?.classList.remove('root-drop-active'); try { await updateDataFromDOM(); renderSidebarContent(); } finally { setTimeout(() => { isSidebarDragging = false; }, 80); } } };
             const root = document.getElementById('root-sortable'); if (root) sortableInstances.push(new Sortable(root, { ...commonOptions, draggable: '.trip-menu-item[data-type="trip"], .folder-item[data-type="folder"]' }));
             document.querySelectorAll('#sidebar-items-container .folder-content').forEach(element => { sortableInstances.push(new Sortable(element, { ...commonOptions, draggable: '.trip-menu-item[data-type="trip"]' })); });
         }
@@ -1495,7 +1427,7 @@
             await pruneExpiredTrash(); const list = document.getElementById('trashList');
             const items = [...(appData?.trash || [])].filter(item => Number(item.expiresAt || 0) > Date.now()).sort((a, b) => b.deletedAt - a.deletedAt);
             updateTrashCount(); list.replaceChildren();
-            if (!items.length) { const empty = document.createElement('div'); empty.style.cssText = 'text-align:center;padding:28px 12px;margin:0;color:var(--theme-text-muted);font-size:14px;'; empty.textContent = '目前沒有最近刪除的項目'; list.appendChild(empty); return; }
+            if (!items.length) { const empty = document.createElement('div'); empty.className = 'desc-text'; empty.style.cssText = 'text-align:center;padding:28px 12px;margin:0;color:var(--theme-text-muted);font-size:14px;'; empty.textContent = '目前沒有最近刪除的項目'; list.appendChild(empty); return; }
             const foldersInTrash = new Set(items.filter(item => item.kind === 'folder').map(item => item.folder?.id));
             const visibleItems = items.filter(item => item.kind !== 'trip' || !foldersInTrash.has(item.folderId));
             visibleItems.forEach(item => {
