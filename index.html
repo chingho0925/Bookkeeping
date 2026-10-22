@@ -21,7 +21,7 @@
     <!-- Chart.js 與 SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <!-- Phosphor Icons 專業圖示庫 -->
+    <!-- Phosphor Icons 專業向量圖示庫 -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -39,11 +39,6 @@
         :root {
             /* ==========================================================
                日系極簡 60-30-10 + 紙質米色欄位配色（零純白 #FFFFFF、零純黑 #000000）
-               - 60% 背景基底：#F7F6F4 與淺和紙卡片 rgba(250, 246, 238, 0.90)
-               - 紙質米色欄位：#F3EDE2（生成和紙米色）與 #EAE2D6（亞麻米色次要欄位）
-               - 30% 文字與紙感邊框：#3A3A3B 與溫潤紙邊 rgba(176, 158, 138, 0.34)
-               - 10% 主按鈕與視覺引導：#A0D8EF
-               - 點綴與 Hover 互動：#FBC9DA（淡櫻粉）、#ECA054（暖柑橘）
                ========================================================== */
             --theme-bg: #F7F6F4;
             --theme-text-main: #3A3A3B;
@@ -77,24 +72,23 @@
             --wafu-sky-bg: rgba(160, 216, 239, 0.28);
             --wafu-sky-text: #3A3A3B;
 
-            --theme-card-bg: rgba(250, 246, 238, 0.88);        /* #FAF6EE 淺米和紙卡片底色 */
-            --theme-header-bg: rgba(246, 241, 232, 0.92);      /* #F6F1E8 頂部米色導覽列 */
+            --theme-card-bg: rgba(250, 246, 238, 0.88);
+            --theme-header-bg: rgba(246, 241, 232, 0.92);
             --theme-header-text: #3A3A3B;
             --theme-header-subtext: rgba(58, 58, 59, 0.62);
-            --theme-border: rgba(176, 158, 138, 0.32);         /* 溫潤紙張邊緣線條色 */
+            --theme-border: rgba(176, 158, 138, 0.32);
             --theme-nav-bg: rgba(246, 241, 232, 0.94);
             --theme-modal-overlay: rgba(58, 58, 59, 0.32);
             --theme-danger: rgba(210, 95, 105, 0.88);
             --theme-warning: rgba(236, 160, 84, 0.92);
-            --theme-sidebar-item: rgba(243, 237, 226, 0.85);   /* 側邊欄帳本卡片紙質米色 */
+            --theme-sidebar-item: rgba(243, 237, 226, 0.85);
             
-            /* 極低不透明度墨灰大範圍模糊陰影，營造輕盈懸浮感 */
             --theme-glass-shadow: 0 12px 36px rgba(58, 58, 59, 0.05);
             --fab-bg: rgba(160, 216, 239, 0.92);
             --fab-shadow: 0 10px 28px rgba(58, 58, 59, 0.08);
         }
 
-        /* 柔和深色模式（同樣避免純黑 #000000 與純白 #FFFFFF） */
+        /* 柔和深色模式 */
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
                 --theme-bg: #18191C;
@@ -166,7 +160,7 @@
             --fab-shadow: 0 10px 28px rgba(24, 25, 28, 0.45);
         }
 
-        /* ================= 櫻花紛飛動態背景（低飽和度通透感） ================= */
+        /* ================= 櫻花紛飛動態背景 ================= */
         .sakura-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 0; overflow: hidden;
@@ -189,7 +183,7 @@
             100% { margin-left: 32px; } 
         }
 
-        /* 全域與裝置螢幕高度自適應設定（減法設計，純淨無雜訊背景） */
+        /* 全域與裝置螢幕高度自適應設定 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { height: 100%; height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
         body {
@@ -216,13 +210,13 @@
         .app-container {
             position: relative; z-index: 10;
             max-width: 600px; height: 100dvh; margin: 0 auto;
-            padding: 16px 18px calc(78px + env(safe-area-inset-bottom)) 18px;
-            display: none; flex-direction: column; gap: 14px; overflow: hidden;
+            padding: 14px 16px calc(76px + env(safe-area-inset-bottom)) 16px;
+            display: none; flex-direction: column; gap: 12px; overflow: hidden;
         }
         .card {
-            padding: 22px;
+            padding: 20px;
             border-radius: 24px;
-            margin-top: 16px;
+            margin-top: 14px;
             transition: transform 0.25s ease, background 0.4s ease, box-shadow 0.25s ease;
         }
 
@@ -231,7 +225,7 @@
             flex-shrink: 0;
             color: var(--theme-header-text);
             background: var(--theme-header-bg);
-            padding: 16px 20px;
+            padding: 14px 18px;
             border-radius: 24px;
             display: grid;
             grid-template-columns: 40px 1fr 40px;
@@ -240,15 +234,116 @@
         }
         .header-title-container { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
         .header h1 { font-size: 18px; font-weight: 600; color: var(--theme-header-text) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .trip-period-text { font-size: 12.5px; margin-top: 4px; color: var(--theme-header-subtext); display: none; }
+        .trip-period-text { font-size: 12px; margin-top: 3px; color: var(--theme-header-subtext); display: none; }
 
-        /* 分頁視圖：充足留白與獨立捲動 */
+        /* 分頁視圖 */
         .tab-view { display: none; flex: 1; min-height: 0; animation: slideInFade 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-        #tab-records.tab-view.active { display: flex; flex-direction: column; gap: 14px; overflow: hidden; padding-bottom: 4px; }
-        #tab-records #budgetCard { flex-shrink: 0; margin-top: 0; padding: 18px 22px; }
-        #tab-records #recordsCard { flex: 1; min-height: 0; margin-top: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 20px 12px 20px; }
+        #tab-records.tab-view.active { display: flex; flex-direction: column; gap: 12px; overflow: hidden; padding-bottom: 2px; }
+        #tab-records #budgetCard { flex-shrink: 0; margin-top: 0; padding: 16px 20px; }
+        #tab-records #recordsCard { flex: 1; min-height: 0; margin-top: 0; display: flex; flex-direction: column; overflow: hidden; padding: 18px 18px 10px 18px; }
         #tab-stats.tab-view.active, #tab-settings.tab-view.active { display: block; overflow-y: auto; padding-bottom: 24px; scrollbar-width: thin; }
         @keyframes slideInFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 帳目明細標題列：嚴格防擠壓換行 (flex-wrap: nowrap) */
+        .records-header-row {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            min-width: 0;
+        }
+        .records-header-title {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .records-header-controls {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+        }
+
+        /* 關鍵字即時搜尋列 */
+        .search-bar-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        .search-bar-wrap i.search-icon {
+            position: absolute;
+            left: 13px;
+            font-size: 16px;
+            color: var(--theme-text-muted);
+            pointer-events: none;
+        }
+        .search-bar-wrap input.search-input {
+            margin-top: 0;
+            padding: 9px 34px 9px 36px;
+            font-size: 13.5px;
+            border-radius: 14px;
+            background: var(--theme-input-bg);
+        }
+        .search-clear-btn {
+            position: absolute;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: var(--theme-secondary);
+            color: var(--theme-text-muted);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        /* 常用項目快速點選標籤 */
+        .quick-tags-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 6px 2px 2px;
+            scrollbar-width: none;
+            align-items: center;
+        }
+        .quick-tags-bar::-webkit-scrollbar { display: none; }
+        .quick-tag-chip {
+            width: auto;
+            margin: 0;
+            padding: 4px 11px;
+            border-radius: 12px;
+            font-size: 12.5px;
+            font-weight: 600;
+            background: var(--theme-input-bg);
+            color: var(--theme-text-muted);
+            border: 1px solid var(--theme-border);
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: none;
+            transition: all 0.2s;
+        }
+        .quick-tag-chip:hover, .quick-tag-chip:active {
+            background: var(--wafu-sakura-bg);
+            color: var(--theme-text-main);
+            border-color: rgba(236, 160, 84, 0.4);
+        }
 
         /* 雲端同步狀態指示器 */
         .sync-badge { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 18px; color: var(--theme-header-subtext); cursor: pointer; position: relative; transition: color 0.2s; }
@@ -260,7 +355,7 @@
 
         /* 輸入框與表單：溫潤紙質米色與微內陰影質感 */
         input, select, button {
-            width: 100%; padding: 14px 16px; margin-top: 10px;
+            width: 100%; padding: 13px 15px; margin-top: 8px;
             border: 1px solid var(--theme-border); border-radius: 16px;
             font-family: inherit; font-size: 15px;
             background: var(--theme-input-bg); color: var(--theme-text-main);
@@ -314,13 +409,13 @@
         }
         .primary-btn:hover { background-color: var(--theme-primary-hover); transform: translateY(-1px); }
         .primary-btn:active { transform: scale(0.98); }
-        .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .primary-btn:disabled, .secondary-btn:disabled, .danger-btn:disabled, .manage-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; pointer-events: none; }
         
         .secondary-btn, .manage-btn {
             background-color: var(--theme-input-bg);
             color: var(--theme-text-heading);
             border: 1px solid var(--theme-border);
-            font-weight: 600; padding: 14px 16px; border-radius: 16px;
+            font-weight: 600; padding: 13px 16px; border-radius: 16px;
             cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .secondary-btn:hover, .manage-btn:hover {
@@ -359,44 +454,51 @@
 
         /* 算式快捷列與預覽列 */
         .calc-Quick-bar { display: flex; gap: 8px; margin-top: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-        .calc-op-group { display: flex; gap: 6px; }
-        .calc-op-btn { width: auto; margin: 0; padding: 5px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: var(--theme-input-bg); color: var(--theme-text-heading); border: 1px solid var(--theme-border); cursor: pointer; }
+        .calc-op-group { display: flex; gap: 5px; }
+        .calc-op-btn { width: auto; margin: 0; padding: 4px 11px; border-radius: 10px; font-size: 13.5px; font-weight: 600; background: var(--theme-input-bg); color: var(--theme-text-heading); border: 1px solid var(--theme-border); cursor: pointer; }
         .calc-op-btn:hover { background: var(--wafu-sakura-bg); }
         .calc-op-btn:active { transform: scale(0.92); background: var(--theme-primary); }
-        .real-time-preview { font-size: 13px; color: var(--theme-text-muted); text-align: right; font-weight: 600; transition: color 0.2s; margin-left: auto; }
+        .real-time-preview { font-size: 12.5px; color: var(--theme-text-muted); text-align: right; font-weight: 600; transition: color 0.2s; margin-left: auto; }
         .real-time-preview.warn-80 { color: #ECA054; }
         .real-time-preview.warn-100 { color: var(--theme-danger); }
 
         /* 懸浮按鈕 */
         .fab {
-            position: fixed; bottom: calc(78px + env(safe-area-inset-bottom)); right: 22px;
-            width: 58px; height: 58px; border-radius: 50%;
+            position: fixed; bottom: calc(76px + env(safe-area-inset-bottom)); right: 20px;
+            width: 56px; height: 56px; border-radius: 50%;
             background: var(--fab-bg); color: var(--theme-text-main);
             border: 1px solid var(--theme-border);
             display: flex; justify-content: center; align-items: center;
             box-shadow: var(--fab-shadow); cursor: pointer; z-index: 90;
-            transition: all 0.25s ease; font-size: 25px;
+            transition: all 0.25s ease; font-size: 24px;
         }
         .fab:hover { background: var(--theme-accent-pink); transform: translateY(-2px) scale(1.04); }
         .fab:active { transform: scale(0.90); }
 
-        .w-100 { width: 100%; } .mt-10 { margin-top: 12px; } .mt-20 { margin-top: 20px; } .mb-10 { margin-bottom: 12px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .form-group { display: flex; gap: 10px; margin-bottom: 6px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;}
+        .w-100 { width: 100%; } .mt-10 { margin-top: 10px; } .mt-20 { margin-top: 18px; } .mb-10 { margin-bottom: 10px; } .flex-1 { flex: 1; } .flex-1-5 { flex: 1.5; } .text-left { text-align: left; justify-content: flex-start; } .form-group { display: flex; gap: 10px; margin-bottom: 6px; min-width: 0;} .form-group > div { flex: 1 1 0; min-width: 0; } .form-group input, .form-group select { min-width: 0; max-width: 100%; } .flex-wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;}
 
         /* 側邊欄與選單 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--theme-modal-overlay); display: none; z-index: 190; backdrop-filter: blur(6px); }
         .sidebar { position: fixed; top: 0; left: 0; width: 305px; max-width: 85vw; height: 100%; background: var(--theme-bg); border-right: 1px solid var(--theme-border); z-index: 195; transform: translateX(-100%); transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; border-radius: 0 24px 24px 0; box-shadow: var(--theme-glass-shadow); }
         .sidebar.open { transform: translateX(0); }
         .sidebar-overlay.open { display: block; }
-        .sidebar-header { padding: 22px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
-        .sidebar-content { padding: 18px; flex-grow: 1; overflow-y: auto; }
-        .trip-menu-item { position: relative; padding: 14px 10px 14px 16px; margin-bottom: 10px; background: var(--theme-sidebar-item); border-radius: 16px; border: 1px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: var(--theme-glass-shadow); transition: all 0.2s; }
+        .sidebar-header { padding: 20px 22px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--theme-border); color: var(--theme-text-heading); }
+        .sidebar-content { padding: 16px 18px; flex-grow: 1; overflow-y: auto; }
+        .user-nickname-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 7px 14px; border-radius: 14px; background: var(--theme-input-bg);
+            border: 1px solid var(--theme-border); font-size: 14px; font-weight: 600;
+            color: var(--theme-text-main); cursor: pointer; margin: 0 auto 14px; width: auto;
+        }
+        .user-nickname-btn:hover { background: var(--wafu-sakura-bg); }
+        .trip-menu-item { position: relative; padding: 13px 10px 13px 15px; margin-bottom: 10px; background: var(--theme-sidebar-item); border-radius: 16px; border: 1px solid var(--theme-border); cursor: pointer; display: flex; align-items: center; box-shadow: var(--theme-glass-shadow); transition: all 0.2s; }
         .trip-menu-item:hover { background: var(--wafu-sakura-bg); }
         .trip-menu-item.active { background: var(--wafu-sky-bg); border-color: var(--theme-primary-solid); }
         .trip-menu-item.active .trip-menu-name { color: var(--theme-text-heading) !important; font-weight: 700 !important; }
         .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-primary-solid); box-shadow: none; }
         .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
         .sortable-ghost { opacity: 0.35; }
-        .folder-header { padding: 12px 10px 12px 16px; background: var(--theme-secondary); color: var(--theme-text-main); border-radius: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border: 1px solid var(--theme-border); }
+        .folder-header { padding: 11px 10px 11px 15px; background: var(--theme-secondary); color: var(--theme-text-main); border-radius: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border: 1px solid var(--theme-border); }
         .join-shared-form { display: flex; align-items: stretch; gap: 10px; margin: 10px 0 0; }
         .join-shared-form input { flex: 1; width: 0; min-width: 0; margin: 0; text-transform: uppercase; }
         .join-shared-form button { width: auto; min-width: 84px; margin: 0; padding: 0 16px; }
@@ -409,23 +511,23 @@
         .sidebar-context-menu button[data-action="delete"] { color: var(--theme-danger); }
 
         /* 底部導覽列 */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--theme-nav-bg); border-top: 1px solid var(--theme-border); display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; height: calc(64px + env(safe-area-inset-bottom)); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--theme-nav-bg); border-top: 1px solid var(--theme-border); display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 80; height: calc(62px + env(safe-area-inset-bottom)); }
         .nav-item { flex: 1; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0.48; color: var(--theme-text-main); transition: all 0.25s; font-size: 24px;}
         .nav-item:hover { opacity: 0.8; color: #ECA054; }
         .nav-item.active { opacity: 1; color: var(--theme-text-main); transform: translateY(-2px); }
-        .nav-item.active i { background: var(--wafu-sky-bg); padding: 6px 16px; border-radius: 16px; }
+        .nav-item.active i { background: var(--wafu-sky-bg); padding: 5px 16px; border-radius: 16px; }
 
-        /* 帳目明細項目：充裕留白與清晰分隔 */
+        /* 帳目明細項目 */
         #expense-list { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; overscroll-behavior: contain; }
-        .expense-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1px dashed var(--theme-border); padding: 16px 10px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
+        .expense-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; border-bottom: 1px dashed var(--theme-border); padding: 14px 8px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
         .expense-item:hover { background-color: var(--theme-input-bg); border-radius: 14px; }
         .expense-item:active { background-color: var(--wafu-sakura-bg); border-radius: 14px; }
         .expense-info-col { flex: 1 1 0; min-width: 0; padding-right: 6px; overflow-wrap: anywhere; word-break: break-word; }
         .expense-title-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; line-height: 1.4; }
         .expense-payer-label { background: var(--wafu-sakura-bg); color: var(--theme-text-main); padding: 2px 9px; border-radius: 10px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
-        .expense-detail-text { display: block; margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--theme-text-muted); overflow-wrap: anywhere; word-break: break-word; }
-        .expense-cat-badge { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
-        .expense-amount-col { flex: 0 0 auto; text-align: right; white-space: nowrap; min-width: 90px; padding-top: 2px; }
+        .expense-detail-text { display: block; margin-top: 5px; font-size: 13px; line-height: 1.5; color: var(--theme-text-muted); overflow-wrap: anywhere; word-break: break-word; }
+        .expense-cat-badge { display: inline-block; margin-top: 7px; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+        .expense-amount-col { flex: 0 0 auto; text-align: right; white-space: nowrap; min-width: 88px; padding-top: 2px; }
 
         /* 低飽和度分類小標籤配色 */
         .cat-tone-0 { background: var(--wafu-sky-bg); color: var(--theme-text-main); }
@@ -434,20 +536,20 @@
         .cat-tone-3 { background: var(--theme-secondary); color: var(--theme-text-main); }
         .cat-tone-4 { background: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); }
 
-        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(12px); font-size: 13.5px; font-weight: 600; color: var(--theme-text-muted); padding: 12px 8px 6px 8px; border-bottom: 1px solid var(--theme-border); z-index: 10; margin-top: 8px; border-radius: 8px 8px 0 0; }
+        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(12px); font-size: 13px; font-weight: 600; color: var(--theme-text-muted); padding: 10px 8px 6px 8px; border-bottom: 1px solid var(--theme-border); z-index: 10; margin-top: 6px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
         .lazy-load-hint { text-align: center; padding: 14px; font-size: 12.5px; color: var(--theme-text-muted); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-modal-overlay); z-index: 200; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.25s; backdrop-filter: blur(4px); }
         .modal.open { display: flex; opacity: 1; }
-        .modal-content { background: var(--theme-card-bg); padding: 26px 22px; border-radius: 26px; width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; transform: translateY(16px) scale(0.97); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--theme-glass-shadow); }
+        .modal-content { background: var(--theme-card-bg); padding: 24px 20px; border-radius: 26px; width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; transform: translateY(16px) scale(0.97); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--theme-glass-shadow); }
         .modal.open .modal-content { transform: translateY(0) scale(1); }
         .modal.bottom-sheet { align-items: flex-end; padding: 0; }
-        .modal.bottom-sheet .modal-content { max-width: 100%; border-radius: 28px 28px 0 0; padding: 26px 22px calc(26px + env(safe-area-inset-bottom)); transform: translateY(100%); }
+        .modal.bottom-sheet .modal-content { max-width: 100%; border-radius: 28px 28px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); }
         .modal.bottom-sheet.open .modal-content { transform: translateY(0); }
 
-        .filter-container { flex-shrink: 0; display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden; padding: 6px 2px 12px; margin-bottom: 4px; scrollbar-width: none; }
+        .filter-container { flex-shrink: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 2px 2px 10px; margin-bottom: 2px; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-chip { padding: 7px 16px; background: var(--theme-input-bg); border-radius: 20px; font-size: 13.5px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: 600; border: 1px solid var(--theme-border); transition: all 0.2s; }
+        .filter-chip { padding: 6px 15px; background: var(--theme-input-bg); border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: 600; border: 1px solid var(--theme-border); transition: all 0.2s; }
         .filter-chip:hover { background: var(--wafu-sakura-bg); color: var(--theme-text-main); }
         .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: rgba(58, 58, 59, 0.12); transform: translateY(-1px); }
         
@@ -460,18 +562,20 @@
         .login-card { padding: 38px 28px; border-radius: 26px; width: 100%; max-width: 360px; text-align: center; }
         .cover-img-box { width: 108px; height: 108px; object-fit: cover; border-radius: 24px; margin-bottom: 16px; box-shadow: var(--theme-glass-shadow); border: 1px solid var(--theme-border); }
         
-        .toast-msg { padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; box-shadow: 0 12px 32px rgba(58, 58, 59, 0.12); text-align: center; letter-spacing: 0.5px; backdrop-filter: blur(12px); }
-        #toast-container { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast-msg { padding: 11px 20px; border-radius: 30px; font-size: 13.5px; font-weight: 600; box-shadow: 0 12px 32px rgba(58, 58, 59, 0.14); text-align: center; letter-spacing: 0.4px; backdrop-filter: blur(12px); display: inline-flex; align-items: center; gap: 10px; }
+        .toast-undo-btn { width: auto; margin: 0; padding: 4px 10px; border-radius: 14px; font-size: 12.5px; font-weight: 700; background: var(--theme-card-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); cursor: pointer; box-shadow: none; }
+        #toast-container { position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: 92%; max-width: 420px; }
         #toast-container .toast-msg { pointer-events: auto; }
         
         /* 紙質米色底槽預算進度條 */
-        .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 12px; height: 15px; width: 100%; overflow: hidden; margin-top: 12px; border: 1px solid var(--theme-border); }
+        .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 12px; height: 14px; width: 100%; overflow: hidden; margin-top: 8px; border: 1px solid var(--theme-border); }
         .budget-fill { background: linear-gradient(90deg, var(--theme-primary), var(--theme-accent-pink)); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; }
-        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 600; color: var(--theme-text-main); z-index: 2; }
+        .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--theme-text-main); z-index: 2; }
+        .budget-sub-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--theme-text-muted); margin-top: 6px; font-weight: 600; }
 
-        .inline-checkbox-label { font-size: 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; margin-top: 10px; padding: 12px 14px; border-radius: 16px; background: var(--theme-input-bg); border: 1px solid var(--theme-border); font-weight: 600; color: var(--theme-text-main);}
+        .inline-checkbox-label { font-size: 13.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; margin-top: 8px; padding: 11px 13px; border-radius: 16px; background: var(--theme-input-bg); border: 1px solid var(--theme-border); font-weight: 600; color: var(--theme-text-main);}
         .inline-checkbox-label input { margin: 0; width: auto; padding: 0; box-shadow: none; }
-        .continuous-entry-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding: 11px 14px; border-radius: 16px; background: var(--theme-input-bg); border: 1px dashed var(--theme-border); }
+        .continuous-entry-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding: 10px 14px; border-radius: 16px; background: var(--theme-input-bg); border: 1px dashed var(--theme-border); }
         .continuous-entry-bar label { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--theme-text-heading); }
         .continuous-entry-bar input { width: 18px; height: 18px; margin: 0; accent-color: var(--theme-primary-solid); box-shadow: none; }
 
@@ -481,10 +585,11 @@
         .summary-table { width:100%; border-collapse:collapse; min-width:540px; font-size:13.5px; }
         .summary-table th, .summary-table td { padding:11px 10px; border-bottom:1px solid var(--theme-border); text-align:left; }
         .summary-table th { position:sticky; top:0; background:var(--theme-secondary); color:var(--theme-text-heading); z-index:1; }
-        .tag-total { font-size: 13.5px; color: var(--theme-text-main); font-weight: 600; background: var(--theme-input-bg); border: 1px solid var(--theme-border); padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
-        .select-sm { width: auto; margin: 0; padding: 6px 11px; font-size: 13.5px; border-radius: 12px; font-weight:600; cursor: pointer; background: var(--theme-input-bg); border: 1px solid var(--theme-border); }
+        .tag-total { font-size: 13px; color: var(--theme-text-main); font-weight: 600; background: var(--theme-input-bg); border: 1px solid var(--theme-border); padding: 5px 10px; border-radius: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 145px; flex-shrink: 1; }
+        .select-sm { width: auto; margin: 0; padding: 5px 9px; font-size: 13px; border-radius: 12px; font-weight:600; cursor: pointer; background: var(--theme-input-bg); border: 1px solid var(--theme-border); flex-shrink: 0; }
         .cross-stat-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
         .cross-stat-box { background: var(--theme-input-bg); border: 1px solid var(--theme-border); border-radius: 16px; padding: 12px 14px; font-size: 13px; }
+        .code-block-box { background: var(--theme-input-bg); border: 1px solid var(--theme-border); border-radius: 14px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; overflow-x: auto; color: var(--theme-text-main); max-height: 45vh; }
     </style>
 </head>
 <body>
@@ -523,7 +628,9 @@
             <button type="button" class="close-btn" id="btn-close-sidebar"><i class="ph ph-x"></i></button>
         </div>
         <div class="sidebar-content">
-            <div id="user-info" style="font-size:14.5px; margin-bottom:16px; text-align:center; font-weight:600; display:flex; justify-content:center; align-items:center; gap:6px;"></div>
+            <div style="text-align: center;">
+                <button type="button" id="user-info" class="user-nickname-btn" title="點擊修改顯示暱稱"></button>
+            </div>
             <div id="sidebar-items-container"></div>
             
             <div id="sidebar-normal-actions" style="margin-top: 22px;">
@@ -548,7 +655,7 @@
         <button type="button" role="menuitem" data-action="delete"><i class="ph ph-trash"></i> 刪除／退出</button>
     </div>
 
-    <!-- 主介面（100dvh 螢幕自適應與大量留白） -->
+    <!-- 主介面（100dvh 螢幕自適應） -->
     <div class="app-container" id="main-app">
         <div class="header glass-panel">
             <button class="icon-btn" id="btn-open-sidebar"><i class="ph ph-list"></i></button>
@@ -556,7 +663,6 @@
                 <h1 id="header-trip-name">載入中...</h1>
                 <div id="header-trip-period" class="trip-period-text num-font"></div>
             </div>
-            <!-- 離線與雲端同步狀態指示器 -->
             <div id="sync-status-badge" class="sync-badge" title="資料狀態">
                 <i class="ph-fill ph-cloud-check" id="sync-status-icon"></i>
                 <span id="sync-pending-count" class="sync-count-dot num-font" style="display:none;">0</span>
@@ -567,31 +673,42 @@
         <div id="tab-records" class="tab-view active">
             <div class="card glass-panel" id="budgetCard">
                 <div class="card-header">
-                    <h3 style="font-size: 16px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wallet" style="color:#ECA054;"></i> 預算進度 (TWD)</h3>
+                    <h3 style="font-size: 15.5px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wallet" style="color:#ECA054;"></i> 預算進度 (TWD)</h3>
                     <span style="font-size:13px; color:var(--theme-text-muted); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:4px;" id="btn-edit-budget"><i class="ph ph-sliders-horizontal"></i> 設定</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-top: 10px; font-weight: 600;">
-                    <span style="color: var(--theme-text-muted);">已花費 <span id="total-spent" class="num-font" style="font-size: 16px; color:var(--theme-text-main); margin-left:4px;">0</span></span>
-                    <span style="color: var(--theme-text-muted);">總預算 <span id="total-budget" class="num-font" style="font-size: 16px; color:var(--theme-text-main); margin-left:4px;">0</span></span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 8px; font-weight: 600;">
+                    <span style="color: var(--theme-text-muted);">已花費 <span id="total-spent" class="num-font" style="font-size: 15.5px; color:var(--theme-text-main); margin-left:4px;">0</span></span>
+                    <span style="color: var(--theme-text-muted);">總預算 <span id="total-budget" class="num-font" style="font-size: 15.5px; color:var(--theme-text-main); margin-left:4px;">0</span></span>
                 </div>
                 <div class="budget-bar">
                     <div class="budget-fill" id="budget-fill"></div>
                     <div class="budget-text num-font" id="budget-text">0%</div>
                 </div>
+                <div class="budget-sub-row num-font" id="budget-extra-info">
+                    <span id="budget-remain-text">剩餘預算: NT$ 0</span>
+                    <span id="budget-daily-text"></span>
+                </div>
             </div>
 
             <div class="card glass-panel" id="recordsCard">
-                <div class="flex-wrap" style="margin-bottom: 10px; flex-shrink: 0;">
-                    <h3 style="font-size: 16.5px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-receipt" style="color:#ECA054;"></i> 帳目明細</h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span id="record-total" class="tag-total num-font">NT$ 0</span>
-                        <select id="sortSelect" class="select-sm">
+                <!-- 嚴格防擠壓換行標題列 (nowrap) -->
+                <div class="records-header-row">
+                    <h3 class="records-header-title"><i class="ph-fill ph-receipt" style="color:#ECA054;"></i> 帳目明細</h3>
+                    <div class="records-header-controls">
+                        <span id="record-total" class="tag-total num-font" title="目前篩選總計">NT$ 0</span>
+                        <select id="sortSelect" class="select-sm" aria-label="排序方式">
                             <option value="date-desc">近到遠</option>
                             <option value="date-asc">遠到近</option>
                             <option value="amount-desc">高到低</option>
                             <option value="amount-asc">低到高</option>
                         </select>
                     </div>
+                </div>
+                <!-- 關鍵字即時搜尋列 -->
+                <div class="search-bar-wrap">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" id="expenseSearchInput" class="search-input" placeholder="搜尋項目、細項、分類或付款人...">
+                    <button type="button" id="expenseSearchClear" class="search-clear-btn" aria-label="清除搜尋"><i class="ph-bold ph-x"></i></button>
                 </div>
                 <div class="filter-container" id="filterContainer"></div>
                 <div id="expense-list"></div>
@@ -633,12 +750,13 @@
         <!-- 分頁 3：設定 -->
         <div id="tab-settings" class="tab-view">
             <div class="card glass-panel" style="margin-top:0;">
-                <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette" style="color:#ECA054;"></i> 介面外觀設定</h3>
+                <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette" style="color:#ECA054;"></i> 介面外觀與個人稱呼</h3>
                 <select id="themeSelect" style="font-weight: 600; text-align: center;">
                     <option value="system">跟隨系統預設</option>
                     <option value="light">淺色模式（紙質米色 × 日系極簡）</option>
                     <option value="dark">柔和深色</option>
                 </select>
+                <button class="manage-btn w-100 text-left mt-10" id="btn-edit-nickname"><i class="ph ph-user-circle"></i> 修改個人稱呼：「<span id="settings-user-name"></span>」</button>
             </div>
             
             <div class="card glass-panel">
@@ -650,6 +768,16 @@
                 <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-wrench" style="color:#ECA054;"></i> 全域設定</h3>
                 <button class="manage-btn w-100 text-left mb-10" id="btn-manage-categories"><i class="ph ph-tag"></i> 管理消費分類</button>
                 <button class="manage-btn w-100 text-left" id="btn-manage-currencies"><i class="ph ph-currency-circle-dollar"></i> 管理自訂幣別與匯率</button>
+            </div>
+
+            <div class="card glass-panel">
+                <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-shield-check" style="color:#ECA054;"></i> 資料備份與雲端安全</h3>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <button class="secondary-btn flex-1" id="btn-backup-json" style="margin-top:0;"><i class="ph ph-export"></i> 匯出備份 (JSON)</button>
+                    <button class="secondary-btn flex-1" id="btn-restore-json" style="margin-top:0;"><i class="ph ph-import"></i> 匯入還原 (JSON)</button>
+                    <input type="file" id="jsonRestoreInput" accept=".json,application/json" style="display:none;">
+                </div>
+                <button class="manage-btn w-100 text-left" id="btn-open-security-rules" style="margin-top:0;"><i class="ph ph-lock-key"></i> 檢視 Firebase 隱私安全規則</button>
             </div>
         </div>
     </div>
@@ -669,7 +797,7 @@
     <!-- 新增消費 Modal -->
     <div class="modal bottom-sheet" id="addExpenseModal">
         <div class="modal-content glass-panel">
-            <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:14px; align-items:center;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;">
                 <h3 style="font-size: 18.5px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-note-pencil" style="color:#ECA054;"></i> 新增消費</h3>
                 <span class="close-btn" data-target="addExpenseModal"><i class="ph ph-x"></i></span>
             </div>
@@ -685,6 +813,8 @@
                 <input type="text" id="itemName" placeholder="輸入項目名稱" maxlength="50" required style="flex-grow: 1;">
                 <label class="inline-checkbox-label"><input type="checkbox" id="enableDetailsBtn"> <i class="ph ph-plus"></i> 細項</label>
             </div>
+            <!-- 常用項目快速點選標籤列 -->
+            <div id="quickItemTags" class="quick-tags-bar"></div>
             <input type="text" id="itemDetails" placeholder="輸入細項說明" maxlength="100" style="display: none;">
             
             <div class="form-group">
@@ -713,14 +843,17 @@
                 </label>
             </div>
 
-            <button class="primary-btn w-100 mt-20" id="btn-submit-expense" style="padding:16px;"><i class="ph ph-paper-plane-tilt"></i> 記上一筆</button>
+            <button class="primary-btn w-100 mt-20" id="btn-submit-expense" style="padding:15px;"><i class="ph ph-paper-plane-tilt"></i> 新增紀錄</button>
         </div>
     </div>
 
     <!-- 編輯消費 Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content glass-panel">
-            <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-pencil-simple" style="color:#ECA054;"></i> 編輯消費</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-pencil-simple" style="color:#ECA054;"></i> 編輯消費</h3>
+                <button type="button" class="secondary-btn" id="btn-duplicate-expense" style="width:auto; margin:0; padding:6px 11px; font-size:12.5px;"><i class="ph ph-copy"></i> 複製至今日</button>
+            </div>
             <input type="hidden" id="editExpId">
             <div class="form-group">
                 <div>
@@ -872,14 +1005,42 @@
         </div>
     </div>
 
-    <div class="modal" id="manageCurrencyModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar" style="color:#ECA054;"></i> 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:10px; width:auto; padding:14px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin:14px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
+    <div class="modal" id="manageCurrencyModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-currency-circle-dollar" style="color:#ECA054;"></i> 管理幣別與匯率</h3><div class="form-group"><input type="text" id="newManageCurrCode" class="num-font" placeholder="代碼，如 GBP" maxlength="5" style="text-transform:uppercase;"><input type="number" id="newManageCurrRate" class="num-font" placeholder="對台幣匯率" step="any" min="0"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-currency"><i class="ph ph-plus"></i></button></div><button class="manage-btn w-100" id="btn-open-live-rate-lookup"><i class="ph ph-globe"></i> 查詢當日匯率</button><div id="manageCurrencyList" style="margin:14px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCurrencyModal">關閉</button></div></div>
 
     <div class="modal" id="liveRateModal" style="z-index: 270;"><div class="modal-content glass-panel"><h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-globe" style="color:#ECA054;"></i> 查詢當日匯率</h3><div class="form-group"><input type="text" id="liveRateCurrencyCode" class="num-font" placeholder="例如 USD、JPY" maxlength="5" style="text-transform:uppercase;"><button class="primary-btn" id="btn-fetch-live-rate" style="width:auto;padding:12px 16px;">查詢</button></div><div id="liveRateStatus" class="num-font" style="font-size:13px; color:var(--theme-text-muted); margin-top:8px;"></div><div class="form-group mt-20"><button class="manage-btn flex-1 close-btn" data-target="liveRateModal">取消</button><button class="primary-btn flex-1" id="btn-apply-live-rate" disabled>套用匯率</button></div></div></div>
     
-    <div class="modal" id="manageCategoryModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:#ECA054;"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:10px; width:auto; padding:14px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin:14px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
+    <div class="modal" id="manageCategoryModal" style="z-index: 260;"><div class="modal-content glass-panel"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-tag" style="color:#ECA054;"></i> 管理消費分類</h3><div class="form-group"><input type="text" id="newManageCatInput" placeholder="新分類名稱" maxlength="20"><button class="primary-btn" style="margin-top:8px; width:auto; padding:13px;" id="btn-add-category">新增</button></div><div id="manageCategoryList" style="margin:14px 0 18px; max-height:280px; overflow-y:auto;"></div><button class="manage-btn w-100 close-btn" data-target="manageCategoryModal">關閉</button></div></div>
 
     <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:#ECA054;"></i> 最近刪除 (保留 30 天)</h3><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 16px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:#ECA054;"></i> 帳本表格總覽</h3><div id="summaryTripName" style="font-size:14px; font-weight:600; color:var(--theme-text-muted); margin-bottom:12px;"></div><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
+
+    <!-- Firebase 隱私安全規則指引 Modal -->
+    <div class="modal" id="securityRulesModal">
+        <div class="modal-content glass-panel" style="max-width:540px;">
+            <h3 style="margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-lock-key" style="color:#ECA054;"></i> Firestore 隱私安全規則</h3>
+            <p style="font-size:13px; color:var(--theme-text-muted); margin:0 0 10px;">請將以下規則貼至 Firebase Console ➔ Firestore Database ➔ 規則 (Rules)，確保每位使用者僅能讀寫自己與授權共用的帳本：</p>
+            <pre class="code-block-box" id="firestoreRulesText">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /trips/{tripId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && (
+        request.auth.uid in resource.data.members ||
+        resource.data.trashedBy == request.auth.uid ||
+        request.resource.data.members.hasAny([request.auth.uid])
+      );
+    }
+  }
+}</pre>
+            <div class="form-group mt-10">
+                <button class="primary-btn flex-1" style="margin-top:0;" id="btn-copy-rules"><i class="ph ph-copy"></i> 複製規則</button>
+                <button class="manage-btn flex-1 close-btn" data-target="securityRulesModal" style="margin-top:0;">關閉</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // ====== 必備安全轉義函式 ======
@@ -934,18 +1095,36 @@
             isLocalFallbackMode = true;
         }
 
-        let appData = null; let currentFilter = 'ALL'; let currentSort = 'date-desc'; let isSubmitting = false; let isSidebarEditMode = false; let isSidebarDragging = false; let sortableInstances = [];
+        let appData = null;
+        let currentFilter = 'ALL';
+        let currentSearchQuery = '';
+        let currentSort = 'date-desc';
+        let isSubmitting = false;
+        let isEditSaving = false;
+        let isSidebarEditMode = false;
+        let isSidebarDragging = false;
+        let sortableInstances = [];
         let activeSidebarContextTarget = null;
-        let trashPrunePromise = null; let expenseChartInstance = null; let crossTripChartInstance = null;
-        let currentFetchedAddRate = 1; let currentFetchedEditRate = 1; let currentLookupRate = null; let currentLookupTarget = 'manage';
-        let rateRequestIds = { add: 0, edit: 0 }; let rateLoading = { add: false, edit: false }; let liveRateRequestId = 0;
+        let trashPrunePromise = null;
+        let expenseChartInstance = null;
+        let crossTripChartInstance = null;
+        let currentFetchedAddRate = 1;
+        let currentFetchedEditRate = 1;
+        let currentLookupRate = null;
+        let currentLookupTarget = 'manage';
+        let rateRequestIds = { add: 0, edit: 0 };
+        let rateLoading = { add: false, edit: false };
+        let liveRateRequestId = 0;
         let previousCurrency = { add: 'TWD', edit: 'TWD' };
-        let unsubUser = null; let unsubTrips = null;
+        let unsubUser = null;
+        let unsubTrips = null;
         let pendingSyncCount = 0;
+        let lastDeletedExpenseUndo = null;
 
         // 長列表延遲載入狀態
         const LAZY_BATCH_SIZE = 30;
         let currentDisplayExps = [];
+        let currentDailyTotalsMap = new Map();
         let renderedExpCount = 0;
         let lastRenderedDateHeader = '';
         let currentPayerStatsEnabled = true;
@@ -956,6 +1135,14 @@
         let calViewMonth = new Date().getMonth();
 
         const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trash: [], trips: [] };
+        const categoryDefaultTags = {
+            "餐飲": ["早餐", "午餐", "晚餐", "咖啡", "超商", "甜點"],
+            "交通": ["捷運/地鐵", "計程車", "巴士", "高鐵/火車", "IC卡儲值"],
+            "住宿": ["飯店住宿", "民宿", "住宿稅"],
+            "購物": ["藥妝", "伴手禮", "服飾", "紀念品", "生活用品"],
+            "娛樂": ["門票", "展覽", "體驗活動", "扭蛋"],
+            "其他": ["SIM卡/漫遊", "寄物櫃", "保險", "雜支"]
+        };
 
         function getLocalDateString(date = new Date()) {
             const year = date.getFullYear();
@@ -976,6 +1163,52 @@
                 console.warn('本機備份寫入失敗:', e);
             }
         }
+
+        function updateNicknameDisplay() {
+            const displayUser = appData?.customUserName || auth?.currentUser?.displayName || (isLocalFallbackMode ? '本機使用者' : '使用者');
+            const userInfoBtn = document.getElementById('user-info');
+            if (userInfoBtn) {
+                userInfoBtn.innerHTML = `<i class="ph-fill ph-user" style="color:#ECA054;"></i> <span>${escapeHtml(displayUser)}</span> <i class="ph ph-pencil-simple" style="font-size:13px;opacity:0.65;"></i>`;
+            }
+            const settingsNameEl = document.getElementById('settings-user-name');
+            if (settingsNameEl) settingsNameEl.textContent = displayUser;
+        }
+
+        async function editCustomNickname() {
+            if (!appData) return;
+            const oldName = currentPayerName();
+            const input = prompt('請輸入您的顯示稱呼（記帳時將作為您的預設付款名稱）：', oldName);
+            if (input === null) return;
+            const newName = input.trim();
+            if (!newName || newName === oldName) return;
+
+            appData.customUserName = newName;
+            const uid = currentUid();
+            const shouldSyncHistory = confirm(`是否一併將目前帳本中「${oldName}」過去的付款紀錄更新為「${newName}」？`);
+
+            const trip = appData.trips.find(t => t.id === appData.activeTripId);
+            if (trip) {
+                trip.memberNames = { ...(trip.memberNames || {}), [uid]: newName };
+                if (shouldSyncHistory && Array.isArray(trip.expenses)) {
+                    trip.expenses = trip.expenses.map(exp => exp.payer === oldName ? { ...exp, payer: newName } : exp);
+                }
+                if (!isLocalFallbackMode && auth?.currentUser) {
+                    try {
+                        await db.collection('trips').doc(trip.id).set({
+                            memberNames: trip.memberNames,
+                            expenses: trip.expenses
+                        }, { merge: true });
+                    } catch (e) { console.warn(e); }
+                }
+            }
+
+            await saveUserDoc({ customUserName: newName });
+            updateNicknameDisplay();
+            updateUI();
+            showToast('個人稱呼已更新');
+        }
+        document.getElementById('user-info').addEventListener('click', editCustomNickname);
+        document.getElementById('btn-edit-nickname').addEventListener('click', editCustomNickname);
 
         function activateLocalFallbackMode(reasonMsg = '') {
             isLocalFallbackMode = true;
@@ -1019,8 +1252,7 @@
             }
             saveLocalBackup();
             applyTheme(appData.theme || 'system');
-            const displayUser = appData.customUserName || auth?.currentUser?.displayName || '本機使用者';
-            document.getElementById('user-info').innerHTML = '<i class="ph-fill ph-user" style="color:#ECA054;"></i> ' + escapeHtml(displayUser);
+            updateNicknameDisplay();
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
@@ -1048,6 +1280,53 @@
         document.getElementById('modalTripUseDateRange').addEventListener('change', function() {
             document.getElementById('modalTripDateRangeBox').style.display = this.checked ? 'flex' : 'none';
         });
+
+        // ====== 關鍵字搜尋列事件 ======
+        const searchInputEl = document.getElementById('expenseSearchInput');
+        const searchClearBtn = document.getElementById('expenseSearchClear');
+        searchInputEl.addEventListener('input', function() {
+            currentSearchQuery = this.value.trim().toLowerCase();
+            searchClearBtn.style.display = currentSearchQuery ? 'inline-flex' : 'none';
+            updateUI();
+        });
+        searchClearBtn.addEventListener('click', function() {
+            searchInputEl.value = '';
+            currentSearchQuery = '';
+            this.style.display = 'none';
+            updateUI();
+        });
+
+        // ====== 常用項目快速點選標籤渲染 ======
+        function renderQuickItemTags() {
+            const box = document.getElementById('quickItemTags');
+            if (!box || !appData) return;
+            const currentCat = document.getElementById('itemCategory')?.value || '餐飲';
+            const trip = appData.trips.find(t => t.id === appData.activeTripId);
+            const freqMap = new Map();
+            (trip?.expenses || []).forEach(exp => {
+                if (exp.name && (!exp.category || exp.category === currentCat)) {
+                    freqMap.set(exp.name, (freqMap.get(exp.name) || 0) + 1);
+                }
+            });
+            const historyTags = Array.from(freqMap.entries()).sort((a, b) => b[1] - a[1]).map(([name]) => name);
+            const defaults = categoryDefaultTags[currentCat] || ["餐飲", "超商", "交通", "購物"];
+            const combined = Array.from(new Set([...historyTags, ...defaults])).slice(0, 7);
+
+            box.replaceChildren();
+            combined.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quick-tag-chip';
+                btn.textContent = tag;
+                btn.addEventListener('click', () => {
+                    const nameInput = document.getElementById('itemName');
+                    nameInput.value = tag;
+                    document.getElementById('itemAmount').focus();
+                });
+                box.appendChild(btn);
+            });
+        }
+        document.getElementById('itemCategory').addEventListener('change', renderQuickItemTags);
 
         // ====== 專屬互動式月曆點選器 ======
         function openCalendarPicker(inputId, titleText = '選擇日期') {
@@ -1287,6 +1566,7 @@
                         db.collection("users").doc(user.uid).set({ activeTripId: latestTrips[0].id }, { merge: true }).catch(err => console.warn(err));
                     }
                     saveLocalBackup();
+                    updateNicknameDisplay();
                     updateUI(); renderSidebarContent(); updateSyncStatusIndicator();
                     document.getElementById('loading-overlay').style.display = 'none';
                     document.getElementById('main-app').style.display = 'flex';
@@ -1305,7 +1585,7 @@
                 appData.categories = Array.isArray(appData.categories) && appData.categories.length ? appData.categories : [...defaultAppData.categories];
                 appData.folders = Array.isArray(appData.folders) ? appData.folders : []; appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
                 userDataLoaded = true; applyTheme(appData.theme || 'system');
-                document.getElementById('user-info').innerHTML = '<i class="ph-fill ph-user" style="color:#ECA054;"></i> ' + escapeHtml(appData.customUserName || user.displayName || '使用者');
+                updateNicknameDisplay();
                 finishStartup();
             }, handleFirebaseError);
 
@@ -1389,7 +1669,9 @@
                 if (currentSort.startsWith('date-') && expense.date !== lastRenderedDateHeader) {
                     lastRenderedDateHeader = expense.date;
                     const dateHeader = document.createElement('div');
-                    dateHeader.className = 'date-header num-font'; dateHeader.textContent = expense.date || '';
+                    dateHeader.className = 'date-header num-font';
+                    const dayTotal = currentDailyTotalsMap.get(expense.date) || 0;
+                    dateHeader.innerHTML = `<span>${escapeHtml(expense.date || '')}</span><span style="font-size:12px;color:var(--theme-text-main);">當日 NT$ ${dayTotal.toLocaleString()}</span>`;
                     fragment.appendChild(dateHeader);
                 }
                 const row = document.createElement('div'); row.className = 'expense-item';
@@ -1438,6 +1720,7 @@
             else { periodEl.style.display = 'none'; periodEl.innerText = ''; }
 
             document.getElementById('settings-trip-name').innerText = trip.name || '';
+            updateNicknameDisplay();
             document.getElementById('budgetCard').style.display = trip.showBudget === false ? 'none' : '';
             const payerStatsEnabled = trip.showPayerSummary !== false; currentPayerStatsEnabled = payerStatsEnabled;
             document.getElementById('payerSummaryCard').style.display = payerStatsEnabled ? '' : 'none';
@@ -1459,7 +1742,21 @@
                 if (currentSort === 'date-asc') return new Date(a.date) - new Date(b.date) || a.id - b.id;
                 if (currentSort === 'amount-desc') return valueB - valueA || b.id - a.id; return valueA - valueB || a.id - b.id;
             });
-            currentDisplayExps = currentFilter === 'ALL' ? sortedExps : sortedExps.filter(e => e.category === currentFilter);
+
+            currentDisplayExps = sortedExps.filter(e => {
+                const matchCat = currentFilter === 'ALL' || e.category === currentFilter;
+                if (!matchCat) return false;
+                if (!currentSearchQuery) return true;
+                const haystack = `${e.name || ''} ${e.details || ''} ${e.category || ''} ${e.payer || ''}`.toLowerCase();
+                return haystack.includes(currentSearchQuery);
+            });
+
+            currentDailyTotalsMap = new Map();
+            currentDisplayExps.forEach(exp => {
+                const d = exp.date || '';
+                currentDailyTotalsMap.set(d, (currentDailyTotalsMap.get(d) || 0) + getTwd(exp));
+            });
+
             renderedExpCount = 0; lastRenderedDateHeader = '';
 
             let totalTWD = 0; let filteredTWD = 0; const payers = Object.create(null);
@@ -1467,18 +1764,43 @@
             currentDisplayExps.forEach(expense => { filteredTWD += getTwd(expense); });
 
             if (currentDisplayExps.length === 0) {
-                const empty = document.createElement('div'); empty.style.textAlign = 'center'; empty.style.padding = '44px 10px'; empty.style.color = 'var(--theme-text-muted)';
-                empty.innerHTML = '<div style="font-size:44px;margin-bottom:12px;opacity:0.75;color:#ECA054;"><i class="ph ph-leaf"></i></div><div style="font-size:16px;font-weight:600;color:var(--theme-text-heading);">目前沒有任何紀錄</div>';
+                const empty = document.createElement('div'); empty.style.textAlign = 'center'; empty.style.padding = '36px 10px'; empty.style.color = 'var(--theme-text-muted)';
+                if (currentSearchQuery || currentFilter !== 'ALL') {
+                    empty.innerHTML = '<div style="font-size:40px;margin-bottom:10px;opacity:0.7;color:#ECA054;"><i class="ph ph-magnifying-glass"></i></div><div style="font-size:15px;font-weight:600;color:var(--theme-text-heading);">找不到符合條件的消費紀錄</div>';
+                } else {
+                    empty.innerHTML = '<div style="font-size:42px;margin-bottom:10px;opacity:0.75;color:#ECA054;"><i class="ph ph-leaf"></i></div><div style="font-size:15.5px;font-weight:600;color:var(--theme-text-heading);margin-bottom:12px;">目前沒有任何紀錄</div><button type="button" class="secondary-btn" style="width:auto;margin:0 auto;padding:10px 18px;font-size:13.5px;" onclick="openModal(\'addExpenseModal\')"><i class="ph ph-plus"></i> 新增第一筆消費</button>';
+                }
                 listEl.appendChild(empty);
             } else appendNextExpenseBatch();
 
             document.getElementById('record-total').innerText = 'NT$ ' + filteredTWD.toLocaleString();
             document.getElementById('total-spent').innerText = totalTWD.toLocaleString();
-            document.getElementById('total-budget').innerText = Number(trip.budget || 0).toLocaleString();
-            const rawPercent = trip.budget > 0 ? (totalTWD / trip.budget) * 100 : 0; const percent = Math.min(rawPercent, 100);
+            const budgetNum = Number(trip.budget || 0);
+            document.getElementById('total-budget').innerText = budgetNum.toLocaleString();
+            const rawPercent = budgetNum > 0 ? (totalTWD / budgetNum) * 100 : 0; const percent = Math.min(rawPercent, 100);
             document.getElementById('budget-fill').style.width = percent + '%';
             document.getElementById('budget-fill').style.background = rawPercent >= 100 ? 'var(--theme-danger)' : (rawPercent >= 80 ? 'var(--theme-warning)' : 'linear-gradient(90deg, var(--theme-primary), var(--theme-accent-pink))');
             document.getElementById('budget-text').innerText = Math.round(rawPercent) + '%';
+
+            // 剩餘預算與日均可用額度計算
+            const remainEl = document.getElementById('budget-remain-text');
+            const dailyEl = document.getElementById('budget-daily-text');
+            if (budgetNum > 0) {
+                const remain = budgetNum - totalTWD;
+                remainEl.textContent = remain >= 0 ? `剩餘預算: NT$ ${remain.toLocaleString()}` : `已超支: NT$ ${Math.abs(remain).toLocaleString()}`;
+                remainEl.style.color = remain < 0 ? 'var(--theme-danger)' : 'var(--theme-text-muted)';
+                if (remain > 0 && isTripDateLimited(trip)) {
+                    const todayStr = getLocalDateString();
+                    const startRef = todayStr > trip.startDate ? todayStr : trip.startDate;
+                    const daysLeft = Math.max(1, Math.floor((new Date(trip.endDate) - new Date(startRef)) / 86400000) + 1);
+                    dailyEl.textContent = `日均可用: NT$ ${Math.round(remain / daysLeft).toLocaleString()} (${daysLeft}天)`;
+                } else {
+                    dailyEl.textContent = '';
+                }
+            } else {
+                remainEl.textContent = '未設定預算上限';
+                dailyEl.textContent = '';
+            }
 
             const payerSummary = document.getElementById('payerSummaryList'); payerSummary.replaceChildren();
             const payerNames = Object.keys(payers);
@@ -1498,6 +1820,7 @@
             renderSelectOptions('editExpCurrency', appData.rates, appData.rates[editCurrency] ? editCurrency : (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
             renderSelectOptions('itemCategory', appData.categories, appData.categories.includes(addCategory) ? addCategory : appData.categories[0], true);
             renderSelectOptions('editExpCategory', appData.categories, appData.categories.includes(editCategory) ? editCategory : appData.categories[0], true);
+            renderQuickItemTags();
             renderChart(trip, totalTWD); renderCrossTripChart();
         }
 
@@ -1583,7 +1906,7 @@
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
 
-        // 選項按鈕 (⋮) 觸發選單，與拖動排序完全互不干擾
+        // 選項按鈕 (⋮) 觸發選單
         function setupSidebarContextActions() {
             const container = document.getElementById('sidebar-items-container');
             const menu = document.getElementById('sidebar-context-menu');
@@ -1643,7 +1966,7 @@
             container.onclick = event => {
                 if (isSidebarDragging) return;
                 if (event.target.closest('.sidebar-cb') || event.target.closest('.context-menu-btn')) return;
-                const folderHeader = event.target.closest('.folder-header[data-folder-id]'); if (folderHeader) { toggleFolder(folderHeader.dataset.folderId); return; }
+                const folderHeader = event.target.closest('.folder-header[data-folder-id]'); if (folderHeader) { if (isSidebarEditMode) toggleCb(folderHeader.dataset.folderId); else toggleFolder(folderHeader.dataset.folderId); return; }
                 const tripItem = event.target.closest('.trip-menu-item[data-id]'); if (tripItem) { if (isSidebarEditMode) toggleCb(tripItem.dataset.id); else switchTrip(tripItem.dataset.id); }
             }; initSortable();
         }
@@ -1845,22 +2168,66 @@
             try { const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get(); if (snapshot.empty) return showToast('找不到此邀請碼', 'error'); const tripDoc = snapshot.docs[0]; const trip = tripDoc.data(); if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員'); const joinedUid = auth.currentUser.uid; const memberNames = { ...(trip.memberNames || {}), [joinedUid]: currentPayerName() }; await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(joinedUid), memberNames }); const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), joinedUid], memberNames }; await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: joinedTrip.id }, { merge: true }); appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), joinedTrip]; appData.activeTripId = joinedTrip.id; codeInput.value = ''; updateUI(); renderSidebarContent(); closeModal('addTripModal'); toggleSidebar(false); showToast('已加入共用帳本'); } catch (error) { console.error(error); showToast('加入失敗，請確認邀請碼及權限', 'error'); }
         }
 
-        // 算式解析與算式快捷按鈕
+        // ====== 安全數學算式解析器（防止 150++2 或 5/0 產生異常） ======
         function parseAmount(input) {
+            let expr = String(input ?? '').replace(/\s+/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+            expr = expr.replace(/[^0-9.+\-*/()]/g, '');
+            // 合併連續加減乘除符號並移除結尾殘留運算符
+            expr = expr.replace(/([+\-*/]){2,}/g, '$1').replace(/^[*/]+/, '').replace(/[+\-*/]+$/, '');
+            if (!expr) return NaN;
+
+            // Shunting-yard 演算法安全計算
+            const tokens = expr.match(/\d+(?:\.\d+)?|[+\-*/()]/g);
+            if (!tokens) return NaN;
+            const values = [];
+            const ops = [];
+            const prec = { '+': 1, '-': 1, '*': 2, '/': 2 };
+            const applyOp = () => {
+                const op = ops.pop();
+                const b = values.pop();
+                const a = values.pop() ?? 0;
+                if (op === '+') values.push(a + b);
+                else if (op === '-') values.push(a - b);
+                else if (op === '*') values.push(a * b);
+                else if (op === '/') {
+                    if (b === 0) { values.push(NaN); return; }
+                    values.push(a / b);
+                }
+            };
+
             try {
-                const safeStr = String(input || '').replace(/[^0-9\.\+\-\*\/]/g, '').replace(/[\+\-\*\/]+$/, '');
-                if (!safeStr || /[\+\-\*\/]{2,}/.test(safeStr)) return NaN;
-                const val = Function(`'use strict'; return (${safeStr})`)();
-                return Number.isFinite(val) ? Math.round(val * 100) / 100 : NaN;
-            } catch(e) { return NaN; }
+                for (let i = 0; i < tokens.length; i++) {
+                    const tk = tokens[i];
+                    if (/^\d/.test(tk)) {
+                        values.push(parseFloat(tk));
+                    } else if (tk === '(') {
+                        ops.push(tk);
+                    } else if (tk === ')') {
+                        while (ops.length && ops[ops.length - 1] !== '(') applyOp();
+                        ops.pop();
+                    } else if (prec[tk]) {
+                        if ((tk === '+' || tk === '-') && (i === 0 || tokens[i - 1] === '(')) {
+                            values.push(0);
+                        }
+                        while (ops.length && prec[ops[ops.length - 1]] >= prec[tk]) applyOp();
+                        ops.push(tk);
+                    }
+                }
+                while (ops.length) applyOp();
+                const result = values[0];
+                return Number.isFinite(result) ? Math.round(result * 100) / 100 : NaN;
+            } catch (e) {
+                return NaN;
+            }
         }
+
         document.querySelectorAll('.calc-op-group').forEach(group => {
             group.addEventListener('click', event => {
                 const btn = event.target.closest('.calc-op-btn');
                 if (!btn) return;
                 const input = document.getElementById(group.dataset.targetInput);
                 if (!input) return;
-                input.value = String(input.value || '').replace(/[\+\-\*\/]+$/, '') + btn.dataset.op;
+                input.value = String(input.value || '').replace(/[+\-*/]+$/, '') + btn.dataset.op;
                 input.focus();
             });
         });
@@ -1895,7 +2262,7 @@
         document.getElementById('btn-submit-expense').onclick = async function() {
             if (isSubmitting) return; if (rateLoading.add) return showToast('正在更新匯率，請稍候再記帳', 'error');
             const name = document.getElementById('itemName').value.trim(); const amount = parseAmount(document.getElementById('itemAmount').value); const date = document.getElementById('itemDate').value; const currency = document.getElementById('itemCurrency').value;
-            if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請填寫完整資訊 (金額支援簡易算式)', 'error');
+            if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請確認名稱與有效金額（除數不可為 0）', 'error');
             const trip = appData.trips.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             if (isTripDateLimited(trip) && (date < trip.startDate || date > trip.endDate)) {
                 return showToast(`日期須在帳本限定期間 (${trip.startDate} ~ ${trip.endDate}) 內`, 'error');
@@ -1922,24 +2289,24 @@
                 if (trip.budget > 0 && trip.showBudget !== false) {
                     const ratio = Math.round((newSpent / trip.budget) * 100);
                     if (newSpent > trip.budget) {
-                        budgetAlertMsg = `（🚨 已超支 NT$ ${(newSpent - trip.budget).toLocaleString()}！）`;
+                        budgetAlertMsg = `（已超支 NT$ ${(newSpent - trip.budget).toLocaleString()}）`;
                         toastType = 'error';
                         if (navigator.vibrate) navigator.vibrate([80, 50, 120]);
                     } else if (ratio >= 80 && prevSpent < trip.budget * 0.8) {
-                        budgetAlertMsg = `（⚠️ 預算已使用 ${ratio}%）`;
+                        budgetAlertMsg = `（預算已使用 ${ratio}%）`;
                         toastType = 'warn';
                         if (navigator.vibrate) navigator.vibrate(60);
                     }
                 }
 
                 if (isContinuous) {
-                    showToast('✅ 已記錄，可繼續輸入下一筆 ' + budgetAlertMsg, toastType);
+                    showToast('已記錄，可繼續輸入下一筆 ' + budgetAlertMsg, toastType);
                     document.getElementById('itemName').focus();
                 } else {
                     closeModal('addExpenseModal');
-                    showToast('✅ 紀錄已新增 ' + budgetAlertMsg, toastType);
+                    showToast('紀錄已新增 ' + budgetAlertMsg, toastType);
                 }
-            } catch (error) { console.error(error); showToast('寫入失敗，請稍後再試', 'error'); } finally { isSubmitting = false; this.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> 記上一筆'; this.disabled = false; }
+            } catch (error) { console.error(error); showToast('寫入失敗，請稍後再試', 'error'); } finally { isSubmitting = false; this.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> 新增紀錄'; this.disabled = false; }
         };
 
         function openEditExpenseModal(id) {
@@ -1969,7 +2336,43 @@
             handleCurrencyDateChange('edit');
         }
 
-        document.getElementById('btn-save-edit').onclick = async () => {
+        // 複製此筆消費至今日
+        document.getElementById('btn-duplicate-expense').addEventListener('click', async function() {
+            if (isEditSaving) return;
+            const trip = appData.trips.find(item => item.id === appData.activeTripId);
+            if (!trip) return;
+            const name = document.getElementById('editExpName').value.trim();
+            const amount = parseAmount(document.getElementById('editExpAmount').value);
+            const currency = document.getElementById('editExpCurrency').value;
+            if (!name || isNaN(amount) || amount <= 0) return showToast('請確認名稱與金額有效', 'error');
+
+            const targetDate = clampDateToTrip(getLocalDateString(), trip);
+            const usedRate = currency === 'TWD' ? 1 : (currentFetchedEditRate || appData.rates[currency] || 1);
+            const duplicated = {
+                id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
+                name,
+                amount,
+                date: targetDate,
+                currency,
+                category: document.getElementById('editExpCategory').value,
+                payer: trip.showPayerSummary === false ? currentPayerName() : (document.getElementById('editExpPayer').value || currentPayerName()),
+                details: document.getElementById('editExpDetails').value.trim(),
+                rate: usedRate
+            };
+            isEditSaving = true; this.disabled = true;
+            try {
+                const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : [];
+                await updateTripExpenses(trip.id, expenses => [duplicated, ...expenses], [duplicated, ...currentExpenses]);
+                closeModal('editExpenseModal');
+                showToast(`已複製「${name}」至 ${targetDate}`);
+            } finally {
+                isEditSaving = false; this.disabled = false;
+            }
+        });
+
+        // 儲存編輯（含防連點鎖定）
+        document.getElementById('btn-save-edit').onclick = async function() {
+            if (isEditSaving) return;
             if (rateLoading.edit) return showToast('正在更新匯率，請稍候再儲存', 'error');
             const id = parseInt(document.getElementById('editExpId').value, 10); const name = document.getElementById('editExpName').value.trim(); const amount = parseAmount(document.getElementById('editExpAmount').value); const date = document.getElementById('editExpDate').value; const currency = document.getElementById('editExpCurrency').value;
             if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請填寫完整資訊', 'error');
@@ -1980,10 +2383,47 @@
             const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : [];
             const fields = { name, amount, date, currency, category: document.getElementById('editExpCategory').value, payer: trip.showPayerSummary === false ? (trip.expenses.find(expense => String(expense.id) === String(id))?.payer || currentPayerName()) : (document.getElementById('editExpPayer').value || '我'), details: document.getElementById('editExpDetails').value.trim(), rate: currency === 'TWD' ? 1 : (currentFetchedEditRate || appData.rates[currency] || 1) };
             const offlineExpenses = currentExpenses.map(expense => String(expense.id) === String(id) ? { ...expense, ...fields } : expense);
-            try { await updateTripExpenses(trip.id, expenses => expenses.map(expense => String(expense.id) === String(id) ? { ...expense, ...fields } : expense), offlineExpenses); closeModal('editExpenseModal'); showToast('修改已儲存'); } catch (error) { console.error(error); showToast('修改失敗，請稍後再試', 'error'); }
+            isEditSaving = true; this.disabled = true;
+            try {
+                await updateTripExpenses(trip.id, expenses => expenses.map(expense => String(expense.id) === String(id) ? { ...expense, ...fields } : expense), offlineExpenses);
+                closeModal('editExpenseModal'); showToast('修改已儲存');
+            } catch (error) { console.error(error); showToast('修改失敗，請稍後再試', 'error'); }
+            finally { isEditSaving = false; this.disabled = false; }
         };
 
-        document.getElementById('btn-delete-expense').onclick = async () => { if (!confirm('確定要刪除這筆紀錄嗎？')) return; const id = parseInt(document.getElementById('editExpId').value, 10); const trip = appData.trips.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error'); const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : []; const offlineExpenses = currentExpenses.filter(expense => String(expense.id) !== String(id)); try { await updateTripExpenses(trip.id, expenses => expenses.filter(expense => String(expense.id) !== String(id)), offlineExpenses); closeModal('editExpenseModal'); showToast('紀錄已刪除'); } catch (error) { console.error(error); showToast('刪除失敗，請稍後再試', 'error'); } };
+        // 刪除單筆消費並支援 6 秒內「復原 (Undo)」
+        document.getElementById('btn-delete-expense').onclick = async function() {
+            if (isEditSaving) return;
+            const id = parseInt(document.getElementById('editExpId').value, 10);
+            const trip = appData.trips.find(item => item.id === appData.activeTripId);
+            if (!trip) return showToast('找不到目前帳本', 'error');
+            const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : [];
+            const deletedTarget = currentExpenses.find(expense => String(expense.id) === String(id));
+            if (!deletedTarget) return;
+
+            const offlineExpenses = currentExpenses.filter(expense => String(expense.id) !== String(id));
+            isEditSaving = true; this.disabled = true;
+            try {
+                lastDeletedExpenseUndo = { tripId: trip.id, expense: { ...deletedTarget } };
+                if (navigator.vibrate) navigator.vibrate(40);
+                await updateTripExpenses(trip.id, expenses => expenses.filter(expense => String(expense.id) !== String(id)), offlineExpenses);
+                closeModal('editExpenseModal');
+                showToast(`已刪除「${deletedTarget.name}」`, 'warn', {
+                    actionText: '復原',
+                    onAction: async () => {
+                        if (!lastDeletedExpenseUndo) return;
+                        const { tripId, expense } = lastDeletedExpenseUndo;
+                        lastDeletedExpenseUndo = null;
+                        const targetTrip = appData.trips.find(t => t.id === tripId);
+                        if (!targetTrip) return;
+                        const exps = Array.isArray(targetTrip.expenses) ? targetTrip.expenses : [];
+                        await updateTripExpenses(tripId, list => [expense, ...list], [expense, ...exps]);
+                        showToast(`已復原「${expense.name}」`);
+                    }
+                });
+            } catch (error) { console.error(error); showToast('刪除失敗，請稍後再試', 'error'); }
+            finally { isEditSaving = false; this.disabled = false; }
+        };
 
         // 預覽、匯率查詢與即時預算超支預警
         const rateMeta = { add: '', edit: '' }; const dailyRateCache = new Map();
@@ -2011,10 +2451,10 @@
                 const pct = Math.round((projected / trip.budget) * 100);
                 if (projected > trip.budget) {
                     preview.classList.add('warn-100');
-                    baseText += ` ｜ 🚨 將超支 NT$ ${(projected - trip.budget).toLocaleString()} (${pct}%)`;
+                    baseText += ` ｜ 將超支 NT$ ${(projected - trip.budget).toLocaleString()} (${pct}%)`;
                 } else if (projected >= trip.budget * 0.8) {
                     preview.classList.add('warn-80');
-                    baseText += ` ｜ ⚠️ 將達預算 ${pct}%`;
+                    baseText += ` ｜ 將達預算 ${pct}%`;
                 }
             }
             preview.textContent = baseText;
@@ -2126,38 +2566,156 @@
             renderManageCategories(); updateUI(); showToast('分類與既有紀錄已更新');
         }
 
+        // ====== 匯出 CSV（支援純台幣自動精簡欄位） ======
         function exportToCSV() {
             const trip = appData?.trips?.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             const csvCell = value => { let text = String(value ?? ''); if (/^[=+@\-\t\r]/.test(text)) text = "'" + text; return '"' + text.replace(/"/g, '""') + '"'; };
-            const rows = [['日期', '分類', '項目名稱', '細項說明', '原幣金額', '幣別', '付款人', '記帳匯率 (TWD)', '金額 (TWD)']];
-            const expenses = [...(trip.expenses || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); let total = 0;
-            expenses.forEach(expense => { const currency = expense.currency || 'TWD'; const amount = Number(expense.amount || 0); const rate = currency === 'TWD' ? 1 : Number(expense.rate || appData.rates[currency] || 1); const twd = Math.round(amount * rate); total += twd; rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', amount, currency, expense.payer || '我', rate, twd]); }); rows.push(['', '', '', '', '', '', '總計', '', total]);
+            const expenses = [...(trip.expenses || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            const hasForeign = expenses.some(e => (e.currency || 'TWD') !== 'TWD');
+            const rows = hasForeign
+                ? [['日期', '分類', '項目名稱', '細項說明', '原幣金額', '幣別', '付款人', '記帳匯率 (TWD)', '金額(TWD)']]
+                : [['日期', '分類', '項目名稱', '細項說明', '付款人', '金額(TWD)']];
+            let total = 0;
+            expenses.forEach(expense => {
+                const currency = expense.currency || 'TWD';
+                const amount = Number(expense.amount || 0);
+                const rate = currency === 'TWD' ? 1 : Number(expense.rate || appData.rates[currency] || 1);
+                const twd = Math.round(amount * rate);
+                total += twd;
+                if (hasForeign) rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', amount, currency, expense.payer || '我', rate, twd]);
+                else rows.push([expense.date || '', expense.category || '其他', expense.name || '', expense.details || '', expense.payer || '我', twd]);
+            });
+            rows.push(hasForeign ? ['', '', '', '', '', '', '總計', '', total] : ['', '', '', '', '總計', total]);
             const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = (String(trip.name || '帳本').replace(/[\\/:*?"<>|]/g, '_')) + '_消費明細.csv'; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); showToast('CSV 報表已下載');
         }
+
+        // ====== JSON 完整備份匯出／匯入與 Firebase 規則檢視 ======
+        document.getElementById('btn-backup-json').addEventListener('click', () => {
+            if (!appData) return;
+            const payload = JSON.stringify(appData, null, 2);
+            const blob = new Blob([payload], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `記帳軟體beta_完整備份_${getLocalDateString()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('已匯出 JSON 完整備份檔');
+        });
+
+        document.getElementById('btn-restore-json').addEventListener('click', () => {
+            document.getElementById('jsonRestoreInput').click();
+        });
+
+        document.getElementById('jsonRestoreInput').addEventListener('change', async function(e) {
+            const file = e.target.files?.[0];
+            this.value = '';
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                if (!parsed || !Array.isArray(parsed.trips) || parsed.trips.length === 0) {
+                    return showToast('備份檔案格式不正確', 'error');
+                }
+                if (!confirm(`確定要從備份檔還原 ${parsed.trips.length} 個帳本嗎？`)) return;
+                const uid = currentUid();
+                parsed.trips = parsed.trips.map(t => ({
+                    ...t,
+                    members: Array.from(new Set([...(t.members || []), uid]))
+                }));
+                appData = {
+                    ...defaultAppData,
+                    ...parsed,
+                    rates: { ...defaultAppData.rates, ...(parsed.rates || {}) },
+                    categories: Array.isArray(parsed.categories) && parsed.categories.length ? parsed.categories : [...defaultAppData.categories],
+                    folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+                    trash: Array.isArray(parsed.trash) ? parsed.trash : [],
+                    activeTripId: parsed.activeTripId || parsed.trips[0].id
+                };
+                saveLocalBackup();
+                if (!isLocalFallbackMode && auth?.currentUser) {
+                    try {
+                        const batch = db.batch();
+                        appData.trips.forEach(t => batch.set(db.collection('trips').doc(t.id), t, { merge: true }));
+                        batch.set(db.collection('users').doc(uid), {
+                            activeTripId: appData.activeTripId,
+                            customUserName: appData.customUserName || '',
+                            theme: appData.theme || 'system',
+                            rates: appData.rates,
+                            categories: appData.categories,
+                            folders: appData.folders,
+                            trash: appData.trash
+                        }, { merge: true });
+                        await batch.commit();
+                    } catch (err) { console.warn('雲端同步備份略過:', err); }
+                }
+                applyTheme(appData.theme || 'system');
+                updateUI();
+                renderSidebarContent();
+                showToast('備份資料已成功還原');
+            } catch (err) {
+                console.error(err);
+                showToast('讀取備份檔案失敗', 'error');
+            }
+        });
+
+        document.getElementById('btn-open-security-rules').addEventListener('click', () => openModal('securityRulesModal'));
+        document.getElementById('btn-copy-rules').addEventListener('click', async () => {
+            const text = document.getElementById('firestoreRulesText').textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('已複製安全規則至剪貼簿');
+            } catch (e) {
+                showToast('請手動全選文字複製', 'warn');
+            }
+        });
 
         document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
         document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); }); document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency); document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction); document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage')); document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog); document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
         document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction); document.getElementById('btn-export-csv').addEventListener('click', exportToCSV); document.getElementById('btn-export-summary-csv').addEventListener('click', exportToCSV);
         
         function getTwd(exp) { return Math.round(exp.amount * (exp.rate || appData.rates[exp.currency] || 1)); }
-        function showToast(msg, type='success') {
+
+        // 支援「復原 (Undo)」按鈕與最多 3 則防重疊的 Toast 通知器
+        function showToast(msg, type = 'success', options = {}) {
             const box = document.getElementById('toast-container');
             while (box.children.length >= 3) box.firstElementChild.remove();
             const t = document.createElement('div');
             t.className = 'toast-msg';
             t.style.background = type === 'error' ? 'var(--theme-danger)' : (type === 'warn' ? 'var(--theme-warning)' : 'var(--theme-primary)');
             t.style.color = type === 'error' ? '#F7F6F4' : '#3A3A3B';
-            t.innerText = msg;
+
+            const span = document.createElement('span');
+            span.textContent = msg;
+            t.appendChild(span);
+
+            const duration = options.actionText ? 5800 : 2800;
+            if (options.actionText && typeof options.onAction === 'function') {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'toast-undo-btn';
+                btn.textContent = options.actionText;
+                btn.addEventListener('click', () => {
+                    options.onAction();
+                    t.remove();
+                });
+                t.appendChild(btn);
+            }
+
             box.appendChild(t);
             setTimeout(() => t.style.opacity = '1', 10);
-            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2800);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, duration);
         }
+
         function setFilter(cat) { currentFilter = cat; updateUI(); }
         function openModal(id) {
             document.getElementById(id).classList.add('open');
             if(id === 'addExpenseModal') {
                 const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
                 document.getElementById('itemDate').value = clampDateToTrip(getLocalDateString(), trip);
+                renderQuickItemTags();
                 handleCurrencyDateChange('add');
                 setTimeout(() => document.getElementById('itemName').focus(), 120);
             }
@@ -2197,7 +2755,11 @@
                 }
             }
         };
-        document.getElementById('fabBtn').onclick = () => openModal('addExpenseModal'); document.getElementById('enableDetailsBtn').onchange = (e) => document.getElementById('itemDetails').style.display = e.target.checked ? 'block' : 'none';
+        document.getElementById('fabBtn').onclick = () => {
+            if (navigator.vibrate) navigator.vibrate(25);
+            openModal('addExpenseModal');
+        };
+        document.getElementById('enableDetailsBtn').onchange = (e) => document.getElementById('itemDetails').style.display = e.target.checked ? 'block' : 'none';
 
         document.getElementById('btn-open-trip-settings').onclick = () => {
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
@@ -2215,7 +2777,7 @@
             openModal('tripSettingsModal');
         };
         document.getElementById('btn-edit-budget').onclick = () => document.getElementById('btn-open-trip-settings').click();
-        document.getElementById('btn-save-trip-settings').onclick = async () => {
+        document.getElementById('btn-save-trip-settings').onclick = async function() {
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             const name = document.getElementById('modalTripNameInput').value.trim(); if (!name) return showToast('請輸入帳本名稱', 'error');
             const useDateRange = document.getElementById('modalTripUseDateRange').checked;
@@ -2234,22 +2796,40 @@
                 showPayerSummary: document.getElementById('tripShowPayerSummary').checked,
                 showCategoryChart: document.getElementById('tripShowCategoryChart').checked
             };
-            Object.assign(trip, settings);
-            saveLocalBackup();
-            if (!isLocalFallbackMode && auth?.currentUser) {
-                try { await db.collection('trips').doc(trip.id).set(settings, { merge: true }); } catch (e) { console.warn(e); }
+            this.disabled = true;
+            try {
+                Object.assign(trip, settings);
+                saveLocalBackup();
+                if (!isLocalFallbackMode && auth?.currentUser) {
+                    try { await db.collection('trips').doc(trip.id).set(settings, { merge: true }); } catch (e) { console.warn(e); }
+                }
+                updateUI(); renderSidebarContent(); closeModal('tripSettingsModal'); showToast('設定已儲存');
+            } finally {
+                this.disabled = false;
             }
-            updateUI(); renderSidebarContent(); closeModal('tripSettingsModal'); showToast('設定已儲存');
         };
 
+        // 表格總覽（支援純台幣自動隱藏多餘外幣欄）
         function renderSummaryTable() {
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             const expenses = [...(Array.isArray(trip.expenses) ? trip.expenses : [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
             const total = expenses.reduce((sum, expense) => sum + getTwd(expense), 0);
+            const hasForeign = expenses.some(e => (e.currency || 'TWD') !== 'TWD');
             document.getElementById('summaryTripName').textContent = trip.name || '';
-            const rows = expenses.map(expense => { const currency = expense.currency || 'TWD'; const amount = Number(expense.amount || 0).toLocaleString(); const twd = getTwd(expense).toLocaleString(); return '<tr><td class="num-font">' + escapeHtml(expense.date || '') + '</td><td>' + escapeHtml(expense.name || '') + '</td><td>' + escapeHtml(expense.category || '其他') + '</td><td>' + escapeHtml(expense.payer || '我') + '</td><td class="num-font">' + escapeHtml(currency) + ' ' + amount + '</td><td class="num-font">NT$ ' + twd + '</td></tr>'; }).join('');
-            const empty = '<tr><td colspan="6" style="text-align:center;color:var(--theme-text-muted);">目前沒有消費紀錄</td></tr>';
-            document.getElementById('summaryTableContainer').innerHTML = '<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th>日期</th><th>項目</th><th>分類</th><th>付款人</th><th>原幣金額</th><th>台幣金額</th></tr></thead><tbody>' + (rows || empty) + '</tbody><tfoot><tr><td colspan="5">合計（台幣）</td><td class="num-font">NT$ ' + total.toLocaleString() + '</td></tr></tfoot></table></div>';
+            const colSpan = hasForeign ? 5 : 4;
+            const rows = expenses.map(expense => {
+                const currency = expense.currency || 'TWD';
+                const amount = Number(expense.amount || 0).toLocaleString();
+                const twd = getTwd(expense).toLocaleString();
+                return hasForeign
+                    ? `<tr><td class="num-font">${escapeHtml(expense.date || '')}</td><td>${escapeHtml(expense.name || '')}</td><td>${escapeHtml(expense.category || '其他')}</td><td>${escapeHtml(expense.payer || '我')}</td><td class="num-font">${escapeHtml(currency)} ${amount}</td><td class="num-font">NT$ ${twd}</td></tr>`
+                    : `<tr><td class="num-font">${escapeHtml(expense.date || '')}</td><td>${escapeHtml(expense.name || '')}</td><td>${escapeHtml(expense.category || '其他')}</td><td>${escapeHtml(expense.payer || '我')}</td><td class="num-font">NT$ ${twd}</td></tr>`;
+            }).join('');
+            const empty = `<tr><td colspan="${colSpan + 1}" style="text-align:center;color:var(--theme-text-muted);">目前沒有消費紀錄</td></tr>`;
+            const headHtml = hasForeign
+                ? '<tr><th>日期</th><th>項目</th><th>分類</th><th>付款人</th><th>原幣金額</th><th>金額(TWD)</th></tr>'
+                : '<tr><th>日期</th><th>項目</th><th>分類</th><th>付款人</th><th>金額(TWD)</th></tr>';
+            document.getElementById('summaryTableContainer').innerHTML = `<div class="summary-table-wrap"><table class="summary-table"><thead>${headHtml}</thead><tbody>${rows || empty}</tbody><tfoot><tr><td colspan="${colSpan}">總計</td><td class="num-font">NT$ ${total.toLocaleString()}</td></tr></tfoot></table></div>`;
             openModal('summaryModal');
         }
         document.getElementById('btn-open-summary').addEventListener('click', renderSummaryTable);
