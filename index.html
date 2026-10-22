@@ -38,10 +38,11 @@
         
         :root {
             /* ==========================================================
-               日系極簡 60-30-10 淺色模式（嚴格禁止純白 #FFFFFF 與純黑 #000000）
-               - 60% 背景色：#F7F6F4
-               - 30% 文字與邊框：#3A3A3B（搭配不透明度調節層次）
-               - 10% 主按鈕與視覺引導：#A0D8EF（搭配不透明度維持通透感）
+               日系極簡 60-30-10 + 紙質米色欄位配色（零純白 #FFFFFF、零純黑 #000000）
+               - 60% 背景基底：#F7F6F4 與淺和紙卡片 rgba(250, 246, 238, 0.90)
+               - 紙質米色欄位：#F3EDE2（生成和紙米色）與 #EAE2D6（亞麻米色次要欄位）
+               - 30% 文字與紙感邊框：#3A3A3B 與溫潤紙邊 rgba(176, 158, 138, 0.34)
+               - 10% 主按鈕與視覺引導：#A0D8EF
                - 點綴與 Hover 互動：#FBC9DA（淡櫻粉）、#ECA054（暖柑橘）
                ========================================================== */
             --theme-bg: #F7F6F4;
@@ -49,20 +50,23 @@
             --theme-text-heading: #3A3A3B;
             --theme-text-muted: rgba(58, 58, 59, 0.58);
             
-            --theme-primary: rgba(160, 216, 239, 0.85);
+            --theme-primary: rgba(160, 216, 239, 0.88);
             --theme-primary-solid: #A0D8EF;
             --theme-primary-hover: rgba(251, 201, 218, 0.85);
             --theme-primary-text: #3A3A3B;
             
-            --theme-secondary: rgba(58, 58, 59, 0.045);
-            --theme-secondary-hover: rgba(251, 201, 218, 0.55);
+            /* 紙質米色欄位與次要色塊 */
+            --theme-input-bg: rgba(243, 237, 226, 0.92);       /* #F3EDE2 溫潤紙質米色輸入框 */
+            --theme-input-focus-bg: rgba(249, 245, 236, 0.98); /* #F9F5EC 聚焦時提亮的淺米和紙色 */
+            --theme-secondary: rgba(234, 226, 214, 0.72);      /* #EAE2D6 亞麻紙質米色次要區塊 */
+            --theme-secondary-hover: rgba(251, 201, 218, 0.58);
             
             --theme-accent: rgba(236, 160, 84, 0.88);
             --theme-accent-pink: rgba(251, 201, 218, 0.78);
             --theme-accent-hover: rgba(236, 160, 84, 0.98);
             --theme-accent-text: #3A3A3B;
             
-            /* 低飽和度分類標籤色盤（帶不透明度處理） */
+            /* 低飽和度分類標籤色盤 */
             --wafu-gold: #ECA054;
             --wafu-gold-bg: rgba(236, 160, 84, 0.18);
             --wafu-gold-text: #3A3A3B;
@@ -73,17 +77,16 @@
             --wafu-sky-bg: rgba(160, 216, 239, 0.28);
             --wafu-sky-text: #3A3A3B;
 
-            --theme-card-bg: rgba(247, 246, 244, 0.84);
-            --theme-header-bg: rgba(247, 246, 244, 0.88);
+            --theme-card-bg: rgba(250, 246, 238, 0.88);        /* #FAF6EE 淺米和紙卡片底色 */
+            --theme-header-bg: rgba(246, 241, 232, 0.92);      /* #F6F1E8 頂部米色導覽列 */
             --theme-header-text: #3A3A3B;
             --theme-header-subtext: rgba(58, 58, 59, 0.62);
-            --theme-border: rgba(58, 58, 59, 0.10);
-            --theme-input-bg: rgba(58, 58, 59, 0.035);
-            --theme-nav-bg: rgba(247, 246, 244, 0.92);
+            --theme-border: rgba(176, 158, 138, 0.32);         /* 溫潤紙張邊緣線條色 */
+            --theme-nav-bg: rgba(246, 241, 232, 0.94);
             --theme-modal-overlay: rgba(58, 58, 59, 0.32);
             --theme-danger: rgba(210, 95, 105, 0.88);
             --theme-warning: rgba(236, 160, 84, 0.92);
-            --theme-sidebar-item: rgba(247, 246, 244, 0.92);
+            --theme-sidebar-item: rgba(243, 237, 226, 0.85);   /* 側邊欄帳本卡片紙質米色 */
             
             /* 極低不透明度墨灰大範圍模糊陰影，營造輕盈懸浮感 */
             --theme-glass-shadow: 0 12px 36px rgba(58, 58, 59, 0.05);
@@ -102,7 +105,9 @@
                 --theme-primary-solid: #A0D8EF;
                 --theme-primary-hover: rgba(251, 201, 218, 0.85);
                 --theme-primary-text: #3A3A3B;
-                --theme-secondary: rgba(230, 228, 224, 0.06);
+                --theme-input-bg: rgba(235, 226, 212, 0.07);
+                --theme-input-focus-bg: rgba(235, 226, 212, 0.12);
+                --theme-secondary: rgba(235, 226, 212, 0.08);
                 --theme-secondary-hover: rgba(251, 201, 218, 0.22);
                 --theme-accent: rgba(236, 160, 84, 0.85);
                 --theme-accent-pink: rgba(251, 201, 218, 0.75);
@@ -115,13 +120,12 @@
                 --theme-header-bg: rgba(34, 36, 40, 0.86);
                 --theme-header-text: #E6E4E0;
                 --theme-header-subtext: rgba(230, 228, 224, 0.62);
-                --theme-border: rgba(230, 228, 224, 0.10);
-                --theme-input-bg: rgba(230, 228, 224, 0.05);
+                --theme-border: rgba(230, 228, 224, 0.12);
                 --theme-nav-bg: rgba(28, 30, 34, 0.92);
                 --theme-modal-overlay: rgba(24, 25, 28, 0.72);
                 --theme-danger: rgba(210, 95, 105, 0.85);
                 --theme-warning: rgba(236, 160, 84, 0.90);
-                --theme-sidebar-item: rgba(230, 228, 224, 0.04);
+                --theme-sidebar-item: rgba(235, 226, 212, 0.06);
                 --theme-glass-shadow: 0 14px 40px rgba(24, 25, 28, 0.35);
                 --fab-bg: rgba(160, 216, 239, 0.88);
                 --fab-shadow: 0 10px 28px rgba(24, 25, 28, 0.45);
@@ -136,7 +140,9 @@
             --theme-primary-solid: #A0D8EF;
             --theme-primary-hover: rgba(251, 201, 218, 0.85);
             --theme-primary-text: #3A3A3B;
-            --theme-secondary: rgba(230, 228, 224, 0.06);
+            --theme-input-bg: rgba(235, 226, 212, 0.07);
+            --theme-input-focus-bg: rgba(235, 226, 212, 0.12);
+            --theme-secondary: rgba(235, 226, 212, 0.08);
             --theme-secondary-hover: rgba(251, 201, 218, 0.22);
             --theme-accent: rgba(236, 160, 84, 0.85);
             --theme-accent-pink: rgba(251, 201, 218, 0.75);
@@ -149,13 +155,12 @@
             --theme-header-bg: rgba(34, 36, 40, 0.86);
             --theme-header-text: #E6E4E0;
             --theme-header-subtext: rgba(230, 228, 224, 0.62);
-            --theme-border: rgba(230, 228, 224, 0.10);
-            --theme-input-bg: rgba(230, 228, 224, 0.05);
+            --theme-border: rgba(230, 228, 224, 0.12);
             --theme-nav-bg: rgba(28, 30, 34, 0.92);
             --theme-modal-overlay: rgba(24, 25, 28, 0.72);
             --theme-danger: rgba(210, 95, 105, 0.85);
             --theme-warning: rgba(236, 160, 84, 0.90);
-            --theme-sidebar-item: rgba(230, 228, 224, 0.04);
+            --theme-sidebar-item: rgba(235, 226, 212, 0.06);
             --theme-glass-shadow: 0 14px 40px rgba(24, 25, 28, 0.35);
             --fab-bg: rgba(160, 216, 239, 0.88);
             --fab-shadow: 0 10px 28px rgba(24, 25, 28, 0.45);
@@ -253,40 +258,43 @@
         .sync-count-dot { font-size: 11px; font-weight: 600; background: var(--wafu-gold-bg); color: var(--theme-text-main); padding: 1px 6px; border-radius: 8px; }
         @keyframes pulseSync { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
-        /* 輸入框與表單：空氣感留白與柔和邊框 */
+        /* 輸入框與表單：溫潤紙質米色與微內陰影質感 */
         input, select, button {
             width: 100%; padding: 14px 16px; margin-top: 10px;
             border: 1px solid var(--theme-border); border-radius: 16px;
             font-family: inherit; font-size: 15px;
             background: var(--theme-input-bg); color: var(--theme-text-main);
+            box-shadow: inset 0 1px 2px rgba(58, 58, 59, 0.03);
             transition: all 0.25s ease; outline: none;
         }
+        input::placeholder { color: rgba(58, 58, 59, 0.45); }
         input[type="number"] { font-family: 'Inter', sans-serif; }
         input:focus, select:focus {
             border-color: var(--theme-primary-solid);
-            background: var(--theme-card-bg);
-            box-shadow: 0 0 0 4px rgba(160, 216, 239, 0.25);
+            background: var(--theme-input-focus-bg);
+            box-shadow: 0 0 0 4px rgba(160, 216, 239, 0.28);
+            transform: translateY(-1px);
         }
 
         /* 日期輸入框與月曆按鈕 */
         .date-picker-field { position: relative; display: flex; align-items: center; width: 100%; margin-top: 8px; }
         .date-picker-field input.date-input-box { width: 100%; margin-top: 0; padding: 12px 36px 12px 12px; font-size: 13.5px; letter-spacing: -0.3px; cursor: pointer; font-weight: 600; color: var(--theme-text-heading); background: var(--theme-input-bg); text-overflow: clip; }
-        .date-picker-field .calendar-trigger-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; margin: 0; padding: 0; border: none; border-radius: 10px; background: var(--wafu-sky-bg); color: var(--theme-text-main); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; pointer-events: none; }
+        .date-picker-field .calendar-trigger-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; margin: 0; padding: 0; border: none; border-radius: 10px; background: var(--theme-secondary); color: var(--theme-text-main); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; pointer-events: none; box-shadow: none; }
 
         /* 互動式月曆選單樣式 */
         .calendar-modal-card { max-width: 365px !important; padding: 24px !important; }
         .cal-step-banner { font-size: 12.5px; font-weight: 600; padding: 8px 12px; border-radius: 12px; margin-bottom: 12px; text-align: center; background: var(--wafu-gold-bg); color: var(--theme-text-main); border: 1px solid rgba(236, 160, 84, 0.3); display: none; }
         .cal-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .cal-nav-btn { width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 12px; background: var(--theme-secondary); color: var(--theme-text-heading); border: 1px solid var(--theme-border); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 17px; }
+        .cal-nav-btn { width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 12px; background: var(--theme-input-bg); color: var(--theme-text-heading); border: 1px solid var(--theme-border); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 17px; }
         .cal-nav-btn:hover { background: var(--theme-accent-pink); }
         .cal-month-title { font-size: 16px; font-weight: 600; color: var(--theme-text-heading); }
         .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 600; color: var(--theme-text-muted); margin-bottom: 6px; padding: 4px 0; }
         .cal-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-day-cell { aspect-ratio: 1; border: none; margin: 0; padding: 0; border-radius: 12px; background: transparent; color: var(--theme-text-main); font-size: 13.5px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s; }
+        .cal-day-cell { aspect-ratio: 1; border: none; margin: 0; padding: 0; border-radius: 12px; background: transparent; color: var(--theme-text-main); font-size: 13.5px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s; box-shadow: none; }
         .cal-day-cell:hover:not(:disabled) { background: var(--theme-accent-pink); color: var(--theme-text-main); transform: scale(1.05); }
         .cal-day-cell.other-month { opacity: 0.32; }
         .cal-day-cell.is-disabled { opacity: 0.20 !important; cursor: not-allowed !important; text-decoration: line-through; pointer-events: none; background: transparent !important; }
-        .cal-day-cell.in-trip-range { background: var(--wafu-sky-bg); color: var(--theme-text-heading); border-radius: 10px; }
+        .cal-day-cell.in-trip-range { background: var(--theme-secondary); color: var(--theme-text-heading); border-radius: 10px; }
         .cal-day-cell.is-today { border: 1.5px dashed #ECA054; font-weight: 700; }
         .cal-day-cell.is-selected { background: var(--theme-accent) !important; color: var(--theme-text-main) !important; font-weight: 700; border-radius: 12px; box-shadow: 0 6px 16px rgba(58, 58, 59, 0.08); }
         .cal-day-cell.is-range-start { background: var(--theme-primary) !important; color: var(--theme-primary-text) !important; font-weight: 700; border-radius: 12px 6px 6px 12px; }
@@ -295,11 +303,11 @@
         .cal-legend-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 11.5px; color: var(--theme-text-muted); margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--theme-border); }
         .cal-legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 
-        /* 主按鈕 (#A0D8EF) 與點綴互動 (#FBC9DA / #ECA054) */
+        /* 主按鈕 (#A0D8EF) 與紙質米色次要按鈕 */
         .primary-btn {
             background-color: var(--theme-primary);
             color: var(--theme-primary-text);
-            border: 1px solid rgba(58, 58, 59, 0.06);
+            border: 1px solid rgba(58, 58, 59, 0.08);
             font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 12px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
             box-shadow: 0 8px 24px rgba(58, 58, 59, 0.05);
@@ -309,7 +317,7 @@
         .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
         
         .secondary-btn, .manage-btn {
-            background-color: var(--theme-secondary);
+            background-color: var(--theme-input-bg);
             color: var(--theme-text-heading);
             border: 1px solid var(--theme-border);
             font-weight: 600; padding: 14px 16px; border-radius: 16px;
@@ -326,6 +334,7 @@
             color: #F7F6F4;
             font-weight: 600; border: none; border-radius: 16px;
             display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            box-shadow: none;
         }
         .danger-btn:hover { opacity: 0.92; }
         .danger-btn:active { transform: scale(0.98); }
@@ -337,7 +346,7 @@
         /* 側邊欄隱藏選項按鈕 (⋮) */
         .context-menu-btn {
             background: transparent; border: none; padding: 6px; margin: 0 0 0 8px; width: auto;
-            color: var(--theme-text-muted); border-radius: 10px; cursor: pointer;
+            color: var(--theme-text-muted); border-radius: 10px; cursor: pointer; box-shadow: none;
             transition: all 0.25s ease; opacity: 0.45; display: inline-flex; align-items: center; justify-content: center; font-size: 19px;
         }
         .trip-menu-item:hover .context-menu-btn, .folder-header:hover .context-menu-btn { opacity: 0.85; }
@@ -351,14 +360,14 @@
         /* 算式快捷列與預覽列 */
         .calc-Quick-bar { display: flex; gap: 8px; margin-top: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
         .calc-op-group { display: flex; gap: 6px; }
-        .calc-op-btn { width: auto; margin: 0; padding: 5px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: var(--theme-secondary); color: var(--theme-text-heading); border: 1px solid var(--theme-border); cursor: pointer; }
+        .calc-op-btn { width: auto; margin: 0; padding: 5px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: var(--theme-input-bg); color: var(--theme-text-heading); border: 1px solid var(--theme-border); cursor: pointer; }
         .calc-op-btn:hover { background: var(--wafu-sakura-bg); }
         .calc-op-btn:active { transform: scale(0.92); background: var(--theme-primary); }
         .real-time-preview { font-size: 13px; color: var(--theme-text-muted); text-align: right; font-weight: 600; transition: color 0.2s; margin-left: auto; }
         .real-time-preview.warn-80 { color: #ECA054; }
         .real-time-preview.warn-100 { color: var(--theme-danger); }
 
-        /* 懸浮按鈕（#A0D8EF 主導，Hover 轉為 #FBC9DA 點綴） */
+        /* 懸浮按鈕 */
         .fab {
             position: fixed; bottom: calc(78px + env(safe-area-inset-bottom)); right: 22px;
             width: 58px; height: 58px; border-radius: 50%;
@@ -384,10 +393,10 @@
         .trip-menu-item:hover { background: var(--wafu-sakura-bg); }
         .trip-menu-item.active { background: var(--wafu-sky-bg); border-color: var(--theme-primary-solid); }
         .trip-menu-item.active .trip-menu-name { color: var(--theme-text-heading) !important; font-weight: 700 !important; }
-        .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-primary-solid); }
+        .sidebar-cb { width: 20px; height: 20px; flex: 0 0 20px; margin: 0 10px 0 0; accent-color: var(--theme-primary-solid); box-shadow: none; }
         .trip-menu-item, .folder-header { cursor: grab; touch-action: pan-y; }
         .sortable-ghost { opacity: 0.35; }
-        .folder-header { padding: 12px 10px 12px 16px; background: var(--wafu-gold-bg); color: var(--theme-text-main); border-radius: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border: 1px solid rgba(236, 160, 84, 0.25); }
+        .folder-header { padding: 12px 10px 12px 16px; background: var(--theme-secondary); color: var(--theme-text-main); border-radius: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border: 1px solid var(--theme-border); }
         .join-shared-form { display: flex; align-items: stretch; gap: 10px; margin: 10px 0 0; }
         .join-shared-form input { flex: 1; width: 0; min-width: 0; margin: 0; text-transform: uppercase; }
         .join-shared-form button { width: auto; min-width: 84px; margin: 0; padding: 0 16px; }
@@ -395,7 +404,7 @@
         /* 隱藏式內容操作選單 */
         .sidebar-context-menu { display: none; position: fixed; z-index: 400; min-width: 176px; padding: 8px; border-radius: 16px; }
         .sidebar-context-menu.open { display: block; animation: slideInFade 0.2s ease-out; }
-        .sidebar-context-menu button { display: block; width: 100%; margin: 0; padding: 11px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--theme-text-main); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;}
+        .sidebar-context-menu button { display: block; width: 100%; margin: 0; padding: 11px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--theme-text-main); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: none; }
         .sidebar-context-menu button:hover { background: var(--wafu-sakura-bg); }
         .sidebar-context-menu button[data-action="delete"] { color: var(--theme-danger); }
 
@@ -408,8 +417,8 @@
 
         /* 帳目明細項目：充裕留白與清晰分隔 */
         #expense-list { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; overscroll-behavior: contain; }
-        .expense-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1px dashed var(--theme-border); padding: 16px 8px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
-        .expense-item:hover { background-color: var(--theme-secondary); border-radius: 14px; }
+        .expense-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1px dashed var(--theme-border); padding: 16px 10px; cursor: pointer; transition: background 0.2s, border-radius 0.2s; user-select: none; }
+        .expense-item:hover { background-color: var(--theme-input-bg); border-radius: 14px; }
         .expense-item:active { background-color: var(--wafu-sakura-bg); border-radius: 14px; }
         .expense-info-col { flex: 1 1 0; min-width: 0; padding-right: 6px; overflow-wrap: anywhere; word-break: break-word; }
         .expense-title-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; line-height: 1.4; }
@@ -423,14 +432,14 @@
         .cat-tone-1 { background: var(--wafu-gold-bg); color: var(--theme-text-main); }
         .cat-tone-2 { background: var(--wafu-sakura-bg); color: var(--theme-text-main); }
         .cat-tone-3 { background: var(--theme-secondary); color: var(--theme-text-main); }
-        .cat-tone-4 { background: rgba(160, 216, 239, 0.18); color: var(--theme-text-main); }
+        .cat-tone-4 { background: var(--theme-input-bg); color: var(--theme-text-main); border: 1px solid var(--theme-border); }
 
-        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(12px); font-size: 13.5px; font-weight: 600; color: var(--theme-text-muted); padding: 12px 8px 6px 8px; border-bottom: 1px solid var(--theme-border); z-index: 10; margin-top: 8px; }
+        .date-header { position: sticky; top: 0; background: var(--theme-nav-bg); backdrop-filter: blur(12px); font-size: 13.5px; font-weight: 600; color: var(--theme-text-muted); padding: 12px 8px 6px 8px; border-bottom: 1px solid var(--theme-border); z-index: 10; margin-top: 8px; border-radius: 8px 8px 0 0; }
         .lazy-load-hint { text-align: center; padding: 14px; font-size: 12.5px; color: var(--theme-text-muted); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--theme-modal-overlay); z-index: 200; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.25s; backdrop-filter: blur(4px); }
         .modal.open { display: flex; opacity: 1; }
-        .modal-content { background: var(--theme-bg); padding: 26px 22px; border-radius: 26px; width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; transform: translateY(16px) scale(0.97); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--theme-glass-shadow); }
+        .modal-content { background: var(--theme-card-bg); padding: 26px 22px; border-radius: 26px; width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; transform: translateY(16px) scale(0.97); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--theme-glass-shadow); }
         .modal.open .modal-content { transform: translateY(0) scale(1); }
         .modal.bottom-sheet { align-items: flex-end; padding: 0; }
         .modal.bottom-sheet .modal-content { max-width: 100%; border-radius: 28px 28px 0 0; padding: 26px 22px calc(26px + env(safe-area-inset-bottom)); transform: translateY(100%); }
@@ -438,7 +447,7 @@
 
         .filter-container { flex-shrink: 0; display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden; padding: 6px 2px 12px; margin-bottom: 4px; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-chip { padding: 7px 16px; background: var(--theme-secondary); border-radius: 20px; font-size: 13.5px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: 600; border: 1px solid var(--theme-border); transition: all 0.2s; }
+        .filter-chip { padding: 7px 16px; background: var(--theme-input-bg); border-radius: 20px; font-size: 13.5px; cursor: pointer; white-space: nowrap; color: var(--theme-text-muted); font-weight: 600; border: 1px solid var(--theme-border); transition: all 0.2s; }
         .filter-chip:hover { background: var(--wafu-sakura-bg); color: var(--theme-text-main); }
         .filter-chip.active { background: var(--theme-primary); color: var(--theme-primary-text); border-color: rgba(58, 58, 59, 0.12); transform: translateY(-1px); }
         
@@ -455,27 +464,27 @@
         #toast-container { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         #toast-container .toast-msg { pointer-events: auto; }
         
-        /* 纖細空氣感預算進度條 */
-        .budget-bar { position: relative; background-color: var(--theme-secondary); border-radius: 12px; height: 14px; width: 100%; overflow: hidden; margin-top: 12px; border: 1px solid var(--theme-border); }
+        /* 紙質米色底槽預算進度條 */
+        .budget-bar { position: relative; background-color: var(--theme-input-bg); border-radius: 12px; height: 15px; width: 100%; overflow: hidden; margin-top: 12px; border: 1px solid var(--theme-border); }
         .budget-fill { background: linear-gradient(90deg, var(--theme-primary), var(--theme-accent-pink)); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; }
         .budget-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 600; color: var(--theme-text-main); z-index: 2; }
 
-        .inline-checkbox-label { font-size: 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; margin-top: 10px; padding: 12px 14px; border-radius: 16px; background: var(--theme-secondary); border: 1px solid var(--theme-border); font-weight: 600; color: var(--theme-text-main);}
-        .inline-checkbox-label input { margin: 0; width: auto; padding: 0; }
-        .continuous-entry-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding: 11px 14px; border-radius: 16px; background: var(--theme-secondary); border: 1px dashed var(--theme-border); }
+        .inline-checkbox-label { font-size: 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; margin-top: 10px; padding: 12px 14px; border-radius: 16px; background: var(--theme-input-bg); border: 1px solid var(--theme-border); font-weight: 600; color: var(--theme-text-main);}
+        .inline-checkbox-label input { margin: 0; width: auto; padding: 0; box-shadow: none; }
+        .continuous-entry-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding: 11px 14px; border-radius: 16px; background: var(--theme-input-bg); border: 1px dashed var(--theme-border); }
         .continuous-entry-bar label { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--theme-text-heading); }
-        .continuous-entry-bar input { width: 18px; height: 18px; margin: 0; accent-color: var(--theme-primary-solid); }
+        .continuous-entry-bar input { width: 18px; height: 18px; margin: 0; accent-color: var(--theme-primary-solid); box-shadow: none; }
 
-        .settings-checkbox-label { display:flex; align-items:center; gap:10px; padding:12px 14px; margin-top:10px; border:1px solid var(--theme-border); border-radius:16px; background:var(--theme-secondary); color:var(--theme-text-main); font-weight:600; cursor:pointer; font-size: 14.5px; }
-        .settings-checkbox-label input { width:19px; height:19px; margin:0; accent-color:var(--theme-primary-solid); flex:0 0 auto; }
-        .summary-table-wrap { max-height:60vh; overflow:auto; border:1px solid var(--theme-border); border-radius:16px; }
+        .settings-checkbox-label { display:flex; align-items:center; gap:10px; padding:12px 14px; margin-top:10px; border:1px solid var(--theme-border); border-radius:16px; background:var(--theme-input-bg); color:var(--theme-text-main); font-weight:600; cursor:pointer; font-size: 14.5px; }
+        .settings-checkbox-label input { width:19px; height:19px; margin:0; accent-color:var(--theme-primary-solid); flex:0 0 auto; box-shadow: none; }
+        .summary-table-wrap { max-height:60vh; overflow:auto; border:1px solid var(--theme-border); border-radius:16px; background: var(--theme-input-bg); }
         .summary-table { width:100%; border-collapse:collapse; min-width:540px; font-size:13.5px; }
         .summary-table th, .summary-table td { padding:11px 10px; border-bottom:1px solid var(--theme-border); text-align:left; }
-        .summary-table th { position:sticky; top:0; background:var(--theme-bg); color:var(--theme-text-heading); z-index:1; }
-        .tag-total { font-size: 13.5px; color: var(--theme-text-main); font-weight: 600; background: var(--wafu-gold-bg); border: 1px solid rgba(236, 160, 84, 0.32); padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
-        .select-sm { width: auto; margin: 0; padding: 6px 11px; font-size: 13.5px; border-radius: 12px; font-weight:600; cursor: pointer; background: var(--theme-secondary); border: 1px solid var(--theme-border); }
+        .summary-table th { position:sticky; top:0; background:var(--theme-secondary); color:var(--theme-text-heading); z-index:1; }
+        .tag-total { font-size: 13.5px; color: var(--theme-text-main); font-weight: 600; background: var(--theme-input-bg); border: 1px solid var(--theme-border); padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
+        .select-sm { width: auto; margin: 0; padding: 6px 11px; font-size: 13.5px; border-radius: 12px; font-weight:600; cursor: pointer; background: var(--theme-input-bg); border: 1px solid var(--theme-border); }
         .cross-stat-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-        .cross-stat-box { background: var(--theme-secondary); border: 1px solid var(--theme-border); border-radius: 16px; padding: 12px 14px; font-size: 13px; }
+        .cross-stat-box { background: var(--theme-input-bg); border: 1px solid var(--theme-border); border-radius: 16px; padding: 12px 14px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -627,7 +636,7 @@
                 <h3 style="font-size: 17px; margin-bottom: 10px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-palette" style="color:#ECA054;"></i> 介面外觀設定</h3>
                 <select id="themeSelect" style="font-weight: 600; text-align: center;">
                     <option value="system">跟隨系統預設</option>
-                    <option value="light">淺色模式（日系極簡 60-30-10）</option>
+                    <option value="light">淺色模式（紙質米色 × 日系極簡）</option>
                     <option value="dark">柔和深色</option>
                 </select>
             </div>
@@ -793,7 +802,7 @@
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content glass-panel">
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:#ECA054;"></i> 帳本設定</h3>
-            <div style="background:var(--theme-secondary); padding:14px; border-radius:16px; text-align:center; margin-bottom:12px; border:1px dashed var(--theme-border);">
+            <div style="background:var(--theme-input-bg); padding:14px; border-radius:16px; text-align:center; margin-bottom:12px; border:1px dashed var(--theme-border);">
                 <label style="font-size:13px; font-weight:600; color:var(--theme-text-muted);">旅伴邀請碼</label>
                 <div id="modalTripInviteCode" class="num-font" style="font-size:22px; font-weight:700; color:var(--theme-text-main); letter-spacing:4px; margin-top:4px;">------</div>
             </div>
@@ -873,7 +882,7 @@
     <div class="modal" id="summaryModal"><div class="modal-content glass-panel" style="max-width:760px;"><h3 style="margin-bottom:8px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-table" style="color:#ECA054;"></i> 帳本表格總覽</h3><div id="summaryTripName" style="font-size:14px; font-weight:600; color:var(--theme-text-muted); margin-bottom:12px;"></div><div id="summaryTableContainer"></div><button class="primary-btn w-100" id="btn-export-summary-csv"><i class="ph ph-download-simple"></i> 下載 CSV 報表</button><button class="manage-btn w-100 close-btn" data-target="summaryModal" style="margin-top:10px;">關閉</button></div></div>
 
     <script>
-        // ====== 必備安全轉義函式（修復先前遺漏導致的載入錯誤） ======
+        // ====== 必備安全轉義函式 ======
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -1502,15 +1511,14 @@
             const categoryNames = Object.keys(categories);
             if (categoryNames.length === 0) { if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } chartCard.style.display = 'none'; return; }
             chartCard.style.display = ''; if (expenseChartInstance) expenseChartInstance.destroy();
-            // 低飽和度日系色盤（含不透明度）
             const colors = ['rgba(160, 216, 239, 0.88)', 'rgba(251, 201, 218, 0.88)', 'rgba(236, 160, 84, 0.85)', 'rgba(168, 216, 185, 0.85)', 'rgba(197, 180, 227, 0.85)', 'rgba(242, 211, 153, 0.85)', 'rgba(144, 190, 209, 0.85)', 'rgba(232, 172, 168, 0.85)'];
-            const chartBorder = getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim() || '#F7F6F4';
+            const chartBorder = '#FAF6EE';
             expenseChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: categoryNames, datasets: [{ data: Object.values(categories), backgroundColor: categoryNames.map((_, index) => colors[index % colors.length]), borderColor: chartBorder, borderWidth: 3, hoverOffset: 6 }] }, options: { responsive: true, plugins: { legend: { display: false } }, cutout: '72%' } });
             const legend = document.getElementById('customChartLegend');
             legend.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;justify-content:center;">' +
                 categoryNames.map((category, index) => {
                     const percent = grandTotal > 0 ? Math.round(categories[category] / grandTotal * 100) : 0;
-                    return `<div style="font-size:13px;border:1px solid var(--theme-border);padding:10px 12px;border-radius:14px;background:var(--theme-secondary);flex:1;min-width:125px;"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span aria-hidden="true" style="width:11px;height:11px;flex:none;border-radius:50%;background:${colors[index % colors.length]};border:1px solid var(--theme-border);"></span><span style="color:var(--theme-text-main);font-weight:600;overflow-wrap:anywhere;">${escapeHtml(category)}</span><strong class="num-font" style="color:var(--theme-text-heading);margin-left:auto;">${percent}%</strong></div><div class="num-font" style="color:var(--theme-text-main);font-weight:600;">NT$ ${categories[category].toLocaleString()}</div></div>`;
+                    return `<div style="font-size:13px;border:1px solid var(--theme-border);padding:10px 12px;border-radius:14px;background:var(--theme-input-bg);flex:1;min-width:125px;"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span aria-hidden="true" style="width:11px;height:11px;flex:none;border-radius:50%;background:${colors[index % colors.length]};border:1px solid var(--theme-border);"></span><span style="color:var(--theme-text-main);font-weight:600;overflow-wrap:anywhere;">${escapeHtml(category)}</span><strong class="num-font" style="color:var(--theme-text-heading);margin-left:auto;">${percent}%</strong></div><div class="num-font" style="color:var(--theme-text-main);font-weight:600;">NT$ ${categories[category].toLocaleString()}</div></div>`;
                 }).join('') + '</div>';
         }
 
@@ -1769,7 +1777,7 @@
             const foldersInTrash = new Set(items.filter(item => item.kind === 'folder').map(item => item.folder?.id));
             const visibleItems = items.filter(item => item.kind !== 'trip' || !foldersInTrash.has(item.folderId));
             visibleItems.forEach(item => {
-                const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-secondary);margin-bottom:9px;';
+                const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-input-bg);margin-bottom:9px;';
                 const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;'; const title = document.createElement('strong');
                 const folderId = item.kind === 'folder' ? item.folder?.id : item.folderId;
                 const childCount = item.kind === 'folder' ? items.filter(child => child.kind === 'trip' && child.folderId === folderId).length : 0;
