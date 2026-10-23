@@ -1345,7 +1345,9 @@
             appData = {
                 ...defaultAppData,
                 ...(stored || {}),
-                rates: { ...defaultAppData.rates, ...(stored?.rates || {}) },
+                rates: stored?.rates && typeof stored.rates === 'object' && !Array.isArray(stored.rates)
+                    ? { ...stored.rates, TWD: 1 }
+                    : { ...defaultAppData.rates },
                 categories: Array.isArray(stored?.categories) && stored.categories.length ? stored.categories : [...defaultAppData.categories],
                 folders: Array.isArray(stored?.folders) ? stored.folders : [],
                 tripLayout: stored?.tripLayout && typeof stored.tripLayout === 'object' ? stored.tripLayout : {},
@@ -1702,7 +1704,9 @@
                 layoutMigrationPending = !storedData.tripLayout || typeof storedData.tripLayout !== 'object';
                 const baseData = appData || { ...defaultAppData, rates: { ...defaultAppData.rates }, categories: [...defaultAppData.categories], folders: [], trips: [] };
                 appData = { ...baseData, ...storedData, tripLayout: storedData.tripLayout || baseData.tripLayout || {}, trips: latestTrips };
-                appData.rates = { ...defaultAppData.rates, ...(appData.rates || {}) };
+                appData.rates = appData.rates && typeof appData.rates === 'object' && !Array.isArray(appData.rates)
+                    ? { ...appData.rates, TWD: 1 }
+                    : { ...defaultAppData.rates };
                 appData.categories = Array.isArray(appData.categories) && appData.categories.length ? appData.categories : [...defaultAppData.categories];
                 appData.folders = Array.isArray(appData.folders) ? appData.folders : []; appData.tripLayout = appData.tripLayout && typeof appData.tripLayout === 'object' ? appData.tripLayout : {}; appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
                 userDataLoaded = true; applyTheme(appData.theme || 'system');
@@ -2081,9 +2085,15 @@
                 remainEl.style.color = remain < 0 ? 'var(--theme-danger)' : 'var(--theme-text-muted)';
                 if (remain > 0 && isTripDateLimited(trip)) {
                     const todayStr = getLocalDateString();
-                    const startRef = todayStr > trip.startDate ? todayStr : trip.startDate;
-                    const daysLeft = Math.max(1, Math.floor((new Date(trip.endDate) - new Date(startRef)) / 86400000) + 1);
-                    dailyEl.textContent = `日均可用: NT$ ${Math.round(remain / daysLeft).toLocaleString()} (${daysLeft}天)`;
+                    if (todayStr > trip.endDate) {
+                        dailyEl.textContent = '旅程期間已結束';
+                    } else {
+                        const startRef = todayStr > trip.startDate ? todayStr : trip.startDate;
+                        const [sy, sm, sd] = startRef.split('-').map(Number);
+                        const [ey, em, ed] = trip.endDate.split('-').map(Number);
+                        const daysLeft = Math.max(1, Math.round((new Date(ey, em - 1, ed) - new Date(sy, sm - 1, sd)) / 86400000) + 1);
+                        dailyEl.textContent = '日均可用: NT$ ' + Math.round(remain / daysLeft).toLocaleString() + ' (' + daysLeft + '天)';
+                    }
                 } else {
                     dailyEl.textContent = '';
                 }
@@ -2200,7 +2210,7 @@
         document.getElementById('btn-join-shared').onclick = joinSharedTrip;
         document.getElementById('btn-open-trash').onclick = () => { openModal('trashModal'); renderTrashList().catch(error => { console.error(error); showToast('最近刪除載入失敗', 'error'); }); };
         document.getElementById('trashList').addEventListener('click', event => { const button = event.target.closest('button[data-restore-trash-id]'); if (button) restoreTrashItem(button.dataset.restoreTrashId).catch(error => { console.error(error); showToast('復原失敗，請稍後再試', 'error'); }); });
-        document.getElementById('sharedTripCodeInput').addEventListener('keydown', event => { if (event.key === 'Enter') joinSharedTrip(); });
+        document.getElementById('sharedTripCodeInput').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); joinSharedTrip(); } });
         setupSidebarContextActions();
         document.getElementById('btn-toggle-edit-mode').onclick = () => { isSidebarEditMode = true; document.getElementById('sidebar-normal-actions').style.display='none'; document.getElementById('sidebar-edit-actions').style.display='block'; renderSidebarContent(); };
         document.getElementById('btn-finish-edit-mode').onclick = () => { isSidebarEditMode = false; document.getElementById('sidebar-normal-actions').style.display='block'; document.getElementById('sidebar-edit-actions').style.display='none'; renderSidebarContent(); };
@@ -2221,8 +2231,17 @@
                 menu.classList.add('open');
                 
                 const rect = btn.getBoundingClientRect();
-                menu.style.left = Math.max(8, rect.left - 135) + 'px';
-                menu.style.top = Math.max(8, rect.bottom + 4) + 'px';
+                const menuRect = menu.getBoundingClientRect();
+                const menuWidth = Math.max(176, menuRect.width);
+                const menuHeight = menuRect.height || 104;
+                const maxLeft = Math.max(8, window.innerWidth - menuWidth - 8);
+                const left = Math.min(maxLeft, Math.max(8, rect.right - menuWidth));
+                const maxTop = Math.max(8, window.innerHeight - menuHeight - 8);
+                const desiredTop = rect.bottom + menuHeight + 8 > window.innerHeight
+                    ? rect.top - menuHeight - 4
+                    : rect.bottom + 4;
+                menu.style.left = left + 'px';
+                menu.style.top = Math.min(maxTop, Math.max(8, desiredTop)) + 'px';
             });
 
             menu.addEventListener('click', async event => {
@@ -2236,9 +2255,8 @@
             });
 
             document.addEventListener('pointerdown', event => { if (menu.classList.contains('open') && !menu.contains(event.target)) closeSidebarContextMenu(); });
-            document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebarContextMenu(); });
             window.addEventListener('resize', closeSidebarContextMenu);
-            document.getElementById('sidebar').addEventListener('scroll', closeSidebarContextMenu, { passive: true });
+            document.querySelector('.sidebar-content')?.addEventListener('scroll', closeSidebarContextMenu, { passive: true });
         }
         function closeSidebarContextMenu() { 
             const menu = document.getElementById('sidebar-context-menu');
@@ -2278,6 +2296,8 @@
         function toggleFolder(id) { const folder = appData.folders.find(item => item.id === id); if (folder) { folder.expanded = !folder.expanded; saveUserDoc({ folders: appData.folders }); renderSidebarContent(); } }
         function toggleCb(id) { const checkbox = Array.from(document.querySelectorAll('.sidebar-cb')).find(item => item.dataset.id === String(id)); if (checkbox) checkbox.checked = !checkbox.checked; }
         function resetTripFilters() {
+            clearTimeout(searchRenderTimer);
+            searchRenderTimer = null;
             currentFilter = 'ALL';
             currentSummaryCategory = 'ALL';
             currentSearchQuery = '';
@@ -2506,16 +2526,17 @@
                         const batchTrips = cloudTrips.slice(start, start + batchSize);
                         batchTrips.forEach(trip => {
                             const tripRef = db.collection('trips').doc(trip.id);
-                            const { folderId: ignoredFolderId, order: ignoredOrder, ...sharedTripData } = trip;
-                            batch.set(tripRef, {
-                                ...sharedTripData,
+                            // Restore membership and folder layout without replacing shared expenses
+                            // with the older snapshot stored in the trash entry.
+                            batch.update(tripRef, {
                                 members: firebase.firestore.FieldValue.arrayUnion(uid),
+                                ['memberNames.' + uid]: currentPayerName(),
                                 folderId: firebase.firestore.FieldValue.delete(),
                                 order: firebase.firestore.FieldValue.delete(),
                                 trashedBy: firebase.firestore.FieldValue.delete(),
                                 trashedAt: firebase.firestore.FieldValue.delete(),
                                 trashExpiresAt: firebase.firestore.FieldValue.delete()
-                            }, { merge: true });
+                            });
                         });
                         if (batchIndex === batchCount - 1) {
                             batch.set(db.collection('users').doc(uid), {
@@ -2612,7 +2633,7 @@
                 .replace(/\s+/g, '');
             const ungrouped = rawExpr.replace(/(^|[^\d])\d{1,3}(?:,\d{3})+(?:\.\d*)?/g, '$1');
             if (ungrouped.includes(',')) return NaN;
-            const expr = rawExpr.replace(/，|,/g, '');
+            const expr = rawExpr.replace(/，|,/g, '').replace(/[+\-*/]+$/, '');
             if (!expr) return NaN;
 
             const tokens = expr.match(/\d+(?:\.\d*)?|\.\d+|[()+\-*/]/g) || [];
@@ -2676,6 +2697,7 @@
                 if (!input) return;
                 input.value = String(input.value || '').replace(/[+\-*/]+$/, '') + btn.dataset.op;
                 input.focus();
+                updateTWDPreview(group.dataset.targetInput === 'itemAmount' ? 'add' : 'edit');
             });
         });
 
@@ -2692,10 +2714,37 @@
         document.getElementById('itemDetails').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-submit-expense').click(); }
         });
-        ['editExpName', 'editExpAmount', 'editExpDetails'].forEach(id => {
-            document.getElementById(id).addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-save-edit').click(); }
-            });
+        document.getElementById('editExpName').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('editExpAmount').focus(); }
+        });
+        document.getElementById('editExpAmount').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = parseAmount(this.value);
+                if (!isNaN(value)) this.value = value;
+                document.getElementById('btn-save-edit').click();
+            }
+        });
+        document.getElementById('editExpDetails').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-save-edit').click(); }
+        });
+        document.getElementById('liveRateCurrencyCode').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); fetchLiveRateForDialog(); }
+        });
+        document.getElementById('newManageCatInput').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); addManageCategory(); }
+        });
+        document.getElementById('newManageCurrCode').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); document.getElementById('newManageCurrRate').focus(); }
+        });
+        document.getElementById('newManageCurrRate').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); addOrUpdateCurrency(); }
+        });
+        document.getElementById('newTripNameInput').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); document.getElementById('btn-create-trip').click(); }
+        });
+        document.getElementById('newTripBudgetInput').addEventListener('keydown', event => {
+            if (event.key === 'Enter') { event.preventDefault(); document.getElementById('btn-create-trip').click(); }
         });
 
         // 點擊遮罩關閉彈窗
@@ -2703,6 +2752,30 @@
             modal.addEventListener('click', e => {
                 if (e.target === modal) modal.classList.remove('open');
             });
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            const openModals = Array.from(document.querySelectorAll('.modal.open'));
+            if (openModals.length) {
+                const topModal = openModals.reduce((top, modal) => {
+                    const topZ = Number.parseInt(window.getComputedStyle(top).zIndex, 10) || 0;
+                    const modalZ = Number.parseInt(window.getComputedStyle(modal).zIndex, 10) || 0;
+                    return modalZ >= topZ ? modal : top;
+                });
+                topModal.classList.remove('open');
+                event.preventDefault();
+                return;
+            }
+            const contextMenu = document.getElementById('sidebar-context-menu');
+            if (contextMenu?.classList.contains('open')) {
+                closeSidebarContextMenu();
+                event.preventDefault();
+                return;
+            }
+            if (document.getElementById('sidebar')?.classList.contains('open')) {
+                toggleSidebar(false);
+                event.preventDefault();
+            }
         });
 
         // 新增消費
@@ -2986,6 +3059,13 @@
             const fallbackRate = !currencyChanged && Number.isFinite(previousRateValue) && previousRateValue > 0
                 ? previousRateValue
                 : (Number.isFinite(savedRate) && savedRate > 0 ? savedRate : 1);
+            if (!forceLookup && mode === 'edit' && !currencyChanged && Number.isFinite(previousRateValue) && previousRateValue > 0) {
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, previousRateValue);
+                rateMeta[mode] = rateMeta[mode] || (mode === 'edit' ? '記帳匯率 ' : '設定匯率 ') + previousRateValue;
+                updateTWDPreview(mode);
+                return;
+            }
             if (!forceLookup && Number.isFinite(savedRate) && savedRate > 0) {
                 rateLoading[mode] = false;
                 setCurrentRateFor(mode, savedRate);
@@ -3023,7 +3103,30 @@
             try { const result = await getDailyTwdRate(code, date || 'latest'); if (requestId !== liveRateRequestId) return; currentLookupRate = { code, ...result }; status.textContent = '1 ' + code + ' ≈ NT$ ' + result.rate.toLocaleString(undefined, { maximumFractionDigits: 6 }) + '（' + result.date + '）'; applyButton.disabled = false; } catch (error) { if (requestId !== liveRateRequestId) return; currentLookupRate = null; status.textContent = '查詢失敗：請確認代碼與網路連線。'; console.warn(error); }
         }
 
-        async function saveUserRates() { return await saveUserDoc({ rates: appData.rates }); }
+        async function saveUserRates() {
+            saveLocalBackup();
+            if (isLocalFallbackMode || !auth?.currentUser) return true;
+            const userRef = db.collection('users').doc(auth.currentUser.uid);
+            try {
+                // update() replaces the whole rates map so deleted currencies stay deleted.
+                await userRef.update({ rates: appData.rates });
+                return true;
+            } catch (error) {
+                if (error?.code === 'not-found') {
+                    try {
+                        await userRef.set({ rates: appData.rates }, { merge: true });
+                        return true;
+                    } catch (fallbackError) {
+                        console.warn('幣別設定同步失敗，已保存在本機:', fallbackError);
+                        showToast('雲端同步失敗，幣別變更目前只保存在此裝置', 'error');
+                        return false;
+                    }
+                }
+                console.warn('幣別設定同步失敗，已保存在本機:', error);
+                showToast('雲端同步失敗，幣別變更目前只保存在此裝置', 'error');
+                return false;
+            }
+        }
         async function applyLiveRateToApp() {
             if (!currentLookupRate) return; const { code, rate, date } = currentLookupRate;
             appData.rates[code] = rate;
@@ -3258,7 +3361,7 @@
             }
         });
 
-        document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add', true)); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit', true)); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add', true)); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit', true)); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
+        document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add', false)); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit', false)); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add', false)); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit', false)); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
         document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); }); document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency); document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction); document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage')); document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog); document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
         document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction);
         document.getElementById('btn-export-csv').addEventListener('click', () => exportToCSV('ALL'));
@@ -3299,13 +3402,18 @@
 
         function setFilter(cat) { currentFilter = cat; updateUI({ renderCharts: false }); }
         function openModal(id) {
-            document.getElementById(id).classList.add('open');
+            const modal = document.getElementById(id);
+            const focusBeforeOpen = document.activeElement;
+            modal.classList.add('open');
             if(id === 'addExpenseModal') {
                 const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
                 document.getElementById('itemDate').value = clampDateToTrip(getLocalDateString(), trip);
                 renderQuickItemTags();
-                handleCurrencyDateChange('add', true);
-                setTimeout(() => document.getElementById('itemName').focus(), 120);
+                handleCurrencyDateChange('add', false);
+                setTimeout(() => {
+                    const nameInput = document.getElementById('itemName');
+                    if (modal.classList.contains('open') && (document.activeElement === focusBeforeOpen || document.activeElement === document.body)) nameInput.focus();
+                }, 120);
             }
         }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
