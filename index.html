@@ -944,7 +944,7 @@
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:#ECA054;"></i> 帳本設定</h3>
             <div style="background:var(--theme-input-bg); padding:14px; border-radius:16px; text-align:center; margin-bottom:12px; border:1px dashed var(--theme-border);">
                 <label style="font-size:13px; font-weight:600; color:var(--theme-text-muted);">旅伴邀請碼</label>
-                <div id="modalTripInviteCode" class="num-font" style="font-size:22px; font-weight:700; color:var(--theme-text-main); letter-spacing:4px; margin-top:4px;">------</div>
+                <div id="modalTripInviteCode" class="num-font" role="button" tabindex="0" title="點擊複製邀請碼" style="font-size:22px; font-weight:700; color:var(--theme-text-main); letter-spacing:4px; margin-top:4px; cursor:pointer;">------</div>
             </div>
 
             <!-- 共用成員名單區塊（建立者可編輯名稱與移除成員） -->
@@ -957,6 +957,10 @@
             </div>
 
             <input type="text" id="modalTripNameInput" placeholder="帳本名稱">
+            <div class="mt-10" id="modalTripFolderField" style="display:none;">
+                <label for="modalTripFolderSelect" style="font-size:12.5px; font-weight:600; color:var(--theme-text-muted);">所屬資料夾</label>
+                <select id="modalTripFolderSelect" style="margin-top:6px;"><option value="">最外層</option></select>
+            </div>
             
             <label class="settings-checkbox-label mt-10">
                 <input type="checkbox" id="modalTripUseDateRange"> 限定記錄期間
@@ -1105,6 +1109,9 @@
         }
 
         let appData = null;
+        let latestTrips = [];
+        let serverTrips = [];
+        const pendingRestoredTrips = new Map();
         let currentFilter = 'ALL';
         let currentSummaryCategory = 'ALL';
         let currentSearchQuery = '';
@@ -1580,7 +1587,9 @@
         });
 
         function setupRealtimeListeners(user) {
-            let userDataLoaded = false; let tripsLoaded = false; let latestTrips = []; let startupFailed = false;
+            let userDataLoaded = false; let tripsLoaded = false; let startupFailed = false;
+            latestTrips = []; serverTrips = [];
+            pendingRestoredTrips.clear();
             const handleFirebaseError = (error) => {
                 console.warn("雲端讀取異常，自動切換為本機儲存模式:", error);
                 if (!startupFailed) {
@@ -1621,8 +1630,14 @@
             }, handleFirebaseError);
 
             unsubTrips = db.collection("trips").where("members", "array-contains", user.uid).onSnapshot({ includeMetadataChanges: true }, snap => {
-                latestTrips = []; pendingSyncCount = 0;
-                snap.docs.forEach(d => { latestTrips.push(d.data()); if (d.metadata.hasPendingWrites) pendingSyncCount++; });
+                serverTrips = []; pendingSyncCount = 0;
+                snap.docs.forEach(d => { const data = d.data(); serverTrips.push({ ...data, id: data.id || d.id }); if (d.metadata.hasPendingWrites) pendingSyncCount++; });
+                latestTrips = [...serverTrips];
+                pendingRestoredTrips.forEach((trip, tripId) => {
+                    const cloudTrip = latestTrips.find(item => item.id === tripId);
+                    if (cloudTrip && (cloudTrip.members || []).includes(user.uid)) pendingRestoredTrips.delete(tripId);
+                    else latestTrips.push(trip);
+                });
                 updateSyncStatusIndicator(); tripsLoaded = true;
                 if (latestTrips.length === 0) { createNewTripDirectly("我的新帳本", user.uid).catch(handleFirebaseError); return; }
                 finishStartup();
@@ -2022,13 +2037,15 @@
 
             if (crossTripChartInstance) crossTripChartInstance.destroy();
             const textColor = isDarkThemeActive() ? '#E6E4E0' : '#3A3A3B';
+            const gridColor = isDarkThemeActive() ? 'rgba(230, 228, 224, 0.14)' : 'rgba(58, 58, 59, 0.12)';
+            const axisBorderColor = isDarkThemeActive() ? 'rgba(230, 228, 224, 0.3)' : 'rgba(58, 58, 59, 0.24)';
             const barPalette = ['rgba(160, 216, 239, 0.85)', 'rgba(251, 201, 218, 0.85)', 'rgba(236, 160, 84, 0.82)', 'rgba(168, 216, 185, 0.82)'];
 
             if (labels.length === 0) { summaryEl.innerHTML = '<div class="cross-stat-box" style="grid-column: 1 / -1; text-align:center; color:var(--theme-text-muted);">尚無跨帳本消費數據</div>'; return; }
 
             crossTripChartInstance = new Chart(ctx, {
                 type: 'bar', data: { labels, datasets: [{ label: '消費總額 (TWD)', data: values, backgroundColor: labels.map((_, i) => barPalette[i % barPalette.length]), borderRadius: 10, maxBarThickness: 32 }] },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, grid: { display: false } }, y: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, beginAtZero: true } } }
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, grid: { display: false }, border: { color: axisBorderColor } }, y: { ticks: { color: textColor, font: { family: 'Inter, sans-serif', size: 11 } }, grid: { color: gridColor }, border: { color: axisBorderColor }, beginAtZero: true } } }
             });
             const maxVal = Math.max(...values, 0); const maxLabel = labels[values.indexOf(maxVal)] || '--';
             summaryEl.innerHTML = `
@@ -2137,7 +2154,15 @@
         }
         function toggleFolder(id) { const folder = appData.folders.find(item => item.id === id); if (folder) { folder.expanded = !folder.expanded; saveUserDoc({ folders: appData.folders }); renderSidebarContent(); } }
         function toggleCb(id) { const checkbox = Array.from(document.querySelectorAll('.sidebar-cb')).find(item => item.dataset.id === String(id)); if (checkbox) checkbox.checked = !checkbox.checked; }
-        function switchTrip(id) { appData.activeTripId = id; saveUserDoc({ activeTripId: id }); toggleSidebar(false); updateUI(); }
+        function resetTripFilters() {
+            currentFilter = 'ALL';
+            currentSearchQuery = '';
+            const searchInput = document.getElementById('expenseSearchInput');
+            const clearButton = document.getElementById('expenseSearchClear');
+            if (searchInput) searchInput.value = '';
+            if (clearButton) clearButton.style.display = 'none';
+        }
+        function switchTrip(id) { appData.activeTripId = id; resetTripFilters(); saveUserDoc({ activeTripId: id }); toggleSidebar(false); updateUI(); }
 
         function initSortable() {
             sortableInstances.forEach(instance => instance.destroy()); sortableInstances = []; if (isSidebarEditMode || typeof Sortable === 'undefined') return;
@@ -2256,17 +2281,29 @@
             const items = [...(appData?.trash || [])].filter(item => Number(item.expiresAt || 0) > Date.now()).sort((a, b) => b.deletedAt - a.deletedAt);
             updateTrashCount(); list.replaceChildren();
             if (!items.length) { const empty = document.createElement('div'); empty.style.cssText = 'text-align:center;padding:28px 12px;margin:0;color:var(--theme-text-muted);font-size:14px;'; empty.textContent = '目前沒有最近刪除的項目'; list.appendChild(empty); return; }
-            const foldersInTrash = new Set(items.filter(item => item.kind === 'folder').map(item => item.folder?.id));
-            const visibleItems = items.filter(item => item.kind !== 'trip' || !foldersInTrash.has(item.folderId));
-            visibleItems.forEach(item => {
+            const foldersInTrash = new Map(items.filter(item => item.kind === 'folder').map(item => [item.folder?.id, item]));
+            items.forEach(item => {
                 const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-input-bg);margin-bottom:9px;';
                 const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;'; const title = document.createElement('strong');
                 const folderId = item.kind === 'folder' ? item.folder?.id : item.folderId;
-                const childCount = item.kind === 'folder' ? items.filter(child => child.kind === 'trip' && child.folderId === folderId).length : 0;
+                const childItems = item.kind === 'folder' ? items.filter(child => child.kind === 'trip' && child.folderId === folderId) : [];
+                const childCount = childItems.length;
                 title.innerHTML = (item.kind === 'folder' ? '<i class="ph-fill ph-folder" style="color:#ECA054;"></i> 資料夾：' : '<i class="ph-fill ph-book-open" style="color:#ECA054;"></i> 帳本：') + escapeHtml(item.name || item.folder?.name || '未命名');
                 const detail = document.createElement('div'); detail.style.cssText = 'font-size:12px;margin:4px 0 0;color:var(--theme-text-muted);';
                 const expires = new Date(Number(item.expiresAt)).toLocaleDateString('zh-TW');
-                detail.textContent = (item.kind === 'folder' ? '包含 ' + childCount + ' 個帳本 · ' : '') + '期限至 ' + expires;
+                if (item.kind === 'folder') {
+                    const childNames = childItems.map(child => child.name || child.tripSnapshot?.name || '未命名').join('、');
+                    detail.textContent = (childCount ? '包含 ' + childCount + ' 個帳本：' + childNames + ' · ' : '沒有子帳本 · ') + '期限至 ' + expires;
+                } else {
+                    const activeFolder = (appData.folders || []).find(folder => folder.id === item.folderId);
+                    const trashedFolder = foldersInTrash.get(item.folderId);
+                    const parentText = activeFolder
+                        ? '資料夾：' + activeFolder.name + ' · '
+                        : trashedFolder
+                            ? '原資料夾「' + (trashedFolder.folder?.name || '未命名') + '」仍在最近刪除，單獨復原會放回最外層 · '
+                            : '';
+                    detail.textContent = parentText + '期限至 ' + expires;
+                }
                 info.append(title, detail);
                 const restoreButton = document.createElement('button'); restoreButton.type = 'button'; restoreButton.className = 'secondary-btn'; restoreButton.style.cssText = 'width:auto;min-width:82px;margin:0;padding:10px 12px;'; restoreButton.dataset.restoreTrashId = item.id; restoreButton.textContent = '復原';
                 row.append(info, restoreButton); list.appendChild(row);
@@ -2276,30 +2313,102 @@
         async function restoreTrashItem(trashId) {
             const entry = (appData?.trash || []).find(item => item.id === trashId); if (!entry) return showToast('找不到最近刪除的項目', 'error');
             const folderId = entry.kind === 'folder' ? entry.folder?.id : entry.folderId;
-            const folderEntry = entry.kind === 'folder' ? entry : (appData.trash || []).find(item => item.kind === 'folder' && item.folder?.id === folderId);
-            const tripEntries = entry.kind === 'folder' || folderEntry ? (appData.trash || []).filter(item => item.kind === 'trip' && item.folderId === folderId) : (entry.kind === 'trip' ? [entry] : []);
+            const tripEntries = entry.kind === 'folder'
+                ? (appData.trash || []).filter(item => item.kind === 'trip' && item.folderId === folderId)
+                : (entry.kind === 'trip' ? [entry] : []);
 
             const restoredFolders = [...(appData.folders || [])];
-            if (folderEntry?.folder && !restoredFolders.some(f => f.id === folderEntry.folder.id)) restoredFolders.push(folderEntry.folder);
+            if (entry.kind === 'folder' && entry.folder) {
+                const restoredFolder = { ...entry.folder, expanded: true };
+                const existingFolderIndex = restoredFolders.findIndex(folder => folder.id === restoredFolder.id);
+                if (existingFolderIndex >= 0) restoredFolders[existingFolderIndex] = { ...restoredFolders[existingFolderIndex], expanded: true };
+                else restoredFolders.push(restoredFolder);
+            }
 
             const restoredTrips = [];
             for (const item of tripEntries) {
-                if (item.tripSnapshot) {
-                    restoredTrips.push({ ...item.tripSnapshot, folderId: restoredFolders.some(f => f.id === item.folderId) ? item.folderId : null });
-                } else if (!isLocalFallbackMode && auth?.currentUser) {
+                let sourceTrip = item.tripSnapshot || null;
+                if (!sourceTrip && !isLocalFallbackMode && auth?.currentUser) {
                     const snap = await db.collection('trips').doc(item.tripId).get();
-                    if (snap.exists) restoredTrips.push({ ...snap.data(), id: item.tripId });
+                    if (snap.exists) sourceTrip = { ...snap.data(), id: item.tripId };
+                }
+                if (!sourceTrip) throw new Error('找不到待復原的帳本資料');
+                const { trashedBy, trashedAt, trashExpiresAt, ...cleanTrip } = sourceTrip;
+                restoredTrips.push({
+                    ...cleanTrip,
+                    id: item.tripId || cleanTrip.id,
+                    folderId: restoredFolders.some(folder => folder.id === item.folderId) ? item.folderId : null
+                });
+            }
+
+            const restoredIds = new Set([entry.id, ...(entry.kind === 'folder' ? [entry.id] : []), ...tripEntries.map(item => item.id)]);
+            const nextTrash = (appData.trash || []).filter(item => !restoredIds.has(item.id));
+            if (!isLocalFallbackMode && auth?.currentUser) {
+                const uid = auth.currentUser.uid;
+                restoredTrips.forEach(trip => { trip.members = Array.from(new Set([...(trip.members || []), uid])); });
+            }
+            const tripMap = new Map((appData.trips || []).map(trip => [trip.id, trip]));
+            restoredTrips.forEach(trip => tripMap.set(trip.id, trip));
+            const nextTrips = Array.from(tripMap.values());
+            const nextActiveTripId = restoredTrips[0]?.id || appData.activeTripId;
+
+            if (!isLocalFallbackMode && auth?.currentUser && db) {
+                const uid = auth.currentUser.uid;
+                const cloudTrips = restoredTrips.map(trip => ({ ...trip, members: Array.from(new Set([...(trip.members || []), uid])) }));
+                cloudTrips.forEach(trip => pendingRestoredTrips.set(trip.id, trip));
+                latestTrips = [...serverTrips];
+                pendingRestoredTrips.forEach(trip => {
+                    const existingIndex = latestTrips.findIndex(item => item.id === trip.id);
+                    if (existingIndex >= 0) latestTrips[existingIndex] = trip;
+                    else latestTrips.push(trip);
+                });
+
+                try {
+                    const batchSize = 450;
+                    const batchCount = Math.max(1, Math.ceil(cloudTrips.length / batchSize));
+                    for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
+                        const batch = db.batch();
+                        const start = batchIndex * batchSize;
+                        const batchTrips = cloudTrips.slice(start, start + batchSize);
+                        batchTrips.forEach(trip => {
+                            const tripRef = db.collection('trips').doc(trip.id);
+                            batch.set(tripRef, {
+                                ...trip,
+                                members: firebase.firestore.FieldValue.arrayUnion(uid),
+                                trashedBy: firebase.firestore.FieldValue.delete(),
+                                trashedAt: firebase.firestore.FieldValue.delete(),
+                                trashExpiresAt: firebase.firestore.FieldValue.delete()
+                            }, { merge: true });
+                        });
+                        if (batchIndex === batchCount - 1) {
+                            batch.set(db.collection('users').doc(uid), {
+                                folders: restoredFolders,
+                                trash: nextTrash,
+                                activeTripId: nextActiveTripId
+                            }, { merge: true });
+                        }
+                        await batch.commit();
+                    }
+                } catch (error) {
+                    cloudTrips.forEach(trip => pendingRestoredTrips.delete(trip.id));
+                    latestTrips = [...serverTrips];
+                    pendingRestoredTrips.forEach(trip => {
+                        const existingIndex = latestTrips.findIndex(item => item.id === trip.id);
+                        if (existingIndex >= 0) latestTrips[existingIndex] = trip;
+                        else latestTrips.push(trip);
+                    });
+                    throw error;
                 }
             }
 
-            const restoredIds = new Set([entry.id, ...(folderEntry ? [folderEntry.id] : []), ...tripEntries.map(i => i.id)]);
-            appData.trash = (appData.trash || []).filter(i => !restoredIds.has(i.id));
             appData.folders = restoredFolders;
-            const tripMap = new Map((appData.trips || []).map(t => [t.id, t]));
-            restoredTrips.forEach(t => tripMap.set(t.id, t));
-            appData.trips = Array.from(tripMap.values());
-            await saveUserDoc({ folders: appData.folders, trash: appData.trash });
+            appData.trash = nextTrash;
+            appData.trips = nextTrips;
+            appData.activeTripId = nextActiveTripId;
+            if (restoredTrips.length) { resetTripFilters(); toggleSidebar(false); }
+            saveLocalBackup();
             updateUI(); renderSidebarContent(); await renderTrashList();
+            if (restoredTrips.length) closeModal('trashModal');
             showToast('已從最近刪除復原');
         }
 
@@ -2329,57 +2438,65 @@
 
         // ====== 安全數學算式解析器（支援全形運算符與千分位逗號轉換） ======
         function parseAmount(input) {
-            let expr = String(input ?? '')
+            const expr = String(input ?? '')
+                .replace(/[０-９]/g, digit => String.fromCharCode(digit.charCodeAt(0) - 0xFEE0))
                 .replace(/，|,/g, '')
                 .replace(/＋/g, '+').replace(/－|—|–|−/g, '-')
                 .replace(/＊|×|✕/g, '*').replace(/／|÷/g, '/')
                 .replace(/（/g, '(').replace(/）/g, ')')
-                .replace(/。/g, '.')
+                .replace(/。|．/g, '.')
                 .replace(/\s+/g, '');
-            expr = expr.replace(/[^0-9.+\-*/()]/g, '');
-            expr = expr.replace(/([+\-*/]){2,}/g, '$1').replace(/^[*/]+/, '').replace(/[+\-*/]+$/, '');
             if (!expr) return NaN;
 
-            const tokens = expr.match(/\d+(?:\.\d+)?|[+\-*/()]/g);
-            if (!tokens) return NaN;
-            const values = [];
-            const ops = [];
-            const prec = { '+': 1, '-': 1, '*': 2, '/': 2 };
-            const applyOp = () => {
-                const op = ops.pop();
-                const b = values.pop();
-                const a = values.pop() ?? 0;
-                if (op === '+') values.push(a + b);
-                else if (op === '-') values.push(a - b);
-                else if (op === '*') values.push(a * b);
-                else if (op === '/') {
-                    if (b === 0) { values.push(NaN); return; }
-                    values.push(a / b);
+            const tokens = expr.match(/\d+(?:\.\d*)?|\.\d+|[()+\-*/]/g) || [];
+            if (!tokens.length || tokens.join('') !== expr) return NaN;
+            let position = 0;
+
+            function parsePrimary() {
+                const token = tokens[position++];
+                if (token === '(') {
+                    const value = parseExpression();
+                    if (tokens[position++] !== ')') throw new Error('Missing closing parenthesis');
+                    return value;
                 }
-            };
+                if (token && /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)) return Number(token);
+                throw new Error('Expected a number');
+            }
+
+            function parseUnary() {
+                if (tokens[position] === '+') { position++; return parseUnary(); }
+                if (tokens[position] === '-') { position++; return -parseUnary(); }
+                return parsePrimary();
+            }
+
+            function parseTerm() {
+                let value = parseUnary();
+                while (tokens[position] === '*' || tokens[position] === '/') {
+                    const operator = tokens[position++];
+                    const right = parseUnary();
+                    if (operator === '/') {
+                        if (right === 0) throw new Error('Division by zero');
+                        value /= right;
+                    } else value *= right;
+                }
+                return value;
+            }
+
+            function parseExpression() {
+                let value = parseTerm();
+                while (tokens[position] === '+' || tokens[position] === '-') {
+                    const operator = tokens[position++];
+                    const right = parseTerm();
+                    value = operator === '+' ? value + right : value - right;
+                }
+                return value;
+            }
 
             try {
-                for (let i = 0; i < tokens.length; i++) {
-                    const tk = tokens[i];
-                    if (/^\d/.test(tk)) {
-                        values.push(parseFloat(tk));
-                    } else if (tk === '(') {
-                        ops.push(tk);
-                    } else if (tk === ')') {
-                        while (ops.length && ops[ops.length - 1] !== '(') applyOp();
-                        ops.pop();
-                    } else if (prec[tk]) {
-                        if ((tk === '+' || tk === '-') && (i === 0 || tokens[i - 1] === '(')) {
-                            values.push(0);
-                        }
-                        while (ops.length && prec[ops[ops.length - 1]] >= prec[tk]) applyOp();
-                        ops.push(tk);
-                    }
-                }
-                while (ops.length) applyOp();
-                const result = values[0];
-                return Number.isFinite(result) ? Math.round(result * 100) / 100 : NaN;
-            } catch (e) {
+                const result = parseExpression();
+                if (position !== tokens.length || !Number.isFinite(result)) return NaN;
+                return Math.round(result * 100) / 100;
+            } catch (error) {
                 return NaN;
             }
         }
@@ -2748,6 +2865,7 @@
         async function handleCategoryManagerAction(event) {
             const button = event.target.closest('button[data-action][data-category]'); if (!button) return; const oldName = button.dataset.category;
             if (button.dataset.action === 'delete') {
+                if ((appData.categories || []).length <= 1) return showToast('至少保留一個消費分類，無法刪除最後一個分類', 'error');
                 if (!confirm('刪除「' + oldName + '」分類？已記錄的消費不會刪除。')) return;
                 appData.categories = appData.categories.filter(category => category !== oldName);
                 await saveUserDoc({ categories: appData.categories });
@@ -2989,11 +3107,45 @@
         };
         document.getElementById('enableDetailsBtn').onchange = (e) => document.getElementById('itemDetails').style.display = e.target.checked ? 'block' : 'none';
 
+        function renderTripFolderSelect(trip) {
+            const field = document.getElementById('modalTripFolderField');
+            const select = document.getElementById('modalTripFolderSelect');
+            const folders = Array.isArray(appData?.folders) ? appData.folders : [];
+            field.style.display = folders.length ? 'block' : 'none';
+            select.replaceChildren();
+            const rootOption = document.createElement('option'); rootOption.value = ''; rootOption.textContent = '最外層'; select.appendChild(rootOption);
+            folders.forEach(folder => {
+                const option = document.createElement('option'); option.value = folder.id; option.textContent = folder.name || '未命名資料夾'; select.appendChild(option);
+            });
+            select.value = folders.some(folder => folder.id === trip.folderId) ? trip.folderId : '';
+        }
+
+        async function copyTripInviteCode() {
+            const code = document.getElementById('modalTripInviteCode').innerText.trim();
+            if (!/^[A-Z0-9]{6}$/i.test(code)) return showToast('此帳本沒有可複製的邀請碼', 'error');
+            try {
+                if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(code);
+                else throw new Error('Clipboard API unavailable');
+            } catch (error) {
+                const temporaryInput = document.createElement('textarea');
+                temporaryInput.value = code; temporaryInput.style.position = 'fixed'; temporaryInput.style.opacity = '0';
+                document.body.appendChild(temporaryInput); temporaryInput.select();
+                const copied = document.execCommand('copy'); temporaryInput.remove();
+                if (!copied) return showToast('複製失敗，請手動選取邀請碼', 'error');
+            }
+            showToast('邀請碼已複製');
+        }
+        document.getElementById('modalTripInviteCode').addEventListener('click', copyTripInviteCode);
+        document.getElementById('modalTripInviteCode').addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); copyTripInviteCode(); }
+        });
+
         document.getElementById('btn-open-trip-settings').onclick = () => {
             const trip = appData?.trips?.find(t => t.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             const useRange = isTripDateLimited(trip);
             document.getElementById('modalTripInviteCode').innerText = trip.inviteCode || '無代碼';
             document.getElementById('modalTripNameInput').value = trip.name || '';
+            renderTripFolderSelect(trip);
             document.getElementById('modalTripUseDateRange').checked = useRange;
             document.getElementById('modalTripDateRangeBox').style.display = useRange ? 'flex' : 'none';
             document.getElementById('modalTripStartInput').value = trip.startDate || getLocalDateString();
@@ -3017,6 +3169,9 @@
             }
             const settings = {
                 name,
+                folderId: document.getElementById('modalTripFolderField').style.display !== 'none'
+                    ? (document.getElementById('modalTripFolderSelect').value || null)
+                    : (appData.folders.some(folder => folder.id === trip.folderId) ? trip.folderId : null),
                 useDateRange,
                 startDate,
                 endDate,
