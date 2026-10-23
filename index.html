@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="cover.png">
     <link rel="apple-touch-icon" href="cover.png">
@@ -1091,7 +1091,10 @@
         let db = null;
         let googleProvider = null;
         let isLocalFallbackMode = false;
-        const LOCAL_STORAGE_KEY = 'bookkeeping_beta_local_v1';
+        const LOCAL_STORAGE_KEY_BASE = 'bookkeeping_beta_local_v1';
+        function getLocalStorageKey() {
+            return LOCAL_STORAGE_KEY_BASE + '_' + (auth?.currentUser?.uid || 'local_guest');
+        }
 
         try {
             if (typeof firebase !== 'undefined') {
@@ -1135,8 +1138,9 @@
         let previousCurrency = { add: 'TWD', edit: 'TWD' };
         let unsubUser = null;
         let unsubTrips = null;
+        let activeCloudUid = null;
         let pendingSyncCount = 0;
-        let lastDeletedExpenseUndo = null;
+        let searchRenderTimer = null;
 
         // 長列表延遲載入狀態
         const LAZY_BATCH_SIZE = 30;
@@ -1151,7 +1155,7 @@
         let calViewYear = new Date().getFullYear();
         let calViewMonth = new Date().getMonth();
 
-        const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], trash: [], trips: [] };
+        const defaultAppData = { activeTripId: "", customUserName: "", theme: "system", rates: { TWD: 1, JPY: 0.21, USD: 32.5, EUR: 35.0, KRW: 0.024 }, categories: ["餐飲", "交通", "住宿", "購物", "娛樂", "其他"], folders: [], tripLayout: {}, trash: [], trips: [] };
         const categoryDefaultTags = {
             "餐飲": ["早餐", "午餐", "晚餐", "咖啡", "超商", "甜點"],
             "交通": ["捷運/地鐵", "計程車", "巴士", "高鐵/火車", "IC卡儲值"],
@@ -1178,6 +1182,25 @@
             return Array.isArray(trip.members) && trip.members.length ? trip.members[0] : '';
         }
 
+        function applyUserTripLayout(trips) {
+            const folders = Array.isArray(appData?.folders) ? appData.folders : [];
+            const folderIds = new Set(folders.map(folder => folder.id));
+            const layout = { ...(appData?.tripLayout || {}) };
+            const laidOutTrips = (trips || []).map(trip => {
+                const saved = layout[trip.id];
+                const legacyFolderId = trip.folderId && folderIds.has(trip.folderId) ? trip.folderId : null;
+                const folderId = saved
+                    ? (saved.folderId && folderIds.has(saved.folderId) ? saved.folderId : null)
+                    : legacyFolderId;
+                const orderValue = saved ? Number(saved.order) : Number(trip.order);
+                const order = Number.isFinite(orderValue) ? orderValue : 0;
+                layout[trip.id] = { folderId, order };
+                return { ...trip, folderId, order };
+            });
+            appData.tripLayout = layout;
+            return laidOutTrips;
+        }
+
         function isCurrentUserTripOwner(trip) {
             return getTripOwnerId(trip) === currentUid();
         }
@@ -1192,7 +1215,7 @@
         function saveLocalBackup() {
             if (!appData) return;
             try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appData));
+                localStorage.setItem(getLocalStorageKey(), JSON.stringify(appData));
             } catch (e) {
                 console.warn('本機備份寫入失敗:', e);
             }
@@ -1211,6 +1234,7 @@
         async function editCustomNickname() {
             if (!appData) return;
             const oldName = currentPayerName();
+            const previousCustomName = appData.customUserName;
             const input = prompt('請輸入您的顯示稱呼（記帳時將作為您的預設付款名稱）：', oldName);
             if (input === null) return;
             const newName = input.trim();
@@ -1221,6 +1245,8 @@
             const shouldSyncHistory = confirm(`是否一併將目前帳本中「${oldName}」過去的付款紀錄更新為「${newName}」？`);
 
             const trip = appData.trips.find(t => t.id === appData.activeTripId);
+            const previousMemberNames = trip ? { ...(trip.memberNames || {}) } : null;
+            const previousExpenses = trip && Array.isArray(trip.expenses) ? [...trip.expenses] : null;
             if (trip) {
                 const prevStoredName = trip.memberNames?.[uid] || '';
                 trip.memberNames = { ...(trip.memberNames || {}), [uid]: newName };
@@ -1228,17 +1254,29 @@
                     const matchSet = new Set([oldName, prevStoredName, '我'].filter(Boolean));
                     trip.expenses = trip.expenses.map(exp => matchSet.has(exp.payer) ? { ...exp, payer: newName } : exp);
                 }
-                if (!isLocalFallbackMode && auth?.currentUser) {
-                    try {
-                        await db.collection('trips').doc(trip.id).set({
-                            memberNames: trip.memberNames,
-                            expenses: trip.expenses
-                        }, { merge: true });
-                    } catch (e) { console.warn(e); }
-                }
             }
 
-            await saveUserDoc({ customUserName: newName });
+            try {
+                if (!isLocalFallbackMode && auth?.currentUser) {
+                    const batch = db.batch();
+                    if (trip) batch.set(db.collection('trips').doc(trip.id), {
+                        memberNames: trip.memberNames,
+                        expenses: trip.expenses,
+                        folderId: firebase.firestore.FieldValue.delete(),
+                        order: firebase.firestore.FieldValue.delete()
+                    }, { merge: true });
+                    batch.set(db.collection('users').doc(auth.currentUser.uid), { customUserName: newName }, { merge: true });
+                    await batch.commit();
+                }
+            } catch (e) {
+                console.warn('個人稱呼同步失敗:', e);
+                appData.customUserName = previousCustomName;
+                if (trip) { trip.memberNames = previousMemberNames; if (previousExpenses) trip.expenses = previousExpenses; }
+                saveLocalBackup(); updateNicknameDisplay(); updateUI();
+                showToast('個人稱呼同步失敗，請確認網路後再試', 'error');
+                return;
+            }
+            saveLocalBackup();
             updateNicknameDisplay();
             updateUI();
             showToast('個人稱呼已更新');
@@ -1248,11 +1286,39 @@
 
         function activateLocalFallbackMode(reasonMsg = '') {
             isLocalFallbackMode = true;
+            resetTripFilters();
             if (unsubUser) { unsubUser(); unsubUser = null; }
-            if (unsubTrips) { unsubTrips = null; }
+            if (unsubTrips) { unsubTrips(); unsubTrips = null; }
             let stored = null;
             try {
-                stored = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+                const scopedKey = getLocalStorageKey();
+                let serialized = localStorage.getItem(scopedKey);
+                if (!serialized && !auth?.currentUser) {
+                    serialized = localStorage.getItem(LOCAL_STORAGE_KEY_BASE);
+                    if (serialized) localStorage.setItem(scopedKey, serialized);
+                }
+                if (!serialized && auth?.currentUser) {
+                    const legacyBackup = localStorage.getItem(LOCAL_STORAGE_KEY_BASE);
+                    const legacyData = legacyBackup ? JSON.parse(legacyBackup) : null;
+                    const ownedTrips = Array.isArray(legacyData?.trips)
+                        ? legacyData.trips.filter(trip => Array.isArray(trip.members) && trip.members.includes(auth.currentUser.uid))
+                        : [];
+                    if (ownedTrips.length) {
+                        const ownedTripIds = new Set(ownedTrips.map(trip => trip.id));
+                        const ownedTrash = (legacyData.trash || []).filter(item => item.kind === 'trip'
+                            ? Array.isArray(item.tripSnapshot?.members) && item.tripSnapshot.members.includes(auth.currentUser.uid)
+                            : item.kind === 'folder' && (legacyData.trash || []).some(child => child.kind === 'trip' && child.folderId === item.folder?.id && Array.isArray(child.tripSnapshot?.members) && child.tripSnapshot.members.includes(auth.currentUser.uid)));
+                        const ownedFolderIds = new Set(ownedTrips.map(trip => legacyData.tripLayout?.[trip.id]?.folderId || trip.folderId).filter(Boolean));
+                        legacyData.trips = ownedTrips;
+                        legacyData.folders = (legacyData.folders || []).filter(folder => ownedFolderIds.has(folder.id));
+                        legacyData.tripLayout = Object.fromEntries(Object.entries(legacyData.tripLayout || {}).filter(([tripId]) => ownedTripIds.has(tripId)));
+                        legacyData.trash = ownedTrash;
+                        if (!ownedTripIds.has(legacyData.activeTripId)) legacyData.activeTripId = ownedTrips[0].id;
+                        serialized = JSON.stringify(legacyData);
+                        localStorage.setItem(scopedKey, serialized);
+                    }
+                }
+                stored = JSON.parse(serialized);
             } catch (e) { stored = null; }
 
             const today = getLocalDateString();
@@ -1282,6 +1348,7 @@
                 rates: { ...defaultAppData.rates, ...(stored?.rates || {}) },
                 categories: Array.isArray(stored?.categories) && stored.categories.length ? stored.categories : [...defaultAppData.categories],
                 folders: Array.isArray(stored?.folders) ? stored.folders : [],
+                tripLayout: stored?.tripLayout && typeof stored.tripLayout === 'object' ? stored.tripLayout : {},
                 trash: Array.isArray(stored?.trash) ? stored.trash : [],
                 trips: Array.isArray(stored?.trips) && stored.trips.length ? stored.trips : [defaultTrip]
             };
@@ -1325,13 +1392,15 @@
         searchInputEl.addEventListener('input', function() {
             currentSearchQuery = this.value.trim().toLowerCase();
             searchClearBtn.style.display = currentSearchQuery ? 'inline-flex' : 'none';
-            updateUI();
+            clearTimeout(searchRenderTimer);
+            searchRenderTimer = setTimeout(() => updateUI({ renderCharts: false }), 180);
         });
         searchClearBtn.addEventListener('click', function() {
+            clearTimeout(searchRenderTimer);
             searchInputEl.value = '';
             currentSearchQuery = '';
             this.style.display = 'none';
-            updateUI();
+            updateUI({ renderCharts: false });
         });
 
         // ====== 常用項目快速點選標籤渲染 ======
@@ -1560,6 +1629,8 @@
         if (auth) {
             auth.onAuthStateChanged(user => {
                 if (user) {
+                    if (isLocalFallbackMode || (activeCloudUid && activeCloudUid !== user.uid)) { appData = null; resetTripFilters(); }
+                    activeCloudUid = user.uid;
                     isLocalFallbackMode = false;
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('loading-overlay').style.display = 'flex';
@@ -1567,8 +1638,10 @@
                 } else if (localStorage.getItem('bookkeeping_use_local_mode') === 'true') {
                     activateLocalFallbackMode();
                 } else {
-                    if (unsubUser) unsubUser();
-                    if (unsubTrips) unsubTrips();
+                    activeCloudUid = null;
+                    resetTripFilters();
+                    if (unsubUser) { unsubUser(); unsubUser = null; }
+                    if (unsubTrips) { unsubTrips(); unsubTrips = null; }
                     appData = null;
                     document.getElementById('main-app').style.display = 'none'; 
                     document.getElementById('loading-overlay').style.display = 'none';
@@ -1587,7 +1660,10 @@
         });
 
         function setupRealtimeListeners(user) {
+            if (unsubUser) { unsubUser(); unsubUser = null; }
+            if (unsubTrips) { unsubTrips(); unsubTrips = null; }
             let userDataLoaded = false; let tripsLoaded = false; let startupFailed = false;
+            let layoutMigrationPending = false; let layoutMigrationAttempted = false;
             latestTrips = []; serverTrips = [];
             pendingRestoredTrips.clear();
             const handleFirebaseError = (error) => {
@@ -1600,10 +1676,14 @@
             const finishStartup = () => {
                 if (startupFailed || !userDataLoaded || !tripsLoaded || !appData || latestTrips.length === 0) return;
                 try {
-                    appData.trips = latestTrips;
+                    appData.trips = applyUserTripLayout(latestTrips);
+                    if (layoutMigrationPending && !layoutMigrationAttempted) {
+                        layoutMigrationAttempted = true;
+                        saveUserDoc({ tripLayout: appData.tripLayout }).then(synced => { if (!synced) layoutMigrationAttempted = false; });
+                    }
                     if (!appData.activeTripId || !latestTrips.find(t => t.id === appData.activeTripId)) {
                         appData.activeTripId = latestTrips[0].id;
-                        db.collection("users").doc(user.uid).set({ activeTripId: latestTrips[0].id }, { merge: true }).catch(err => console.warn(err));
+                        saveUserDoc({ activeTripId: latestTrips[0].id });
                     }
                     saveLocalBackup();
                     updateNicknameDisplay();
@@ -1619,11 +1699,12 @@
 
             unsubUser = db.collection("users").doc(user.uid).onSnapshot({ includeMetadataChanges: true }, doc => {
                 const storedData = doc.exists ? doc.data() : {};
+                layoutMigrationPending = !storedData.tripLayout || typeof storedData.tripLayout !== 'object';
                 const baseData = appData || { ...defaultAppData, rates: { ...defaultAppData.rates }, categories: [...defaultAppData.categories], folders: [], trips: [] };
-                appData = { ...baseData, ...storedData, trips: latestTrips };
+                appData = { ...baseData, ...storedData, tripLayout: storedData.tripLayout || baseData.tripLayout || {}, trips: latestTrips };
                 appData.rates = { ...defaultAppData.rates, ...(appData.rates || {}) };
                 appData.categories = Array.isArray(appData.categories) && appData.categories.length ? appData.categories : [...defaultAppData.categories];
-                appData.folders = Array.isArray(appData.folders) ? appData.folders : []; appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
+                appData.folders = Array.isArray(appData.folders) ? appData.folders : []; appData.tripLayout = appData.tripLayout && typeof appData.tripLayout === 'object' ? appData.tripLayout : {}; appData.trash = Array.isArray(appData.trash) ? appData.trash : [];
                 userDataLoaded = true; applyTheme(appData.theme || 'system');
                 updateNicknameDisplay();
                 finishStartup();
@@ -1646,16 +1727,20 @@
 
         async function saveUserDoc(fields) {
             saveLocalBackup();
-            if (isLocalFallbackMode || !auth?.currentUser) return;
+            if (isLocalFallbackMode || !auth?.currentUser) return true;
             try {
                 await db.collection("users").doc(auth.currentUser.uid).set(fields, { merge: true });
+                return true;
             } catch (e) {
                 console.warn('雲端使用者設定同步略過，已保存於本機:', e);
+                showToast('雲端同步失敗，變更目前只保存在此裝置', 'error');
+                return false;
             }
         }
 
         async function updateTripExpenses(tripId, updateFn, offlineExpenses) {
             const trip = appData?.trips?.find(t => t.id === tripId);
+            const previousExpenses = trip ? [...(trip.expenses || [])] : null;
             if (trip) trip.expenses = offlineExpenses;
             saveLocalBackup();
 
@@ -1666,20 +1751,31 @@
             }
             const ref = db.collection("trips").doc(tripId);
             if (!navigator.onLine) {
-                await ref.set({ expenses: offlineExpenses }, { merge: true });
-                return;
+                try {
+                    await ref.set({ expenses: offlineExpenses, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }, { merge: true });
+                    updateUI(); renderSidebarContent();
+                    return;
+                } catch (error) {
+                    if (trip && previousExpenses) trip.expenses = previousExpenses;
+                    saveLocalBackup(); updateUI(); renderSidebarContent();
+                    throw error;
+                }
             }
             try {
                 await db.runTransaction(async transaction => {
                     const snapshot = await transaction.get(ref);
                     if (!snapshot.exists) throw new Error("找不到帳本");
                     const currentExpenses = Array.isArray(snapshot.data().expenses) ? snapshot.data().expenses : [];
-                    transaction.set(ref, { expenses: updateFn(currentExpenses) }, { merge: true });
+                    transaction.set(ref, { expenses: updateFn(currentExpenses), folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }, { merge: true });
                 });
+                updateUI(); renderSidebarContent();
             } catch (error) {
-                console.warn("雲端交易轉為本機寫入:", error);
+                console.warn("雲端交易失敗:", error);
+                if (trip && previousExpenses) trip.expenses = previousExpenses;
+                saveLocalBackup();
                 updateUI();
                 renderSidebarContent();
+                throw error;
             }
         }
 
@@ -1774,24 +1870,33 @@
                 matchNames.add(currentPayerName());
             }
 
+            const originalMemberNames = { ...(trip.memberNames || {}) };
+            const originalExpenses = Array.isArray(trip.expenses) ? [...trip.expenses] : [];
+            const originalCustomName = appData.customUserName;
             trip.memberNames = { ...(trip.memberNames || {}), [targetUid]: newName };
             if (targetUid === currentUid()) {
                 appData.customUserName = newName;
-                await saveUserDoc({ customUserName: newName });
-                updateNicknameDisplay();
             }
             if (Array.isArray(trip.expenses)) {
                 trip.expenses = trip.expenses.map(exp => matchNames.has(exp.payer) ? { ...exp, payer: newName } : exp);
             }
-            saveLocalBackup();
-            if (!isLocalFallbackMode && auth?.currentUser) {
-                try {
-                    await db.collection('trips').doc(trip.id).set({
-                        memberNames: trip.memberNames,
-                        expenses: trip.expenses
-                    }, { merge: true });
-                } catch (e) { console.warn('更新成員名稱同步略過:', e); }
+            try {
+                if (!isLocalFallbackMode && auth?.currentUser) {
+                    const batch = db.batch();
+                    batch.set(db.collection('trips').doc(trip.id), { memberNames: trip.memberNames, expenses: trip.expenses, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }, { merge: true });
+                    if (targetUid === currentUid()) batch.set(db.collection('users').doc(auth.currentUser.uid), { customUserName: newName }, { merge: true });
+                    await batch.commit();
+                }
+            } catch (e) {
+                console.warn('更新成員名稱同步失敗:', e);
+                trip.memberNames = originalMemberNames;
+                trip.expenses = originalExpenses;
+                appData.customUserName = originalCustomName;
+                saveLocalBackup(); updateNicknameDisplay(); updateUI();
+                showToast('成員名稱同步失敗，請確認網路後再試', 'error');
+                return;
             }
+            saveLocalBackup(); updateNicknameDisplay();
             renderTripMembersManageList(trip);
             updateUI();
             showToast(`已將成員名稱更新為「${newName}」`);
@@ -1802,6 +1907,8 @@
             if (targetUid === getTripOwnerId(trip)) return showToast('無法移除帳本建立者本人', 'error');
             if (!confirm(`確定要將「${memberName}」從此共用帳本中移除嗎？（該成員先前已記錄的帳目仍會保留）`)) return;
 
+            const originalMembers = [...(trip.members || [])];
+            const originalMemberNames = { ...(trip.memberNames || {}) };
             trip.members = (trip.members || []).filter(uid => uid !== targetUid);
             if (trip.memberNames && trip.memberNames[targetUid]) {
                 const nextNames = { ...trip.memberNames };
@@ -1813,9 +1920,17 @@
                 try {
                     await db.collection('trips').doc(trip.id).update({
                         members: firebase.firestore.FieldValue.arrayRemove(targetUid),
-                        memberNames: trip.memberNames || {}
+                        memberNames: trip.memberNames || {},
+                        folderId: firebase.firestore.FieldValue.delete(),
+                        order: firebase.firestore.FieldValue.delete()
                     });
-                } catch (e) { console.warn('移除成員雲端同步略過:', e); }
+                } catch (e) {
+                    console.warn('移除成員雲端同步失敗:', e);
+                    trip.members = originalMembers; trip.memberNames = originalMemberNames;
+                    saveLocalBackup(); renderTripMembersManageList(trip); updateUI(); renderSidebarContent();
+                    showToast('移除成員失敗，請確認網路後再試', 'error');
+                    return;
+                }
             }
             renderTripMembersManageList(trip);
             updateUI();
@@ -1846,8 +1961,11 @@
                     dateHeader.innerHTML = `<span>${escapeHtml(expense.date || '')}</span><span style="font-size:12px;color:var(--theme-text-main);">當日 NT$ ${dayTotal.toLocaleString()}</span>`;
                     fragment.appendChild(dateHeader);
                 }
-                const row = document.createElement('div'); row.className = 'expense-item';
+                const row = document.createElement('div'); row.className = 'expense-item'; row.tabIndex = 0; row.setAttribute('role', 'button'); row.setAttribute('aria-label', `編輯消費：${expense.name || '未命名'}`);
                 row.addEventListener('click', () => openEditExpenseModal(expense.id));
+                row.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openEditExpenseModal(expense.id); }
+                });
                 const name = escapeHtml(expense.name);
                 const payer = currentPayerStatsEnabled ? `<span class="expense-payer-label"><i class="ph-fill ph-user" style="vertical-align:middle"></i> ${escapeHtml(expense.payer || '我')}</span>` : '';
                 const details = expense.details ? `<span class="expense-detail-text"><i class="ph ph-list-dashes" style="vertical-align:middle"></i> ${escapeHtml(expense.details)}</span>` : '';
@@ -1881,7 +1999,7 @@
             if (renderedExpCount < currentDisplayExps.length && this.scrollTop + this.clientHeight >= this.scrollHeight - 120) appendNextExpenseBatch();
         }, { passive: true });
 
-        function updateUI() {
+        function updateUI(options = {}) {
             if (!appData || !Array.isArray(appData.trips) || appData.trips.length === 0) return;
             const trip = appData.trips.find(t => t.id === appData.activeTripId) || appData.trips[0];
             trip.expenses = Array.isArray(trip.expenses) ? trip.expenses : [];
@@ -1989,11 +2107,16 @@
             const addCurrency = document.getElementById('itemCurrency').value; const editCurrency = document.getElementById('editExpCurrency').value;
             const addCategory = document.getElementById('itemCategory').value; const editCategory = document.getElementById('editExpCategory').value;
             renderSelectOptions('itemCurrency', appData.rates, appData.rates[addCurrency] ? addCurrency : (appData.rates[previousCurrency.add] ? previousCurrency.add : 'TWD'), false, true);
-            renderSelectOptions('editExpCurrency', appData.rates, appData.rates[editCurrency] ? editCurrency : (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
+            const editRates = { ...appData.rates };
+            if (editCurrency && editCurrency !== 'TWD' && !editRates[editCurrency]) editRates[editCurrency] = Number(currentFetchedEditRate) || 1;
+            renderSelectOptions('editExpCurrency', editRates, editCurrency || (appData.rates[previousCurrency.edit] ? previousCurrency.edit : 'TWD'), false, true);
             renderSelectOptions('itemCategory', appData.categories, appData.categories.includes(addCategory) ? addCategory : appData.categories[0], true);
             renderSelectOptions('editExpCategory', appData.categories, appData.categories.includes(editCategory) ? editCategory : appData.categories[0], true);
             renderQuickItemTags();
-            renderChart(trip, totalTWD); renderCrossTripChart();
+            if (options.renderCharts !== false) {
+                renderChart(trip, totalTWD);
+                if (document.getElementById('tab-stats')?.classList.contains('active')) renderCrossTripChart();
+            }
         }
 
         // ====== 圓餅圖（動態適應淺色/深色模式切線邊框） ======
@@ -2156,11 +2279,14 @@
         function toggleCb(id) { const checkbox = Array.from(document.querySelectorAll('.sidebar-cb')).find(item => item.dataset.id === String(id)); if (checkbox) checkbox.checked = !checkbox.checked; }
         function resetTripFilters() {
             currentFilter = 'ALL';
+            currentSummaryCategory = 'ALL';
             currentSearchQuery = '';
             const searchInput = document.getElementById('expenseSearchInput');
             const clearButton = document.getElementById('expenseSearchClear');
             if (searchInput) searchInput.value = '';
             if (clearButton) clearButton.style.display = 'none';
+            const summaryFilter = document.getElementById('summaryCategoryFilter');
+            if (summaryFilter) summaryFilter.value = 'ALL';
         }
         function switchTrip(id) { appData.activeTripId = id; resetTripFilters(); saveUserDoc({ activeTripId: id }); toggleSidebar(false); updateUI(); }
 
@@ -2173,7 +2299,6 @@
 
         async function updateDataFromDOM() {
             const root = document.getElementById('root-sortable'); if (!root) return;
-            const before = new Map(appData.trips.map(trip => [trip.id, { folderId: trip.folderId || null, order: Number(trip.order || 0) }]));
             let rootOrder = 0;
             Array.from(root.children).forEach(element => {
                 if (element.dataset.type === 'folder') {
@@ -2189,26 +2314,20 @@
                     if (trip) { trip.folderId = null; trip.order = rootOrder++ * 100; }
                 }
             });
+            appData.tripLayout = { ...(appData.tripLayout || {}) };
+            appData.trips.forEach(trip => { appData.tripLayout[trip.id] = { folderId: trip.folderId || null, order: Number(trip.order || 0) }; });
             saveLocalBackup();
             if (isLocalFallbackMode || !auth?.currentUser) { showToast('帳本分類與排序已儲存'); return; }
-            const batch = db.batch();
-            appData.trips.forEach(trip => {
-                const prior = before.get(trip.id);
-                if (!prior || prior.folderId !== (trip.folderId || null) || prior.order !== Number(trip.order || 0)) {
-                    batch.set(db.collection('trips').doc(trip.id), { folderId: trip.folderId || null, order: Number(trip.order || 0) }, { merge: true });
-                }
-            });
-            batch.set(db.collection('users').doc(auth.currentUser.uid), { folders: appData.folders }, { merge: true });
-            try { await batch.commit(); showToast('帳本分類與排序已儲存'); } catch (error) { console.warn(error); showToast('排序已儲存於本機'); }
+            if (await saveUserDoc({ folders: appData.folders, tripLayout: appData.tripLayout })) showToast('帳本分類與排序已儲存');
         }
 
         async function createFolder() {
             const name = prompt('請輸入資料夾名稱：'); if (!name || !name.trim()) return;
             const folder = { id: 'folder_' + Date.now(), name: name.trim(), expanded: true, order: Date.now() };
             appData.folders = [...(appData.folders || []), folder];
-            await saveUserDoc({ folders: appData.folders });
+            const synced = await saveUserDoc({ folders: appData.folders });
             renderSidebarContent();
-            showToast('資料夾已建立，可拖曳帳本分類');
+            if (synced) showToast('資料夾已建立，可拖曳帳本分類');
         }
         async function deleteSelectedItems() {
             const selected = Array.from(document.querySelectorAll('.sidebar-cb:checked'));
@@ -2234,32 +2353,41 @@
             const previousActiveTripId = appData.activeTripId;
             const nextFolders = appData.folders.filter(folder => !selectedFolders.has(folder.id));
             const nextActiveTripId = selectedTrips.has(previousActiveTripId) ? remaining[0].id : previousActiveTripId;
+            const nextTripLayout = { ...(appData.tripLayout || {}) };
+            tripsToRemove.forEach(trip => { delete nextTripLayout[trip.id]; });
             const trashEntries = [
                 ...foldersToRemove.map(folder => ({ id: 'folder_' + folder.id + '_' + deletedAt, kind: 'folder', folder: { ...folder }, name: folder.name, deletedAt, expiresAt })),
                 ...tripsToRemove.map(trip => ({ id: 'trip_' + trip.id + '_' + deletedAt, kind: 'trip', tripId: trip.id, tripSnapshot: { ...trip }, name: trip.name, folderId: trip.folderId || null, shared: sharedTripIds.has(trip.id), deletedAt, expiresAt }))
             ];
             const nextTrash = [...(appData.trash || []).filter(item => Number(item.expiresAt || 0) > deletedAt), ...trashEntries];
 
-            appData.trips = remaining; appData.folders = nextFolders; appData.trash = nextTrash; appData.activeTripId = nextActiveTripId;
-            saveLocalBackup();
-
+            let cloudSyncSucceeded = true;
             if (!isLocalFallbackMode && auth?.currentUser) {
                 try {
-                    const batch = db.batch();
-                    tripsToRemove.forEach(trip => {
-                        if (sharedTripIds.has(trip.id)) batch.update(db.collection('trips').doc(trip.id), { members: firebase.firestore.FieldValue.arrayRemove(uid) });
-                        else batch.update(db.collection('trips').doc(trip.id), { members: firebase.firestore.FieldValue.arrayRemove(uid), trashedBy: uid, trashedAt: deletedAt, trashExpiresAt: expiresAt });
-                    });
-                    batch.set(db.collection('users').doc(uid), { folders: nextFolders, trash: nextTrash, activeTripId: nextActiveTripId }, { merge: true });
-                    await batch.commit();
-                } catch (e) { console.warn('雲端刪除同步略過:', e); }
+                    const batchSize = 450;
+                    const batchCount = Math.max(1, Math.ceil(tripsToRemove.length / batchSize));
+                    for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
+                        const batch = db.batch();
+                        const batchTrips = tripsToRemove.slice(batchIndex * batchSize, (batchIndex + 1) * batchSize);
+                        batchTrips.forEach(trip => {
+                            const update = sharedTripIds.has(trip.id)
+                                ? { members: firebase.firestore.FieldValue.arrayRemove(uid), folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }
+                                : { members: firebase.firestore.FieldValue.arrayRemove(uid), trashedBy: uid, trashedAt: deletedAt, trashExpiresAt: expiresAt, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() };
+                            batch.update(db.collection('trips').doc(trip.id), update);
+                        });
+                        if (batchIndex === batchCount - 1) batch.set(db.collection('users').doc(uid), { folders: nextFolders, tripLayout: nextTripLayout, trash: nextTrash, activeTripId: nextActiveTripId }, { merge: true });
+                        await batch.commit();
+                    }
+                } catch (e) { console.warn('雲端刪除同步失敗:', e); cloudSyncSucceeded = false; }
             }
 
+            appData.trips = remaining; appData.folders = nextFolders; appData.tripLayout = nextTripLayout; appData.trash = nextTrash; appData.activeTripId = nextActiveTripId;
+            saveLocalBackup();
             isSidebarEditMode = false;
             document.getElementById('sidebar-normal-actions').style.display = 'block';
             document.getElementById('sidebar-edit-actions').style.display = 'none';
             updateUI(); renderSidebarContent(); updateTrashCount();
-            showToast('已移至最近刪除，可在 30 天內復原');
+            showToast(cloudSyncSucceeded ? '已移至最近刪除，可在 30 天內復原' : '已先移至本機最近刪除，但雲端同步失敗，請確認網路後重試', cloudSyncSucceeded ? 'info' : 'error');
         }
 
         function updateTrashCount() { const countNode = document.getElementById('trash-count'); if (!countNode) return; const count = (appData?.trash || []).filter(item => Number(item.expiresAt || 0) > Date.now()).length; countNode.textContent = '(' + count + ')'; }
@@ -2351,6 +2479,12 @@
             restoredTrips.forEach(trip => tripMap.set(trip.id, trip));
             const nextTrips = Array.from(tripMap.values());
             const nextActiveTripId = restoredTrips[0]?.id || appData.activeTripId;
+            const nextTripLayout = { ...(appData.tripLayout || {}) };
+            restoredTrips.forEach(trip => {
+                const parentFolder = restoredFolders.find(folder => folder.id === trip.folderId);
+                if (parentFolder) parentFolder.expanded = true;
+                nextTripLayout[trip.id] = { folderId: trip.folderId || null, order: Number(trip.order || 0) };
+            });
 
             if (!isLocalFallbackMode && auth?.currentUser && db) {
                 const uid = auth.currentUser.uid;
@@ -2372,9 +2506,12 @@
                         const batchTrips = cloudTrips.slice(start, start + batchSize);
                         batchTrips.forEach(trip => {
                             const tripRef = db.collection('trips').doc(trip.id);
+                            const { folderId: ignoredFolderId, order: ignoredOrder, ...sharedTripData } = trip;
                             batch.set(tripRef, {
-                                ...trip,
+                                ...sharedTripData,
                                 members: firebase.firestore.FieldValue.arrayUnion(uid),
+                                folderId: firebase.firestore.FieldValue.delete(),
+                                order: firebase.firestore.FieldValue.delete(),
                                 trashedBy: firebase.firestore.FieldValue.delete(),
                                 trashedAt: firebase.firestore.FieldValue.delete(),
                                 trashExpiresAt: firebase.firestore.FieldValue.delete()
@@ -2383,6 +2520,7 @@
                         if (batchIndex === batchCount - 1) {
                             batch.set(db.collection('users').doc(uid), {
                                 folders: restoredFolders,
+                                tripLayout: nextTripLayout,
                                 trash: nextTrash,
                                 activeTripId: nextActiveTripId
                             }, { merge: true });
@@ -2402,6 +2540,7 @@
             }
 
             appData.folders = restoredFolders;
+            appData.tripLayout = nextTripLayout;
             appData.trash = nextTrash;
             appData.trips = nextTrips;
             appData.activeTripId = nextActiveTripId;
@@ -2417,14 +2556,22 @@
             if (!item) return showToast('找不到要重新命名的項目', 'error');
             const input = prompt('請輸入新的名稱：', item.name || ''); if (input === null) return;
             const name = input.trim(); if (!name || name === item.name) return;
+            const previousName = item.name;
             item.name = name;
-            saveLocalBackup();
             if (!isLocalFallbackMode && auth?.currentUser) {
                 try {
-                    if (type === 'folder') await db.collection('users').doc(auth.currentUser.uid).set({ folders: appData.folders }, { merge: true });
-                    else await db.collection('trips').doc(id).update({ name });
-                } catch (e) { console.warn(e); }
+                    if (type === 'folder') {
+                        if (!(await saveUserDoc({ folders: appData.folders }))) { item.name = previousName; saveLocalBackup(); renderSidebarContent(); return; }
+                    }
+                    else await db.collection('trips').doc(id).update({ name, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() });
+                } catch (e) {
+                    console.warn('重新命名同步失敗:', e);
+                    item.name = previousName; saveLocalBackup(); renderSidebarContent();
+                    showToast('重新命名同步失敗，請確認網路後再試', 'error');
+                    return;
+                }
             }
+            saveLocalBackup();
             if (type === 'trip') updateUI();
             renderSidebarContent();
             showToast('已重新命名');
@@ -2433,19 +2580,39 @@
         async function joinSharedTrip() {
             if (isLocalFallbackMode || !auth?.currentUser) return showToast('共用帳本需登入雲端帳號方可使用', 'warn');
             const codeInput = document.getElementById('sharedTripCodeInput'); const code = codeInput.value.trim().toUpperCase(); if (!/^[A-Z0-9]{6}$/.test(code)) return showToast('請輸入完整的 6 碼邀請碼', 'error');
-            try { const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get(); if (snapshot.empty) return showToast('找不到此邀請碼', 'error'); const tripDoc = snapshot.docs[0]; const trip = tripDoc.data(); if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員'); const joinedUid = auth.currentUser.uid; const memberNames = { ...(trip.memberNames || {}), [joinedUid]: currentPayerName() }; await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(joinedUid), memberNames }); const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), joinedUid], memberNames }; await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: joinedTrip.id }, { merge: true }); appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), joinedTrip]; appData.activeTripId = joinedTrip.id; codeInput.value = ''; updateUI(); renderSidebarContent(); closeModal('addTripModal'); toggleSidebar(false); showToast('已加入共用帳本'); } catch (error) { console.error(error); showToast('加入失敗，請確認邀請碼及權限', 'error'); }
+            try {
+                const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get();
+                if (snapshot.empty) return showToast('找不到此邀請碼', 'error');
+                const tripDoc = snapshot.docs[0]; const trip = tripDoc.data();
+                if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員');
+                const joinedUid = auth.currentUser.uid;
+                const memberNames = { ...(trip.memberNames || {}), [joinedUid]: currentPayerName() };
+                const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), joinedUid], memberNames };
+                const [laidOutTrip] = applyUserTripLayout([joinedTrip]);
+                const batch = db.batch();
+                batch.update(tripDoc.ref, { members: firebase.firestore.FieldValue.arrayUnion(joinedUid), memberNames, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() });
+                batch.set(db.collection('users').doc(joinedUid), { activeTripId: joinedTrip.id, tripLayout: appData.tripLayout }, { merge: true });
+                await batch.commit();
+                appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), laidOutTrip];
+                appData.activeTripId = joinedTrip.id; resetTripFilters();
+                saveLocalBackup(); codeInput.value = ''; updateUI(); renderSidebarContent(); closeModal('addTripModal'); toggleSidebar(false);
+                showToast('已加入共用帳本');
+            } catch (error) { console.error(error); showToast('加入失敗，請確認邀請碼及權限', 'error'); }
         }
 
         // ====== 安全數學算式解析器（支援全形運算符與千分位逗號轉換） ======
         function parseAmount(input) {
-            const expr = String(input ?? '')
+            const rawExpr = String(input ?? '')
                 .replace(/[０-９]/g, digit => String.fromCharCode(digit.charCodeAt(0) - 0xFEE0))
-                .replace(/，|,/g, '')
                 .replace(/＋/g, '+').replace(/－|—|–|−/g, '-')
                 .replace(/＊|×|✕/g, '*').replace(/／|÷/g, '/')
                 .replace(/（/g, '(').replace(/）/g, ')')
+                .replace(/，/g, ',')
                 .replace(/。|．/g, '.')
                 .replace(/\s+/g, '');
+            const ungrouped = rawExpr.replace(/(^|[^\d])\d{1,3}(?:,\d{3})+(?:\.\d*)?/g, '$1');
+            if (ungrouped.includes(',')) return NaN;
+            const expr = rawExpr.replace(/，|,/g, '');
             if (!expr) return NaN;
 
             const tokens = expr.match(/\d+(?:\.\d*)?|\.\d+|[()+\-*/]/g) || [];
@@ -2592,8 +2759,9 @@
         // ====== 開啟編輯視窗（修正：保留記帳時匯率，不強制重抓網路匯率覆蓋） ======
         function openEditExpenseModal(id) {
             const trip = appData.trips.find(t => t.id === appData.activeTripId);
-            const exp = trip.expenses.find(e => e.id === id);
+            const exp = trip.expenses.find(e => String(e.id) === String(id));
             if (!exp) return;
+            rateRequestIds.edit++;
 
             document.getElementById('editExpId').value = exp.id;
             document.getElementById('editExpName').value = exp.name;
@@ -2602,7 +2770,9 @@
             if (trip.showPayerSummary !== false) populatePayerSelect('editExpPayer', trip, exp.payer || '我');
             document.getElementById('editExpDate').value = exp.date;
 
-            renderSelectOptions('editExpCurrency', appData.rates, exp.currency || 'TWD', false, true);
+            const editRates = { ...appData.rates };
+            if (exp.currency && exp.currency !== 'TWD' && !editRates[exp.currency]) editRates[exp.currency] = Number(exp.rate) || 1;
+            renderSelectOptions('editExpCurrency', editRates, exp.currency || 'TWD', false, true);
 
             const editCatList = appData.categories.includes(exp.category)
                 ? appData.categories
@@ -2646,6 +2816,8 @@
                 await updateTripExpenses(trip.id, expenses => [duplicated, ...expenses], [duplicated, ...currentExpenses]);
                 closeModal('editExpenseModal');
                 showToast(`已複製「${name}」至 ${targetDate}`);
+            } catch (error) {
+                console.error(error); showToast('複製失敗，請稍後再試', 'error');
             } finally {
                 isEditSaving = false; this.disabled = false;
             }
@@ -2655,7 +2827,7 @@
         document.getElementById('btn-save-edit').onclick = async function() {
             if (isEditSaving) return;
             if (rateLoading.edit) return showToast('正在更新匯率，請稍候再儲存', 'error');
-            const id = parseInt(document.getElementById('editExpId').value, 10); const name = document.getElementById('editExpName').value.trim(); const amount = parseAmount(document.getElementById('editExpAmount').value); const date = document.getElementById('editExpDate').value; const currency = document.getElementById('editExpCurrency').value;
+            const id = String(document.getElementById('editExpId').value); const name = document.getElementById('editExpName').value.trim(); const amount = parseAmount(document.getElementById('editExpAmount').value); const date = document.getElementById('editExpDate').value; const currency = document.getElementById('editExpCurrency').value;
             if (!name || isNaN(amount) || amount <= 0 || !date) return showToast('請填寫完整資訊', 'error');
             const trip = appData.trips.find(item => item.id === appData.activeTripId); if (!trip) return showToast('找不到目前帳本', 'error');
             if (isTripDateLimited(trip) && (date < trip.startDate || date > trip.endDate)) {
@@ -2675,7 +2847,7 @@
         // 刪除單筆消費並支援 6 秒內「復原 (Undo)」
         document.getElementById('btn-delete-expense').onclick = async function() {
             if (isEditSaving) return;
-            const id = parseInt(document.getElementById('editExpId').value, 10);
+            const id = String(document.getElementById('editExpId').value);
             const trip = appData.trips.find(item => item.id === appData.activeTripId);
             if (!trip) return showToast('找不到目前帳本', 'error');
             const currentExpenses = Array.isArray(trip.expenses) ? trip.expenses : [];
@@ -2685,21 +2857,23 @@
             const offlineExpenses = currentExpenses.filter(expense => String(expense.id) !== String(id));
             isEditSaving = true; this.disabled = true;
             try {
-                lastDeletedExpenseUndo = { tripId: trip.id, expense: { ...deletedTarget } };
+                const undoEntry = { tripId: trip.id, expense: { ...deletedTarget }, used: false };
                 if (navigator.vibrate) navigator.vibrate(40);
                 await updateTripExpenses(trip.id, expenses => expenses.filter(expense => String(expense.id) !== String(id)), offlineExpenses);
                 closeModal('editExpenseModal');
                 showToast(`已刪除「${deletedTarget.name}」`, 'warn', {
                     actionText: '復原',
                     onAction: async () => {
-                        if (!lastDeletedExpenseUndo) return;
-                        const { tripId, expense } = lastDeletedExpenseUndo;
-                        lastDeletedExpenseUndo = null;
+                        if (undoEntry.used) return;
+                        undoEntry.used = true;
+                        const { tripId, expense } = undoEntry;
                         const targetTrip = appData.trips.find(t => t.id === tripId);
                         if (!targetTrip) return;
                         const exps = Array.isArray(targetTrip.expenses) ? targetTrip.expenses : [];
-                        await updateTripExpenses(tripId, list => [expense, ...list], [expense, ...exps]);
-                        showToast(`已復原「${expense.name}」`);
+                        try {
+                            await updateTripExpenses(tripId, list => [expense, ...list], [expense, ...exps]);
+                            showToast(`已復原「${expense.name}」`);
+                        } catch (error) { console.error(error); showToast('復原失敗，請確認同步狀態後再試', 'error'); }
                     }
                 });
             } catch (error) { console.error(error); showToast('刪除失敗，請稍後再試', 'error'); }
@@ -2742,23 +2916,62 @@
         }
 
         async function getDailyTwdRate(currency, date = 'latest') {
-            const code = String(currency || '').trim().toLowerCase(); if (!/^[a-z]{3,5}$/.test(code)) throw new Error('幣別代碼格式不正確'); if (code === 'twd') return { rate: 1, date: date === 'latest' ? getLocalDateString() : date };
-            const cacheKey = code + '|' + date; if (dailyRateCache.has(cacheKey)) return dailyRateCache.get(cacheKey);
-            const base = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@'; const urls = date === 'latest' ? [base + 'latest/v1/currencies/' + code + '.min.json', 'https://latest.currency-api.pages.dev/v1/currencies/' + code + '.min.json'] : [base + encodeURIComponent(date) + '/v1/currencies/' + code + '.min.json', base + 'latest/v1/currencies/' + code + '.min.json', 'https://latest.currency-api.pages.dev/v1/currencies/' + code + '.min.json'];
+            const code = String(currency || '').trim().toLowerCase();
+            if (!/^[a-z]{3,5}$/.test(code)) throw new Error('幣別代碼格式不正確');
+            if (code === 'twd') return { rate: 1, date: date === 'latest' ? getLocalDateString() : date };
+            const today = getLocalDateString();
+            const requestedDate = date === 'latest' || !/^\d{4}-\d{2}-\d{2}$/.test(String(date)) || date >= today ? 'latest' : String(date);
+            const cacheKey = code + '|' + requestedDate;
+            if (dailyRateCache.has(cacheKey)) return dailyRateCache.get(cacheKey);
+
+            const base = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@';
+            const candidateDates = requestedDate === 'latest' ? ['latest'] : [];
+            if (requestedDate !== 'latest') {
+                const start = new Date(requestedDate + 'T00:00:00Z');
+                if (Number.isNaN(start.getTime()) || start.toISOString().slice(0, 10) !== requestedDate) throw new Error('日期格式不正確');
+                for (let offset = 0; offset <= 3; offset++) {
+                    const candidate = new Date(start);
+                    candidate.setUTCDate(candidate.getUTCDate() - offset);
+                    candidateDates.push(candidate.toISOString().slice(0, 10));
+                }
+            }
             let lastError;
-            for (const url of urls) { const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 8000); try { const response = await fetch(url, { signal: controller.signal, cache: 'no-store' }); if (!response.ok) throw new Error('匯率服務回應 ' + response.status); const data = await response.json(); const rate = Number(data?.[code]?.twd); if (!Number.isFinite(rate) || rate <= 0) throw new Error('查無此幣別的台幣匯率'); const result = { rate, date: data.date || date }; dailyRateCache.set(cacheKey, result); return result; } catch (error) { lastError = error; } finally { clearTimeout(timeout); } } throw lastError || new Error('匯率服務暫時無法使用');
+            for (const rateDate of candidateDates) {
+                const path = rateDate + '/v1/currencies/' + code + '.min.json';
+                const urls = [base + path, 'https://' + rateDate + '.currency-api.pages.dev/v1/currencies/' + code + '.min.json'];
+                if (rateDate === 'latest') urls[1] = 'https://latest.currency-api.pages.dev/v1/currencies/' + code + '.min.json';
+                const controllers = urls.map(() => new AbortController());
+                const timers = controllers.map(controller => setTimeout(() => controller.abort(), 4000));
+                try {
+                    const result = await Promise.any(urls.map(async (url, index) => {
+                        const response = await fetch(url, { signal: controllers[index].signal, cache: 'no-store' });
+                        if (!response.ok) throw new Error('匯率服務回應 ' + response.status);
+                        const data = await response.json();
+                        const rate = Number(data?.[code]?.twd);
+                        if (!Number.isFinite(rate) || rate <= 0) throw new Error('查無此幣別的台幣匯率');
+                        return { rate, date: data.date || rateDate };
+                    }));
+                    dailyRateCache.set(cacheKey, result);
+                    return result;
+                } catch (error) { lastError = error; }
+                finally { controllers.forEach(controller => controller.abort()); timers.forEach(clearTimeout); }
+            }
+            throw lastError || new Error('匯率服務暫時無法使用');
         }
 
         // ====== 匯率變動處理（優先尊重「管理自訂幣別與匯率」中已設定的匯率） ======
-        async function handleCurrencyDateChange(mode) {
+        async function handleCurrencyDateChange(mode, forceLookup = false) {
             const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
             const date = document.getElementById(mode === 'add' ? 'itemDate' : 'editExpDate').value || getLocalDateString();
             const currency = select.value;
             if (currency === 'ONLINE_LOOKUP') {
+                rateRequestIds[mode]++;
+                rateLoading[mode] = false;
                 select.value = previousCurrency[mode] || 'TWD';
                 openLiveRateLookup(mode);
                 return;
             }
+            const currencyChanged = previousCurrency[mode] !== currency;
             previousCurrency[mode] = currency;
             const requestId = ++rateRequestIds[mode];
             if (currency === 'TWD') {
@@ -2769,7 +2982,11 @@
                 return;
             }
             const savedRate = Number(appData?.rates?.[currency]);
-            if (Number.isFinite(savedRate) && savedRate > 0) {
+            const previousRateValue = Number(currentRateFor(mode));
+            const fallbackRate = !currencyChanged && Number.isFinite(previousRateValue) && previousRateValue > 0
+                ? previousRateValue
+                : (Number.isFinite(savedRate) && savedRate > 0 ? savedRate : 1);
+            if (!forceLookup && Number.isFinite(savedRate) && savedRate > 0) {
                 rateLoading[mode] = false;
                 setCurrentRateFor(mode, savedRate);
                 rateMeta[mode] = `設定匯率 ${savedRate}`;
@@ -2777,7 +2994,7 @@
                 return;
             }
             rateLoading[mode] = true;
-            setCurrentRateFor(mode, 1);
+            setCurrentRateFor(mode, fallbackRate);
             rateMeta[mode] = '查詢當日匯率中…';
             updateTWDPreview(mode);
             try {
@@ -2789,8 +3006,8 @@
             } catch (error) {
                 if (requestId !== rateRequestIds[mode] || select.value !== currency) return;
                 rateLoading[mode] = false;
-                setCurrentRateFor(mode, 1);
-                rateMeta[mode] = '無可用匯率';
+                setCurrentRateFor(mode, fallbackRate);
+                rateMeta[mode] = '查詢失敗，保留原匯率';
                 console.warn(error);
             }
             updateTWDPreview(mode);
@@ -2806,16 +3023,17 @@
             try { const result = await getDailyTwdRate(code, date || 'latest'); if (requestId !== liveRateRequestId) return; currentLookupRate = { code, ...result }; status.textContent = '1 ' + code + ' ≈ NT$ ' + result.rate.toLocaleString(undefined, { maximumFractionDigits: 6 }) + '（' + result.date + '）'; applyButton.disabled = false; } catch (error) { if (requestId !== liveRateRequestId) return; currentLookupRate = null; status.textContent = '查詢失敗：請確認代碼與網路連線。'; console.warn(error); }
         }
 
-        async function saveUserRates() { await saveUserDoc({ rates: appData.rates }); }
+        async function saveUserRates() { return await saveUserDoc({ rates: appData.rates }); }
         async function applyLiveRateToApp() {
             if (!currentLookupRate) return; const { code, rate, date } = currentLookupRate;
             appData.rates[code] = rate;
-            await saveUserRates(); updateUI(); renderManageCurrencies();
+            if (currentLookupTarget === 'add' || currentLookupTarget === 'edit') rateRequestIds[currentLookupTarget]++;
+            const synced = await saveUserRates(); updateUI(); renderManageCurrencies();
             if (currentLookupTarget === 'add' || currentLookupTarget === 'edit') {
                 const mode = currentLookupTarget; const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
                 select.value = code; previousCurrency[mode] = code; setCurrentRateFor(mode, rate); rateLoading[mode] = false; rateMeta[mode] = '匯率日期 ' + date; updateTWDPreview(mode);
             }
-            closeModal('liveRateModal'); showToast('已套用 ' + code + ' 當日匯率');
+            closeModal('liveRateModal'); if (synced) showToast('已套用 ' + code + ' 當日匯率');
         }
 
         function renderManageCurrencies() {
@@ -2834,15 +3052,15 @@
             const code = document.getElementById('newManageCurrCode').value.trim().toUpperCase(); const rate = Number(document.getElementById('newManageCurrRate').value);
             if (!/^[A-Z]{3,5}$/.test(code) || code === 'TWD' || !Number.isFinite(rate) || rate <= 0) return showToast('請輸入有效幣別代碼和大於 0 的匯率', 'error');
             const prior = appData.rates[code]; appData.rates[code] = rate;
-            await saveUserRates(); updateUI(); renderManageCurrencies();
+            const synced = await saveUserRates(); updateUI(); renderManageCurrencies();
             document.getElementById('newManageCurrCode').value = ''; document.getElementById('newManageCurrRate').value = '';
-            showToast(prior ? '匯率已更新' : '幣別已新增');
+            if (synced) showToast(prior ? '匯率已更新' : '幣別已新增');
         }
 
         async function handleCurrencyManagerAction(event) {
             const button = event.target.closest('button[data-action][data-currency]'); if (!button) return; const code = button.dataset.currency; const action = button.dataset.action;
             if (action === 'edit') { const raw = prompt('輸入 1 ' + code + ' 可換算的新台幣金額：', appData.rates[code]); if (raw === null) return; document.getElementById('newManageCurrCode').value = code; document.getElementById('newManageCurrRate').value = raw; return addOrUpdateCurrency(); }
-            if (action === 'delete' && confirm('刪除 ' + code + '？已記帳的消費仍會保留原匯率。')) { delete appData.rates[code]; await saveUserRates(); updateUI(); renderManageCurrencies(); showToast('幣別已刪除'); }
+            if (action === 'delete' && confirm('刪除 ' + code + '？已記帳的消費仍會保留原匯率。')) { delete appData.rates[code]; const synced = await saveUserRates(); updateUI(); renderManageCurrencies(); if (synced) showToast('幣別已刪除'); }
         }
 
         function renderManageCategories() {
@@ -2858,8 +3076,8 @@
         async function addManageCategory() {
             const input = document.getElementById('newManageCatInput'); const category = input.value.trim(); if (!category) return showToast('請輸入分類名稱', 'error'); if (appData.categories.includes(category)) return showToast('此分類已存在', 'error');
             appData.categories = [...appData.categories, category];
-            await saveUserDoc({ categories: appData.categories });
-            input.value = ''; renderManageCategories(); updateUI(); showToast('分類已新增');
+            const synced = await saveUserDoc({ categories: appData.categories });
+            input.value = ''; renderManageCategories(); updateUI(); if (synced) showToast('分類已新增');
         }
 
         async function handleCategoryManagerAction(event) {
@@ -2868,22 +3086,24 @@
                 if ((appData.categories || []).length <= 1) return showToast('至少保留一個消費分類，無法刪除最後一個分類', 'error');
                 if (!confirm('刪除「' + oldName + '」分類？已記錄的消費不會刪除。')) return;
                 appData.categories = appData.categories.filter(category => category !== oldName);
-                await saveUserDoc({ categories: appData.categories });
+                const synced = await saveUserDoc({ categories: appData.categories });
                 if (currentFilter === oldName) currentFilter = 'ALL';
-                renderManageCategories(); updateUI(); showToast('分類已刪除'); return;
+                renderManageCategories(); updateUI(); if (synced) showToast('分類已刪除'); return;
             }
             const newName = prompt('輸入「' + oldName + '」的新名稱：', oldName); if (newName === null || !newName.trim() || newName.trim() === oldName) return; const trimmed = newName.trim(); if (appData.categories.includes(trimmed)) return showToast('此分類已存在', 'error');
             const changedTrips = appData.trips.filter(trip => (trip.expenses || []).some(expense => expense.category === oldName));
-            for (const trip of changedTrips) {
-                const current = Array.isArray(trip.expenses) ? trip.expenses : [];
-                const updated = current.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense);
-                await updateTripExpenses(trip.id, expenses => expenses.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense), updated);
-                trip.expenses = updated;
-            }
+            try {
+                for (const trip of changedTrips) {
+                    const current = Array.isArray(trip.expenses) ? trip.expenses : [];
+                    const updated = current.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense);
+                    await updateTripExpenses(trip.id, expenses => expenses.map(expense => expense.category === oldName ? { ...expense, category: trimmed } : expense), updated);
+                    trip.expenses = updated;
+                }
+            } catch (error) { console.error(error); showToast('部分帳本分類更新失敗，請確認同步狀態後重試', 'error'); return; }
             appData.categories = appData.categories.map(category => category === oldName ? trimmed : category);
-            await saveUserDoc({ categories: appData.categories });
+            const synced = await saveUserDoc({ categories: appData.categories });
             if (currentFilter === oldName) currentFilter = trimmed;
-            renderManageCategories(); updateUI(); showToast('分類與既有紀錄已更新');
+            renderManageCategories(); updateUI(); if (synced) showToast('分類與既有紀錄已更新');
         }
 
         // ====== 匯出 CSV（支援分類篩選、TWD 原幣空白、未勾選付款統計時隱藏付款人） ======
@@ -2970,48 +3190,75 @@
                 }
                 if (!confirm(`確定要從備份檔還原 ${parsed.trips.length} 個帳本嗎？`)) return;
                 const uid = currentUid();
-                parsed.trips = parsed.trips.map(t => ({
+                parsed.trips = parsed.trips.filter(t => t && typeof t === 'object' && typeof t.id === 'string' && t.id.trim()).map(t => ({
                     ...t,
                     ownerId: t.ownerId || uid,
-                    members: Array.from(new Set([...(t.members || []), uid]))
+                    expenses: Array.isArray(t.expenses) ? t.expenses : [],
+                    members: Array.from(new Set([...(Array.isArray(t.members) ? t.members : []), uid]))
                 }));
+                if (!parsed.trips.length) return showToast('備份檔案中沒有有效的帳本資料', 'error');
+                if (new Set(parsed.trips.map(trip => trip.id)).size !== parsed.trips.length) return showToast('備份檔案包含重複帳本 ID，無法還原', 'error');
+                const restoredFolders = Array.isArray(parsed.folders) ? parsed.folders : [];
+                const folderIds = new Set(restoredFolders.map(folder => folder?.id).filter(Boolean));
+                const tripLayout = { ...(parsed.tripLayout || {}) };
+                parsed.trips.forEach(trip => {
+                    const saved = tripLayout[trip.id];
+                    const legacyFolderId = trip.folderId && folderIds.has(trip.folderId) ? trip.folderId : null;
+                    tripLayout[trip.id] = {
+                        folderId: saved?.folderId && folderIds.has(saved.folderId) ? saved.folderId : (saved ? null : legacyFolderId),
+                        order: Number.isFinite(Number(saved?.order ?? trip.order)) ? Number(saved?.order ?? trip.order) : 0
+                    };
+                    trip.folderId = tripLayout[trip.id].folderId;
+                    trip.order = tripLayout[trip.id].order;
+                });
                 appData = {
                     ...defaultAppData,
                     ...parsed,
                     rates: { ...defaultAppData.rates, ...(parsed.rates || {}) },
                     categories: Array.isArray(parsed.categories) && parsed.categories.length ? parsed.categories : [...defaultAppData.categories],
-                    folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+                    folders: restoredFolders,
+                    tripLayout,
                     trash: Array.isArray(parsed.trash) ? parsed.trash : [],
-                    activeTripId: parsed.activeTripId || parsed.trips[0].id
+                    activeTripId: parsed.trips.some(trip => trip.id === parsed.activeTripId) ? parsed.activeTripId : parsed.trips[0].id
                 };
                 saveLocalBackup();
+                let cloudRestoreSucceeded = true;
                 if (!isLocalFallbackMode && auth?.currentUser) {
                     try {
-                        const batch = db.batch();
-                        appData.trips.forEach(t => batch.set(db.collection('trips').doc(t.id), t, { merge: true }));
-                        batch.set(db.collection('users').doc(uid), {
-                            activeTripId: appData.activeTripId,
-                            customUserName: appData.customUserName || '',
-                            theme: appData.theme || 'system',
-                            rates: appData.rates,
-                            categories: appData.categories,
-                            folders: appData.folders,
-                            trash: appData.trash
-                        }, { merge: true });
-                        await batch.commit();
-                    } catch (err) { console.warn('雲端同步備份略過:', err); }
+                        const batchSize = 450;
+                        const batchCount = Math.max(1, Math.ceil(appData.trips.length / batchSize));
+                        for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
+                            const batch = db.batch();
+                            appData.trips.slice(batchIndex * batchSize, (batchIndex + 1) * batchSize).forEach(trip => {
+                                const { folderId: ignoredFolderId, order: ignoredOrder, ...sharedTripData } = trip;
+                                batch.set(db.collection('trips').doc(trip.id), { ...sharedTripData, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }, { merge: true });
+                            });
+                            if (batchIndex === batchCount - 1) batch.set(db.collection('users').doc(uid), {
+                                activeTripId: appData.activeTripId,
+                                customUserName: appData.customUserName || '',
+                                theme: appData.theme || 'system',
+                                rates: appData.rates,
+                                categories: appData.categories,
+                                folders: appData.folders,
+                                tripLayout: appData.tripLayout,
+                                trash: appData.trash
+                            }, { merge: true });
+                            await batch.commit();
+                        }
+                    } catch (err) { console.warn('雲端同步備份失敗:', err); cloudRestoreSucceeded = false; }
                 }
+                resetTripFilters();
                 applyTheme(appData.theme || 'system');
                 updateUI();
                 renderSidebarContent();
-                showToast('備份資料已成功還原');
+                showToast(cloudRestoreSucceeded ? '備份資料已成功還原' : '備份已還原至本機，但雲端同步失敗', cloudRestoreSucceeded ? 'info' : 'error');
             } catch (err) {
                 console.error(err);
                 showToast('讀取備份檔案失敗', 'error');
             }
         });
 
-        document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add')); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit')); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
+        document.getElementById('itemCurrency').addEventListener('change', () => handleCurrencyDateChange('add', true)); document.getElementById('editExpCurrency').addEventListener('change', () => handleCurrencyDateChange('edit', true)); document.getElementById('itemDate').addEventListener('change', () => handleCurrencyDateChange('add', true)); document.getElementById('editExpDate').addEventListener('change', () => handleCurrencyDateChange('edit', true)); document.getElementById('itemAmount').addEventListener('input', () => updateTWDPreview('add')); document.getElementById('editExpAmount').addEventListener('input', () => updateTWDPreview('edit'));
         document.getElementById('btn-manage-currencies').addEventListener('click', () => { renderManageCurrencies(); openModal('manageCurrencyModal'); }); document.getElementById('btn-add-currency').addEventListener('click', addOrUpdateCurrency); document.getElementById('manageCurrencyList').addEventListener('click', handleCurrencyManagerAction); document.getElementById('btn-open-live-rate-lookup').addEventListener('click', () => openLiveRateLookup('manage')); document.getElementById('btn-fetch-live-rate').addEventListener('click', fetchLiveRateForDialog); document.getElementById('btn-apply-live-rate').addEventListener('click', applyLiveRateToApp);
         document.getElementById('btn-manage-categories').addEventListener('click', () => { renderManageCategories(); openModal('manageCategoryModal'); }); document.getElementById('btn-add-category').addEventListener('click', addManageCategory); document.getElementById('manageCategoryList').addEventListener('click', handleCategoryManagerAction);
         document.getElementById('btn-export-csv').addEventListener('click', () => exportToCSV('ALL'));
@@ -3050,14 +3297,14 @@
             setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, duration);
         }
 
-        function setFilter(cat) { currentFilter = cat; updateUI(); }
+        function setFilter(cat) { currentFilter = cat; updateUI({ renderCharts: false }); }
         function openModal(id) {
             document.getElementById(id).classList.add('open');
             if(id === 'addExpenseModal') {
                 const trip = appData?.trips?.find(t => t.id === appData.activeTripId);
                 document.getElementById('itemDate').value = clampDateToTrip(getLocalDateString(), trip);
                 renderQuickItemTags();
-                handleCurrencyDateChange('add');
+                handleCurrencyDateChange('add', true);
                 setTimeout(() => document.getElementById('itemName').focus(), 120);
             }
         }
@@ -3082,6 +3329,10 @@
             updateUI();
         });
         function applyTheme(theme) { if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light'); else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme'); document.getElementById('themeSelect').value = theme || 'system'; }
+        if (window.matchMedia) {
+            const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            systemThemeQuery.addEventListener?.('change', () => { if (appData?.theme === 'system') updateUI(); });
+        }
 
         document.getElementById('btn-login').onclick = () => {
             if (!auth || !googleProvider) return activateLocalFallbackMode('目前環境不支援 Google 彈窗，已為您啟用本機模式');
@@ -3164,30 +3415,40 @@
             const useDateRange = document.getElementById('modalTripUseDateRange').checked;
             const startDate = useDateRange ? document.getElementById('modalTripStartInput').value : '';
             const endDate = useDateRange ? document.getElementById('modalTripEndInput').value : '';
+            const budget = Number(document.getElementById('modalTripBudgetInput').value || 0);
             if (useDateRange && (!startDate || !endDate || startDate > endDate)) {
                 return showToast('請確認起始與結束日期範圍', 'error');
             }
+            if (!Number.isFinite(budget) || budget < 0) return showToast('預算必須是大於或等於 0 的有效金額', 'error');
+            const folderId = document.getElementById('modalTripFolderField').style.display !== 'none'
+                ? (document.getElementById('modalTripFolderSelect').value || null)
+                : (appData.folders.some(folder => folder.id === trip.folderId) ? trip.folderId : null);
             const settings = {
                 name,
-                folderId: document.getElementById('modalTripFolderField').style.display !== 'none'
-                    ? (document.getElementById('modalTripFolderSelect').value || null)
-                    : (appData.folders.some(folder => folder.id === trip.folderId) ? trip.folderId : null),
                 useDateRange,
                 startDate,
                 endDate,
-                budget: parseFloat(document.getElementById('modalTripBudgetInput').value) || 0,
+                budget,
                 showBudget: document.getElementById('tripShowBudget').checked,
                 showPayerSummary: document.getElementById('tripShowPayerSummary').checked,
                 showCategoryChart: document.getElementById('tripShowCategoryChart').checked
             };
             this.disabled = true;
             try {
-                Object.assign(trip, settings);
-                saveLocalBackup();
                 if (!isLocalFallbackMode && auth?.currentUser) {
-                    try { await db.collection('trips').doc(trip.id).set(settings, { merge: true }); } catch (e) { console.warn(e); }
+                    const nextTripLayout = { ...(appData.tripLayout || {}), [trip.id]: { folderId, order: Number(trip.order || 0) } };
+                    const batch = db.batch();
+                    batch.set(db.collection('trips').doc(trip.id), { ...settings, folderId: firebase.firestore.FieldValue.delete(), order: firebase.firestore.FieldValue.delete() }, { merge: true });
+                    batch.set(db.collection('users').doc(auth.currentUser.uid), { tripLayout: nextTripLayout }, { merge: true });
+                    await batch.commit();
                 }
+                Object.assign(trip, settings, { folderId });
+                appData.tripLayout = { ...(appData.tripLayout || {}), [trip.id]: { folderId, order: Number(trip.order || 0) } };
+                saveLocalBackup();
                 updateUI(); renderSidebarContent(); closeModal('tripSettingsModal'); showToast('設定已儲存');
+            } catch (error) {
+                console.warn('帳本設定儲存失敗:', error);
+                showToast('設定同步失敗，請確認網路後再試', 'error');
             } finally {
                 this.disabled = false;
             }
@@ -3327,15 +3588,20 @@
                 memberNames: { [uid]: memberName },
                 inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase()
             };
+            const nextTripLayout = { ...(appData?.tripLayout || {}), [trip.id]: { folderId: null, order: trip.order } };
+            if (!isLocalFallbackMode && auth?.currentUser) {
+                const { folderId: ignoredFolderId, order: ignoredOrder, ...sharedTripData } = trip;
+                const batch = db.batch();
+                batch.set(db.collection('trips').doc(trip.id), sharedTripData);
+                batch.set(db.collection('users').doc(uid), { activeTripId: trip.id, tripLayout: nextTripLayout }, { merge: true });
+                await batch.commit();
+            }
             if (appData) {
                 appData.trips = [...(appData.trips || []), trip];
                 appData.activeTripId = trip.id;
+                appData.tripLayout = nextTripLayout;
+                resetTripFilters();
                 saveLocalBackup();
-            }
-            if (!isLocalFallbackMode && auth?.currentUser) {
-                await db.collection('trips').doc(trip.id).set(trip);
-                await db.collection('users').doc(uid).set({ activeTripId: trip.id }, { merge: true });
-            } else {
                 updateUI();
                 renderSidebarContent();
             }
