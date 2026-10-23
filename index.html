@@ -938,7 +938,7 @@
         </div>
     </div>
     
-    <!-- 帳本設定 Modal（新增建立者專屬「共用成員名單」檢視與編輯功能） -->
+    <!-- 帳本設定 Modal（包含建立者專屬「共用成員名單」檢視與編輯功能） -->
     <div class="modal" id="tripSettingsModal">
         <div class="modal-content glass-panel">
             <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-gear" style="color:#ECA054;"></i> 帳本設定</h3>
@@ -1030,7 +1030,7 @@
 
     <div class="modal" id="trashModal"><div class="modal-content glass-panel" style="max-width:560px;"><h3 style="margin-bottom:12px; display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:#ECA054;"></i> 最近刪除 (保留 30 天)</h3><div id="trashList" style="max-height:55vh;overflow:auto;margin:12px 0 16px;"></div><button class="manage-btn w-100 close-btn" data-target="trashModal">關閉</button></div></div>
     
-    <!-- 帳本表格總覽 Modal（新增單獨分類篩選選單） -->
+    <!-- 帳本表格總覽 Modal（含單獨分類篩選選單） -->
     <div class="modal" id="summaryModal">
         <div class="modal-content glass-panel" style="max-width:760px;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
@@ -1175,6 +1175,13 @@
             return getTripOwnerId(trip) === currentUid();
         }
 
+        function isDarkThemeActive() {
+            const attr = document.documentElement.getAttribute('data-theme');
+            if (attr === 'dark') return true;
+            if (attr === 'light') return false;
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
         function saveLocalBackup() {
             if (!appData) return;
             try {
@@ -1208,9 +1215,11 @@
 
             const trip = appData.trips.find(t => t.id === appData.activeTripId);
             if (trip) {
+                const prevStoredName = trip.memberNames?.[uid] || '';
                 trip.memberNames = { ...(trip.memberNames || {}), [uid]: newName };
                 if (shouldSyncHistory && Array.isArray(trip.expenses)) {
-                    trip.expenses = trip.expenses.map(exp => exp.payer === oldName ? { ...exp, payer: newName } : exp);
+                    const matchSet = new Set([oldName, prevStoredName, '我'].filter(Boolean));
+                    trip.expenses = trip.expenses.map(exp => matchSet.has(exp.payer) ? { ...exp, payer: newName } : exp);
                 }
                 if (!isLocalFallbackMode && auth?.currentUser) {
                     try {
@@ -1678,7 +1687,7 @@
             select.value = desired;
         }
 
-        // ====== 建立者檢視與編輯共用者名單 ======
+        // ====== 建立者檢視與編輯共用者名單（修正歷史帳目稱呼同步） ======
         function renderTripMembersManageList(trip) {
             const sectionEl = document.getElementById('tripMembersManageSection');
             const listEl = document.getElementById('tripMembersManageList');
@@ -1717,7 +1726,7 @@
                     renameBtn.type = 'button';
                     renameBtn.className = 'manage-btn member-sm-btn';
                     renameBtn.innerHTML = '<i class="ph ph-pencil-simple"></i> 改名';
-                    renameBtn.addEventListener('click', () => editTripMemberName(trip, uid, mName));
+                    renameBtn.addEventListener('click', () => editTripMemberName(trip, uid, mName, index));
                     actionBox.appendChild(renameBtn);
 
                     if (!isThisOwner) {
@@ -1735,12 +1744,20 @@
             });
         }
 
-        async function editTripMemberName(trip, targetUid, oldName) {
+        async function editTripMemberName(trip, targetUid, oldName, index = 0) {
             if (!isCurrentUserTripOwner(trip)) return showToast('僅帳本建立者可編輯成員名單', 'error');
             const input = prompt(`請輸入成員「${oldName}」在此帳本的顯示名稱：`, oldName);
             if (input === null) return;
             const newName = input.trim();
             if (!newName || newName === oldName) return;
+
+            const prevStored = trip.memberNames?.[targetUid] || '';
+            const fallbackLabel = '旅伴 ' + (index + 1);
+            const matchNames = new Set([oldName, prevStored, fallbackLabel].filter(Boolean));
+            if (targetUid === currentUid()) {
+                matchNames.add('我');
+                matchNames.add(currentPayerName());
+            }
 
             trip.memberNames = { ...(trip.memberNames || {}), [targetUid]: newName };
             if (targetUid === currentUid()) {
@@ -1749,7 +1766,7 @@
                 updateNicknameDisplay();
             }
             if (Array.isArray(trip.expenses)) {
-                trip.expenses = trip.expenses.map(exp => exp.payer === oldName ? { ...exp, payer: newName } : exp);
+                trip.expenses = trip.expenses.map(exp => matchNames.has(exp.payer) ? { ...exp, payer: newName } : exp);
             }
             saveLocalBackup();
             if (!isLocalFallbackMode && auth?.currentUser) {
@@ -1964,6 +1981,7 @@
             renderChart(trip, totalTWD); renderCrossTripChart();
         }
 
+        // ====== 圓餅圖（動態適應淺色/深色模式切線邊框） ======
         function renderChart(trip, grandTotal) {
             const chartCard = document.getElementById('chartCard');
             if (trip.showCategoryChart === false || typeof Chart === 'undefined') {
@@ -1975,7 +1993,7 @@
             if (categoryNames.length === 0) { if (expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null; } chartCard.style.display = 'none'; return; }
             chartCard.style.display = ''; if (expenseChartInstance) expenseChartInstance.destroy();
             const colors = ['rgba(160, 216, 239, 0.88)', 'rgba(251, 201, 218, 0.88)', 'rgba(236, 160, 84, 0.85)', 'rgba(168, 216, 185, 0.85)', 'rgba(197, 180, 227, 0.85)', 'rgba(242, 211, 153, 0.85)', 'rgba(144, 190, 209, 0.85)', 'rgba(232, 172, 168, 0.85)'];
-            const chartBorder = '#FAF6EE';
+            const chartBorder = isDarkThemeActive() ? '#222428' : '#FAF6EE';
             expenseChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: categoryNames, datasets: [{ data: Object.values(categories), backgroundColor: categoryNames.map((_, index) => colors[index % colors.length]), borderColor: chartBorder, borderWidth: 3, hoverOffset: 6 }] }, options: { responsive: true, plugins: { legend: { display: false } }, cutout: '72%' } });
             const legend = document.getElementById('customChartLegend');
             legend.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;justify-content:center;">' +
@@ -1985,6 +2003,7 @@
                 }).join('') + '</div>';
         }
 
+        // ====== 跨帳本／月份長條圖（動態適應淺色/深色模式座標文字顏色） ======
         function renderCrossTripChart() {
             if (!appData || !Array.isArray(appData.trips) || typeof Chart === 'undefined') return;
             const mode = document.getElementById('crossChartMode').value;
@@ -2002,7 +2021,7 @@
             }
 
             if (crossTripChartInstance) crossTripChartInstance.destroy();
-            const textColor = '#3A3A3B';
+            const textColor = isDarkThemeActive() ? '#E6E4E0' : '#3A3A3B';
             const barPalette = ['rgba(160, 216, 239, 0.85)', 'rgba(251, 201, 218, 0.85)', 'rgba(236, 160, 84, 0.82)', 'rgba(168, 216, 185, 0.82)'];
 
             if (labels.length === 0) { summaryEl.innerHTML = '<div class="cross-stat-box" style="grid-column: 1 / -1; text-align:center; color:var(--theme-text-muted);">尚無跨帳本消費數據</div>'; return; }
@@ -2308,9 +2327,15 @@
             try { const snapshot = await db.collection('trips').where('inviteCode', '==', code).limit(1).get(); if (snapshot.empty) return showToast('找不到此邀請碼', 'error'); const tripDoc = snapshot.docs[0]; const trip = tripDoc.data(); if ((trip.members || []).includes(auth.currentUser.uid)) return showToast('你已經是此帳本的成員'); const joinedUid = auth.currentUser.uid; const memberNames = { ...(trip.memberNames || {}), [joinedUid]: currentPayerName() }; await tripDoc.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(joinedUid), memberNames }); const joinedTrip = { ...trip, id: trip.id || tripDoc.id, members: [...(trip.members || []), joinedUid], memberNames }; await db.collection('users').doc(auth.currentUser.uid).set({ activeTripId: joinedTrip.id }, { merge: true }); appData.trips = [...appData.trips.filter(item => item.id !== joinedTrip.id), joinedTrip]; appData.activeTripId = joinedTrip.id; codeInput.value = ''; updateUI(); renderSidebarContent(); closeModal('addTripModal'); toggleSidebar(false); showToast('已加入共用帳本'); } catch (error) { console.error(error); showToast('加入失敗，請確認邀請碼及權限', 'error'); }
         }
 
-        // ====== 安全數學算式解析器 ======
+        // ====== 安全數學算式解析器（支援全形運算符與千分位逗號轉換） ======
         function parseAmount(input) {
-            let expr = String(input ?? '').replace(/\s+/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+            let expr = String(input ?? '')
+                .replace(/，|,/g, '')
+                .replace(/＋/g, '+').replace(/－|—|–|−/g, '-')
+                .replace(/＊|×|✕/g, '*').replace(/／|÷/g, '/')
+                .replace(/（/g, '(').replace(/）/g, ')')
+                .replace(/。/g, '.')
+                .replace(/\s+/g, '');
             expr = expr.replace(/[^0-9.+\-*/()]/g, '');
             expr = expr.replace(/([+\-*/]){2,}/g, '$1').replace(/^[*/]+/, '').replace(/[+\-*/]+$/, '');
             if (!expr) return NaN;
@@ -2447,6 +2472,7 @@
             } catch (error) { console.error(error); showToast('寫入失敗，請稍後再試', 'error'); } finally { isSubmitting = false; this.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> 新增紀錄'; this.disabled = false; }
         };
 
+        // ====== 開啟編輯視窗（修正：保留記帳時匯率，不強制重抓網路匯率覆蓋） ======
         function openEditExpenseModal(id) {
             const trip = appData.trips.find(t => t.id === appData.activeTripId);
             const exp = trip.expenses.find(e => e.id === id);
@@ -2468,10 +2494,10 @@
 
             currentFetchedEditRate = Number(exp.rate) || Number(appData.rates[exp.currency]) || 1;
             previousCurrency.edit = exp.currency || 'TWD';
-            rateMeta.edit = exp.currency === 'TWD' ? '' : '記帳時匯率';
+            rateLoading.edit = false;
+            rateMeta.edit = exp.currency === 'TWD' ? '' : `記帳匯率 ${currentFetchedEditRate}`;
             updateTWDPreview('edit');
             openModal('editExpenseModal');
-            handleCurrencyDateChange('edit');
         }
 
         // 複製此筆消費至今日
@@ -2606,13 +2632,51 @@
             for (const url of urls) { const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 8000); try { const response = await fetch(url, { signal: controller.signal, cache: 'no-store' }); if (!response.ok) throw new Error('匯率服務回應 ' + response.status); const data = await response.json(); const rate = Number(data?.[code]?.twd); if (!Number.isFinite(rate) || rate <= 0) throw new Error('查無此幣別的台幣匯率'); const result = { rate, date: data.date || date }; dailyRateCache.set(cacheKey, result); return result; } catch (error) { lastError = error; } finally { clearTimeout(timeout); } } throw lastError || new Error('匯率服務暫時無法使用');
         }
 
+        // ====== 匯率變動處理（優先尊重「管理自訂幣別與匯率」中已設定的匯率） ======
         async function handleCurrencyDateChange(mode) {
-            const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency'); const date = document.getElementById(mode === 'add' ? 'itemDate' : 'editExpDate').value || getLocalDateString(); const currency = select.value;
-            if (currency === 'ONLINE_LOOKUP') { select.value = previousCurrency[mode] || 'TWD'; openLiveRateLookup(mode); return; }
-            previousCurrency[mode] = currency; const requestId = ++rateRequestIds[mode];
-            if (currency === 'TWD') { rateLoading[mode] = false; setCurrentRateFor(mode, 1); rateMeta[mode] = ''; updateTWDPreview(mode); return; }
-            const savedRate = Number(appData?.rates?.[currency]) || 1; rateLoading[mode] = true; setCurrentRateFor(mode, savedRate); rateMeta[mode] = '更新當日匯率中…'; updateTWDPreview(mode);
-            try { const result = await getDailyTwdRate(currency, date); if (requestId !== rateRequestIds[mode] || select.value !== currency) return; rateLoading[mode] = false; setCurrentRateFor(mode, result.rate); rateMeta[mode] = '匯率日期 ' + result.date; } catch (error) { if (requestId !== rateRequestIds[mode] || select.value !== currency) return; rateLoading[mode] = false; setCurrentRateFor(mode, savedRate); rateMeta[mode] = appData?.rates?.[currency] ? '使用已儲存匯率' : '無可用匯率'; console.warn(error); } updateTWDPreview(mode);
+            const select = document.getElementById(mode === 'add' ? 'itemCurrency' : 'editExpCurrency');
+            const date = document.getElementById(mode === 'add' ? 'itemDate' : 'editExpDate').value || getLocalDateString();
+            const currency = select.value;
+            if (currency === 'ONLINE_LOOKUP') {
+                select.value = previousCurrency[mode] || 'TWD';
+                openLiveRateLookup(mode);
+                return;
+            }
+            previousCurrency[mode] = currency;
+            const requestId = ++rateRequestIds[mode];
+            if (currency === 'TWD') {
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, 1);
+                rateMeta[mode] = '';
+                updateTWDPreview(mode);
+                return;
+            }
+            const savedRate = Number(appData?.rates?.[currency]);
+            if (Number.isFinite(savedRate) && savedRate > 0) {
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, savedRate);
+                rateMeta[mode] = `設定匯率 ${savedRate}`;
+                updateTWDPreview(mode);
+                return;
+            }
+            rateLoading[mode] = true;
+            setCurrentRateFor(mode, 1);
+            rateMeta[mode] = '查詢當日匯率中…';
+            updateTWDPreview(mode);
+            try {
+                const result = await getDailyTwdRate(currency, date);
+                if (requestId !== rateRequestIds[mode] || select.value !== currency) return;
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, result.rate);
+                rateMeta[mode] = '匯率日期 ' + result.date;
+            } catch (error) {
+                if (requestId !== rateRequestIds[mode] || select.value !== currency) return;
+                rateLoading[mode] = false;
+                setCurrentRateFor(mode, 1);
+                rateMeta[mode] = '無可用匯率';
+                console.warn(error);
+            }
+            updateTWDPreview(mode);
         }
 
         function openLiveRateLookup(target = 'manage') { currentLookupTarget = target; currentLookupRate = null; const codeInput = document.getElementById('liveRateCurrencyCode'); codeInput.value = ''; document.getElementById('liveRateStatus').textContent = ''; document.getElementById('btn-apply-live-rate').disabled = true; openModal('liveRateModal'); codeInput.focus(); }
@@ -2893,7 +2957,12 @@
                 if (tab === 'stats') renderCrossTripChart();
             }
         });
-        document.getElementById('themeSelect').addEventListener('change', function() { appData.theme = this.value; saveUserDoc({ theme: this.value }); applyTheme(this.value); });
+        document.getElementById('themeSelect').addEventListener('change', function() {
+            appData.theme = this.value;
+            saveUserDoc({ theme: this.value });
+            applyTheme(this.value);
+            updateUI();
+        });
         function applyTheme(theme) { if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light'); else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme'); document.getElementById('themeSelect').value = theme || 'system'; }
 
         document.getElementById('btn-login').onclick = () => {
@@ -3010,7 +3079,6 @@
             const total = expenses.reduce((sum, expense) => sum + getTwd(expense), 0);
             document.getElementById('summaryTripName').textContent = `${trip.name || ''}（共 ${expenses.length} 筆）`;
 
-            // 欄位數：日期、項目、分類、(選配：付款人)、原幣金額、台幣金額
             const colCountBeforeTotal = showPayer ? 5 : 4;
             const totalCols = colCountBeforeTotal + 1;
 
